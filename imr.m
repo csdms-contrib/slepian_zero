@@ -42,6 +42,7 @@ function [M,I,IMR2,Rs,x]=imr(rhor,r,meth)
 % [M,I,IMR2]=imr(linspace(rhomax,rhomin,N),linspace(0,Rs,N+1),1)
 % [M,I,IMR2]=imr([-rhomax rhomax],Rs,3)
 %
+% Last tested on MATLAB Version: 8.3.0.532 (R2014a)
 % Last modified by fjsimons-at-alum.mit.edu, 11/11/2016
 
 % Make inputs into column vectors, sorted from small to planetary radius
