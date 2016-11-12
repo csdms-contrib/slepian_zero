@@ -59,6 +59,22 @@ Rs=r(end);
 
 % Moment of inertia (I),  mass (M) and reduced moment (IMR2)
 switch meth
+ case 3
+  % Now the rhor are expansion coefficients, not actually densities
+  % The mass is a ZEROTH moment of the density distribution
+  M=    wmoment(rhor,Rs,0);
+  % The moment of INERTIA is a second moment of the density distribution
+  I=2/3*wmoment(rhor,Rs,2);
+ case 2
+  % Piecewise constant using an internally defined function
+  % The mass is a ZEROTH moment of the density distribution
+  M=    pmoment(rhor,r,0);
+  % The moment of INERTIA is a second moment of the density distribution
+  I=2/3*pmoment(rhor,r,2);
+ case 1
+  % Piecewise constant without a "for" loop
+  I=2/3*Rs^5/5*4*pi*rhor'*diff([r/Rs].^5);
+  M=    Rs^3/3*4*pi*rhor'*diff([r/Rs].^3);
  case 0
   % Piecewise constant via a "for" loop
    I=0; M=0;
@@ -66,20 +82,6 @@ switch meth
      I=I+8/15*Rs^5*pi*rhor(index)*[(r(index+1)/Rs)^5-(r(index)/Rs)^5];
      M=M+ 4/3*Rs^3*pi*rhor(index)*[(r(index+1)/Rs)^3-(r(index)/Rs)^3];
    end
- case 1
-  % Piecewise constant without a "for" loop
-  I=2/3*Rs^5/5*4*pi*rhor'*diff([r/Rs].^5);
-  M=    Rs^3/3*4*pi*rhor'*diff([r/Rs].^3);
- case 2
-  % Piecewise constant using an internal moment function
-  % The mass is a ZEROTH moment of the density distribution
-  M=    pmoment(rhor,r,0);
-  % The moment of INERTIA is a second moment of the density distribution
-  I=2/3*pmoment(rhor,r,2);
- case 3
-  % Now the rhor are expansion coefficients, not actually densities
-  M=    wmoment(rhor,Rs,0);
-  I=2/3*wmoment(rhor,Rs,2);
 end
 
 % Report the reduced moment also
