@@ -54,8 +54,6 @@ if length(r)>1
   if ir(1)>ir(end); rhor=flipud(rhor); end
 end
  
-x=NaN;
- 
 % Radius of the entire planet
 Rs=r(end);
 
@@ -86,6 +84,9 @@ end
 
 % Report the reduced moment also
 IMR2=I/M/Rs^2;
+
+% If we cannot do the next checks
+x=NaN;
 
 % Basic check for homogeneous model
 if length(rhor)==1 && length(r)==2-(meth==3)
