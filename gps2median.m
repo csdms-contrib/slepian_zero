@@ -1,34 +1,40 @@
-function varargout=gps2med(fname,intvm,method,ifwrite,offsetm)
-% [tims,meds,tor,mor]=GPS2MED(fname,intvm,method,ifwrite,offsetm)
+function varargout=gps2median(fname,intvm,method,ifwrite,offsetm,utmtrue)
+% [tims,meds,tor,mor]=GPS2MEDIAN(fname,intvm,method,ifwrite,offsetm,utmtrue)
 %
-% Converts a certain GPS position time data file, formatted as
-% 40.345266,-74.655144,2015/11/25,00:54:01
-% into a new file that reports medians of the ACCURACY
+% Converts an ASCII file with GPS position and times into another ASCII
+% file that reports medians of the accuracy, defined as the mean
+% squared deviation, with respect to a location known in true UTM.
+% 
+% DATA FILE FORMAT IN DECIMAL DEGREES LATITUDE AND LONGITUDE:
+%
+% ladecimal,+lodecimal,year/mo/dy,hh:mm:ss,
+% 40.345266,-74.655144,2015/11/25,00:54:01, i.e.
 %
 % INPUT:
 %
-% fname    Complete path and filename string [default: HargravsGPS_60cx]
-% intvm    Desired reporting interval (in MINUTES)
-% method   1 Exact mapping to incremented intervals (slow!)
+% fname    Complete path and filename string [default: 'HargravsGPS_60cx']
+% intvm    Desired reporting interval (in minutes) [default: 1]
+% method   1 Exact mapping to incremented intervals (slow!) [default]
 %          2 Interpolation and sequential intervals (fast!)
-% ifwrite  1 Writes a new file with these data in DATENUM format
-%          0 Doesn't 
-% offsetm  At which minute in the data set do we begin?
+% ifwrite  1 Writes another ASCII file with these data in DATENUM format
+%          0 Does not write a new file [default]
+% offsetm  At which minute in the data set do we begin [default: 0]
+% utmtrue  True UTM easting and northing of the site whose accuracy we verify
 %
 % OUTPUT:
 %
 % tims     The midpoint times of the intervals [in DATENUM]
 %          compared to the first (potentially offset) sample
-% meds     The median ACCURACY values over those intervals
+% meds     The median accuracy values over those intervals
 % tor      The original time axis (with respect to offsetm)
 % mor      The original accuracy values (with respect to offsetm)
-%
+% 
 % Last modified by fjsimons-at-alum.mit.edu, 02/11/2017
 
 % This is very specifically, for Hargraves Hall, on Princeton Campus
 % Suply the true location in UTM of the same zone
-utme= 529286.6939;
-utmn=4466132.8936;
+defval('utme', 529286.6939);
+defval('utmn',4466132.8936);
 
 % Daylight Saving Time ends in North America at this local time
 dstend=datenum(2015,11,1,2,0,0);
@@ -37,7 +43,7 @@ dstend=datenum(2015,11,1,2,0,0);
 defval('fname','HargravesGPS_60cx')
 defval('intvm',1)
 defval('method',1)
-defval('ifwrite',1)
+defval('ifwrite',0)
 defval('offsetm',0)
 
 % Load the data, open the file first
@@ -46,12 +52,15 @@ fid=fopen(fname);
 % This creates a cell array with one cell per each column of the file 
 h=textscan(fid,'%f %f %s %s','Delimiter',',');
 
-% The actual GPS readings, converted from decimal degrees to  UTM coordinates
+% The actual GPS readings, converted from decimal degrees to UTM coordinates
 [gpse,gpsn,utmz]=deg2utm(h{1},h{2});
-% Calculate accuracy in UTM coordinates; this now is the primary variable
+
+% Calculate ACCURACY in UTM coordinates; this now is the primary variable
 gpsa=sqrt([gpse-utme].^2+[gpsn-utmn].^2);
+
 % Convert the time into DATENUM format and order chronologically
 gpst=flipud(datenum(strcat(h{3},h{4}),'yyyy/mm/ddHH:MM:SS'));
+
 % Turn into GMT as the weather station respected DST
 % Check out this condition, which depends on the sampling rate and the
 % precision of the representation of DATENUM and DATESTR, which isn't great
@@ -61,12 +70,13 @@ gpst(1:cond)=gpst(1:cond)-datenum(0,0,0,1,0,0);
 disp(sprintf('First date %s and last date %s',datestr(gpst(1)),datestr(gpst(end))))
 % You must reference to the first sample (thus zero) for subdivision
 gpst=[gpst-gpst(1,1)];
+
 % Close the data file
 fclose(fid);
 
-% Define where the beginining of the data set is as a fraction of a DAY
+% Define where the beginining of the data set is as a fraction of a day
 beg=offsetm/24/60;
-% Define the length interval of interest as a fraction of a DAY
+% Define the length interval of interest as a fraction of a day
 intv=intvm/24/60;
 % How many times will this interval - potentially - be repeated?
 ntms=ceil([max(gpst)-beg]/intv);
