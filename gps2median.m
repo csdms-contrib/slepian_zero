@@ -13,9 +13,9 @@ function varargout=gps2median(fname,intvm,method,ifwrite,offsetm,utmtrue)
 % INPUT:
 %
 % fname    Complete path and filename string [default: 'HargravsGPS_60cx']
-% intvm    Desired reporting interval (in minutes) [default: 1]
-% method   1 Exact mapping to incremented intervals (slow!) [default]
-%          2 Interpolation and sequential intervals (fast!)
+% intvm    Desired reporting interval (in minutes) [default: 5]
+% method   1 Exact mapping by binning to intervals (exact, slow!) [default]
+%          2 Interpolated to sequential intervals (approximate, fast!)
 % ifwrite  1 Writes another ASCII file with these data in DATENUM format
 %          0 Does not write a new file [default]
 % offsetm  At which minute in the data set do we begin [default: 0]
@@ -23,11 +23,20 @@ function varargout=gps2median(fname,intvm,method,ifwrite,offsetm,utmtrue)
 %
 % OUTPUT:
 %
-% tims     The midpoint times of the intervals [in DATENUM]
+% tims     The midpoint times of the intervals [in DATENUM format]
 %          compared to the first (potentially offset) sample
+%          -> For method 1, inherits non-equal time increments from the data
+%          -> For method 2, forces equal time increments except for large gaps
 % meds     The median accuracy values over those intervals
+%          -> For method 1, will get a long vector, potentially with NaNs
+%          -> For method 2, will get a short vector, without any Nans
 % tor      The original time axis (with respect to offsetm)
 % mor      The original accuracy values (with respect to offsetm)
+%
+% EXAMPLE:
+%
+% [times1,meds1]=gps2median([],[],1);
+% [times2,meds2]=gps2median([],[],2);
 % 
 % Last modified by fjsimons-at-alum.mit.edu, 02/11/2017
 
@@ -41,11 +50,12 @@ dstend=datenum(2015,11,1,2,0,0);
 
 % Default filename, interval, method, write-flag and offset
 defval('fname','HargravesGPS_60cx')
-defval('intvm',1)
+defval('intvm',5)
 defval('method',1)
 defval('ifwrite',0)
 defval('offsetm',0)
 
+% BEGIN READING AND INTERPRETING OF THE DATA FILE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Load the data, open the file first
 fid=fopen(fname);
 
@@ -61,6 +71,12 @@ gpsa=sqrt([gpse-utme].^2+[gpsn-utmn].^2);
 % Convert the time into DATENUM format and order chronologically
 gpst=flipud(datenum(strcat(h{3},h{4}),'yyyy/mm/ddHH:MM:SS'));
 
+% Might not be the end of the world, but should look into it!
+if length(gpst)~=length(unique(gpst))
+  % They could have been poorly sorted, and thus escaped sort | uniq detection
+  warning('Duplicate times detected');
+end
+
 % Turn into GMT as the weather station respected DST
 % Check out this condition, which depends on the sampling rate and the
 % precision of the representation of DATENUM and DATESTR, which isn't great
@@ -73,7 +89,9 @@ gpst=[gpst-gpst(1,1)];
 
 % Close the data file
 fclose(fid);
+% END READING AND INTERPRETING OF THE DATA FILE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% BEGIN MEDIAN MAPPING OF THE DATA %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Define where the beginining of the data set is as a fraction of a day
 beg=offsetm/24/60;
 % Define the length interval of interest as a fraction of a day
@@ -98,14 +116,15 @@ switch method
   more off
   tic
   ent=beg+intv;
-  
+
+  % Go through the time intervals
   for index=1:ntms
     % Report in minutes but only every so often
     if mod(index-1,ntms/10)==0
       disp(sprintf('Working between minutes %5.5i and %5.5i',...
 		   floor(beg*60*24),ceil(ent*60*24)))
     end
-    % Use nanmedian in case there are nans in the data vector
+    % Use NANMEDIAN in case there are NaNs in the data vector
     meds(index)=nanmedian(gpsa(gpst>=beg & gpst<ent));
     % Update the beginning and the end
     beg=ent;
@@ -119,14 +138,18 @@ switch method
   % METHOD 2
   % There has to be a quicker way!
   tic
-  % Interpolate the data to the median sampling intervals
+  % Figure out the median sampling intervals
   newdt=median(diff(gpst));
 
   % Report in seconds if you must
   disp(sprintf('The median sampling interval in seconds is %f',...
 	       newdt*60*60*24))
   % Snap every value to the nearest increment of newdt seconds, this is better for data drops 
-  newt=floor(gpst/newdt)*newdt;
+  newt=round(gpst/newdt)*newdt;
+  
+  % Could consider reporting norm([gpst-newt]) to get a feel for the interpolation
+  
+  % Interpolate the data to the median sampling intervals
   gpsai=interp1(gpst,gpsa,newt);
 
   % Rearrange them by sets of intv at a time, or nearly so, almost all
@@ -136,15 +159,16 @@ switch method
 	       multp))
   % This is roughly how many of those will find into the vector that you have
   multc=floor(length(gpsai)/multp);
-  % No need for initialization!
-  meds=nanmedian(reshape(gpsai(1:multp*multc),multp,multc));
-  % But... there's a couple you might have missed, so add their median
+  % Could have saved us the initialization. Compute the medians
+  meds=nanmedian(reshape(gpsai(1:multp*multc),multp,multc),1);
+  % But... there's a couple you might have missed, so add their medians also
   meds=[meds nanmedian(gpsai(multp*multc+1:end))];
   toc
   % From this you can learn at which time "meds" should be quoted
   tims=newt([round(multp/2):multp:multp*multc ...
            multp*multc+round([length(gpsai)-multp*multc]/2)])';
 end
+% END MEDIAN MAPPING OF THE DATA %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Output to a new file
 if ifwrite==1
