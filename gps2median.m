@@ -8,7 +8,7 @@ function varargout=gps2median(fname,intvm,method,ifwrite,offsetm,utmtrue)
 % DATA FILE FORMAT IN DECIMAL DEGREES LATITUDE AND LONGITUDE:
 %
 % ladecimal,+lodecimal,year/mo/dy,hh:mm:ss,
-% 40.345266,-74.655144,2015/11/25,00:54:01, i.e.
+% 40.345266,-74.655144,2015/11/25,00:54:01
 %
 % INPUT:
 %
