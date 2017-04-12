@@ -111,7 +111,7 @@ gpst=gpst(gpst>=beg);
 % Now do the actual calculation
 switch method 
  case 1
-  %% METHOD 1
+  %% METHOD 1 
   % The way of the "for" loop - you will see that this is very slow
   more off
   tic
