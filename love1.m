@@ -1,8 +1,7 @@
 function love1
 % LOVE1
 %
-% Makes dispersion diagram for layer over halfspace Love waves.
-%
+% Makes dispersion diagrams for layer-over-a-halfspace Love waves.
 %
 % Last modified by fjsimons-at-alum.mit.edu, 04/11/2017
 

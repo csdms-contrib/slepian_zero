@@ -1,13 +1,12 @@
 function love2
 % LOVE2
 % 
-% Plots Love-wave particle motion maximum absolute displacement over an
-% entire period; particle motion for amplitude coefficient A=1.
+% Plots layer-over-a-halfspace Love-wave particle motion maximum; absolute
+% displacement over an entire period; for amplitude coefficient A=1.
 %
 % Last modified by fjsimons-at-alum.mit.edu, 04/11/2017
 
 % Default values for input to LOVEWAVE
-
 % Shear-wave speed in the layer [m/s]
 defval('beta1',3800)
 % Shear-wave speed in the halfspace [m/s]
