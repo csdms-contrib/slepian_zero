@@ -112,7 +112,7 @@ gpst=gpst(gpst>=beg);
 switch method 
  case 1
   %% METHOD 1
-  % The way of the "for" loop - you will see that this is very slow
+  % The way of the "for" loop - this is very slow
   more off
   tic
   ent=beg+intv;
