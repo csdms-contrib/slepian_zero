@@ -15,13 +15,12 @@ function d=point3line(x1,x2,y1,y2,z1,z2,x0,y0,z0)
 % http://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
 %
 % EXAMPLE:
-%
 % 
 % x1=1; x2=2; y1=3; y2=4; z1=3; z2 =3 ; x0= 2; y0=3.5; z0=3; 
 % point2line(x1,x2, y1,y2,        x0,y0)
 % point3line(x1,x2, y1,y2, z1,z2, x0,y0,z0)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 07/6/2017
+% Last modified by fjsimons-at-alum.mit.edu, 07/26/2017
 
 % Rename the points to vector coordinates
 bx0=[x0 y0 z0]; N=size(bx0,1);
