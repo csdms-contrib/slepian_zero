@@ -21,7 +21,7 @@ function d=point3line(x1,x2,y1,y2,z1,z2,x0,y0,z0)
 % point2line(x1,x2, y1,y2,        x0,y0)
 % point3line(x1,x2, y1,y2, z1,z2, x0,y0,z0)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 07/20/2017
+% Last modified by fjsimons-at-alum.mit.edu, 07/6/2017
 
 % Rename the points to vector coordinates
 bx0=[x0 y0 z0]; N=size(bx0,1);
@@ -33,7 +33,7 @@ d=nan(N,1);
 
 % The distance, will vectorize properly, later
 for index=1:N
-    d(index)=norm(...
-                  cross(bx0(index,:)-bx1,bx0(index,:)-bx2))...
-                  ./norm(bx2-bx1);
+  d(index)=norm(...
+      cross(bx0(index,:)-bx1,bx0(index,:)-bx2))...
+	   ./norm(bx2-bx1);
 end
