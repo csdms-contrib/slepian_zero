@@ -1,4 +1,4 @@
-function [timstamp,parsdata]=nwis(code,params,begd,endd)
+function [timstamp,parsdata]=nwis(code,param,begd,endd)
 % [timstamp,parsdata]=NWIS(code,param,begd,endd)
 %
 % Downloads water (streamflow etc) data from USGS, through the
