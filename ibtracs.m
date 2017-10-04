@@ -1,7 +1,7 @@
 function [lon,lat]=ibtracs(code)
 % [lon,lat]=IBTRACS(code)
 %
-% Downloads hurricane track data 
+% Downloads hurricane (track etc) data from NOAA
 %
 % INPUT:
 %
@@ -25,7 +25,7 @@ extensionn='.ibtracs.v03r04.nc';
 % This will also be our local filename
 filename=sprintf('%s%s',code,extensionn);
 
-% Tried WEBSAVE, tried MGET, neither worked
+% Neither WEBSAVE nor MGET work; CURL could substitute
 if exist(filename,'file')~=2
   system(sprintf('wget %s',fullfile(servername,directoryn,filename)));
 end
