@@ -16,7 +16,7 @@ function [lon,lat]=ibtracs(code)
 %
 % lonlat=ibtracs('1984025S14073');
 %
-% Last modified by fjsimons-at-alum.mit.edu, 09/29/2017
+% Last modified by fjsimons-at-alum.mit.edu, 10/02/2017
 
 % Specify where to get it
 servername='ftp://eclipse.ncdc.noaa.gov';
