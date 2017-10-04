@@ -28,15 +28,15 @@ function [timstamp,parsdata]=nwis(code,param,begd,endd)
 servername='https://nwis.waterdata.usgs.gov';
 directoryn='nwis/dv?';
 % Concatenate these later, for multiple codes and parameters
-sites=sprintf('site_no=%s',        code)
+sites=sprintf('site_no=%s',        code);
 parms=sprintf('cb_%s=on',          param);
 begds=sprintf('begin_date=%s',     begd);
 endds=sprintf('end_date=%s',       endd);
 % Ignore or fix these for now
 perd=[]; mode='sw'; form='rdb';
 perss=sprintf('period=%i',         []);
-modds=sprintf('referred_module=%s',mode)
-forms=sprintf('format=%s',         form)
+modds=sprintf('referred_module=%s',mode);
+forms=sprintf('format=%s',         form);
 
 % Put the query together
 qname=strcat(fullfile(servername,directoryn),...
@@ -48,6 +48,7 @@ fname=strcat(sprintf('%s_%s_%s_%s_%s_%s.%s',...
 
 % Get the data off the web to the local filename
 if exist(fname,'file')~=2
+  disp(sprintf('Contacting the server %s',servername))
   websave(fname,qname)
 end
 
@@ -69,5 +70,3 @@ fclose(fid);
 % And now you extract what you think is useful
 timstamp=datenum(thedata{3});
 parsdata=thedata{4};
-
-
