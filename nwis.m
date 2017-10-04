@@ -47,7 +47,7 @@ fname=strcat(sprintf('%s_%s_%s_%s_%s_%s.%s',...
 		     param,code,mode,perd,begd,endd,form));
 
 % Get the data off the web to the local filename
-if exist(filename,'file')~=2
+if exist(fname,'file')~=2
   websave(fname,qname)
 end
 
