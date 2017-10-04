@@ -5,7 +5,7 @@ function [timstamp,parsdata]=nwis(code,params,begd,endd)
 % intermediary of the RDB format.
 %
 % INPUT:
-%
+% 
 % code      A station code string, e.g. '01401000' for the site
 %           which is "Stony Brook at Princeton NJ"
 % param     A parameter string, currently supported is:
