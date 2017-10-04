@@ -1,5 +1,5 @@
 function [timstamp,parsdata]=nwis(code,params,begd,endd)
-% [timstamp,parsdata]=nwis(code,param,begd,endd)
+% [timstamp,parsdata]=NWIS(code,param,begd,endd)
 %
 % Downloads water (streamflow etc) data from USGS, through the
 % intermediary of the RDB format.
