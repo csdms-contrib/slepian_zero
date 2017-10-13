@@ -6,7 +6,7 @@ function [d,dvv,dvvv,dv]=pointdist(x1,y1,p1,x2,y2,p2)
 % and (x2,y2) are neither needed nor used, the supplied points (x1,y1) would
 % fall on a line p1=[slope, intercept], and the given line p2 would contain
 % points (x2,y2) (e.g., through POLYVAL). The input slots for those unused
-% variables are present for symmetry (e.g., when called by LINEDIST),
+% variables are present for symmetry (e.g., when called by LINEDIST), 
 % and for some internal numbers checking, now since deemed unnecessary.
 % 
 % INPUT:
