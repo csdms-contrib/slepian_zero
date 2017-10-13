@@ -1,7 +1,7 @@
 function [d,dvv]=linedist(x1,y1,p1,x2,y2,p2)
 % [d,dv,dvv]=LINEDIST(x1,y1,p1,x2,y2,p1)
 %
-% Given two sets of coordinates that each define a perfect line in the
+% Given two sets of coordinates that each define a PERFECT line in the
 % plane, as, e.g. determined by LINESHIFT, determines the distance between
 % the two lines, which needn't be parallel, as the MEDIAN of the
 % perpendicular distances of all the points in one of the lines with respect
@@ -21,7 +21,7 @@ function [d,dvv]=linedist(x1,y1,p1,x2,y2,p2)
 %
 % CURVEDIST, POINTDIST, POINT2LINE, POINT3LINE, LINESHIFT
 %
-% Last modified by fjsimons-at-alum.mit.edu, 07/20/2017
+% Last modified by fjsimons-at-alum.mit.edu, 10/12/2017
 
 % Straighten out input
 x1=x1(:); y1=y1(:);
