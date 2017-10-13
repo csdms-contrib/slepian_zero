@@ -1,12 +1,13 @@
 function [d,dvv,dvvv,dv]=pointdist(x1,y1,p1,x2,y2,p2)
 % [d,dvv,dvvv,dv]=POINTDIST(x1,y1,p1,x2,y2,p2)
 %
-% Distance of a set of POINTS given as planar coordinates (x1,y1) 
-% to a LINE given as p2=[slope, intercept] perhaps using POLYFIT.
-% While those inputs are neither needed nor used, the points (x1,y1) 
-% would fall on a line p1, and the line p2 would contain points (x2,y2),
-% perhaps using POLYVAL. The input slots for the unused variable
-% formulations are present for symmetry when called by LINEDIST.
+% Distance of a set of POINTS given as planar coordinates (x1,y1) to a LINE
+% given as p2=[slope, intercept] (e.g., from POLYFIT). While the inputs p1
+% and (x2,y2) are neither needed nor used, the supplied points (x1,y1) would
+% fall on a line p1=[slope, intercept], and the given line p2 would contain
+% points (x2,y2) (e.g., through POLYVAL). The input slots for those unused
+% variables are present for symmetry (e.g., when called by LINEDIST),
+% and for some internal numbers checking, now since deemed unnecessary.
 % 
 % INPUT:
 %
@@ -30,13 +31,19 @@ function [d,dvv,dvvv,dv]=pointdist(x1,y1,p1,x2,y2,p2)
 % EXAMPLE:
 %
 % x0=1; x1=-2; x2=3; y0=-4; y1=-5; y2=6;
-% d1=point2line(x1,x2,y1,y2,x0,y0)
-% d2=pointdist(x0,y0,[],x2,y2,polyfit([x1 x2],[y1 y2],1))
+% d1=point2line(x1,x2,y1,y2,x0,y0);
+% [d2,d3,d4,d5]=pointdist(x0,y0,[],x2,y2,polyfit([x1 x2],[y1 y2],1));
+%% The point whose distance to the line you seek
+% plot(x0,y0,'+'); hold on; axis image ; grid on
+%% The two points defining the line
+% plot([x1 x2],[y1 y2],'k');
+%% The vector pointing from the special point to the line
+% plot([d4(1) d4(3)],[d4(2) d4(4)],'g'); hold off
 %
 % SEE ALSO:
 % http://mathworld.wolfram.com/Point-LineDistance2-Dimensional.html
 %
-% Last modified by fjsimons-at-alum.mit.edu, 07/20/2017
+% Last modified by fjsimons-at-alum.mit.edu, 10/12/2017
 
 % Straighten out input
 x1=x1(:); y1=y1(:);
