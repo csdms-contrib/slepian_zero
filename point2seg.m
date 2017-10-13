@@ -1,4 +1,4 @@
-function [d,xyd]=point2seg([x0 y0],[x1 y1 x2 y2])
+function [d,xyd]=point2seg(x0y0,x1y1x2y2)
 % [d,xyd]=POINT2SEG([x0 y0],[x1 y1 x2 y2])
 %
 % Distance of a point to a line SEGMENT, which ends up being either to an
@@ -23,7 +23,7 @@ function [d,xyd]=point2seg([x0 y0],[x1 y1 x2 y2])
 % x0=1; y0=-4;
 %% The line segment
 % x1=-2; y1=-5; x2=3; y2=6;
-% [d,xyd]=POINT2SEG([x0 y0],[x1 y1 x2 y2]) 
+% [d,xyd]=point2seg([x0 y0],[x1 y1 x2 y2]) 
 %% The point whose distance to the line you sought
 % plot(x0,y0,'+'); hold on; axis image ; grid on
 %% The two points defining the line segment
@@ -33,6 +33,15 @@ function [d,xyd]=point2seg([x0 y0],[x1 y1 x2 y2])
 % plot([xyd(1) xyd(3)],[xyd(2) xyd(4)],'g'); hold off
 % 
 % Last modified by fjsimons-at-alum.mit.edu, 10/12/2017
+
+% The points ofinterest
+x0=x0y0(:,1);
+y0=x0y0(:,2);
+% The line segment of interest
+x1=x1y1x2y2(1);
+y1=x1y1x2y2(2);
+x2=x1y1x2y2(3);
+y2=x1y1x2y2(4);
 
 % Use POINTDIST to help us out
 [d,~,xyd]=pointdist(x0,y0,[],[],[],polyfit([x1 x2],[y1 y2],1));
