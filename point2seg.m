@@ -23,7 +23,7 @@ function [d,xyd]=point2seg(x0y0,x1y1x2y2)
 % x0=1; y0=-4;
 %% The line segment
 % x1=-2; y1=-5; x2=3; y2=6;
-% [d,xyd]=point2seg([x0 y0],[x1 y1 x2 y2]) 
+% [d,xyd]=point2seg([x0(:) y0(:)],[x1 y1 x2 y2]) 
 %% The point whose distance to the line you sought
 % plot(x0,y0,'+'); hold on; axis image ; grid on
 %% The two points defining the line segment
