@@ -3,7 +3,7 @@ function [d,xyd]=point2seg(x0y0,x1y1x2y2)
 %
 % Distance of a point to a line SEGMENT, which ends up being either to an
 % endpoint or two the perpendicular projection of the point onto the
-% line, whichever is closer
+% line, whichever is closer.
 %
 % INPUT:
 %
