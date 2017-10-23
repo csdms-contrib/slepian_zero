@@ -22,6 +22,8 @@ function [celnr,rownr,colnr]=acor2ind(lat,dlon,nmr,c11,lon1lat1)
 % hold on; plot(lon1,lat1,'ks')
 %
 % Last modified by fjsimons-at-alum.mit.edu, 06/13/2007
+% Small modification by plattner-at-alumni.ethz.ch, 10/22/2017: 
+% turned error into warning
 
 [lon1,lat1]=deal(lon1lat1(:,1),lon1lat1(:,2));
 lat=lat(:);
@@ -37,4 +39,4 @@ celnr=cumonin(rownr)+colnr;
 
 % Checks that the reverse works, too
 [rc,cc]=aind2sub(lat,dlon,nmr,celnr);
-if ~all([rc cc]==[rownr colnr]); error ; end
+if ~all([rc cc]==[rownr colnr]); warning('acor2ind: Reverse check failed') ; end
