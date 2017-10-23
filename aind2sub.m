@@ -2,7 +2,7 @@ function [rownr,colnr,varargout]=aind2sub(lat,dlon,nmr,celnr,varargin)
 % [rownr,colnr]=AIND2SUB(lat,dlon,nmr,celnr)
 % [rownr,colnr,t,b,l,r]=AIND2SUB(lat,dlon,nmr,celnr,c11)
 %
-% Returns row and 'column' index given a sequential equal-area grid cell number 
+% Returns row and 'column' index given a sequential equal-area grid cell number
 %
 % INPUT:
 %
