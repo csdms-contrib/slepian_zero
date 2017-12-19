@@ -57,18 +57,26 @@ if ~isstr(data)
 elseif strcmp(data,'demo1')
   % Note: in this example, the domain on which the data are
   % defined is not just the data indices. Therefore, planefit will be
-  % succesful in fitting the x and y slopes, but not the offset.
+  % successful in fitting the x and y slopes, but not the offset.
+
+  % Create a domain and some random planar coefficients
   x=-23:50; y=-12:67; abc=guess(3)/10; 
+  % Create data with some variance about the plane in question
   data=planef(abc,x,y,0);
   data=data+10*rand(1)*randn(size(data));
+  % Find what that plane would have been through regression
   [a,b,c,X,Y,Z]=planefit(data);
   subplot(221); surf(X,Y,data); shading flat; axis tight
   zizi=zlim;
-  title(['abc= ',num2str(abc)],'FontSize',15)
+  xlabel('x');  ylabel('y'); zlabel('z')
+  title(sprintf('z=%3.1fx+%3.1fy+%3.1f',abc(1),abc(2),abc(3)),...
+	'FontSize',15)
   subplot(222); surf(X,Y,Z); shading flat; axis tight
+  xlabel('x');  ylabel('y'); zlabel('z')
   set(gca,'ZLim',zizi)
+  % Plot the plane again
   subplot(223); surf(x,y,data); shading flat; axis tight
+  % Plot the residuals
   subplot(224); surf(X,Y,Z-data); shading flat; axis tight
   set(gca,'ZLim',zizi)
-  title(['abc= ',num2str(round([a b c]*100)/100)],'FontSize',15)
 end
