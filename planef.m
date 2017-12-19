@@ -5,7 +5,7 @@ function Z=planef(abc,x,y,plotornot)
 % by X and Y, which are the meshgridded input 'x' and 'y'
 % Written for 'planefit'. Plots or not according to 'plotornot'
 %
-% Last modified by fjsimons-at-alum.mit.edu, September 26th 1998
+% Last modified by fjsimons-at-alum.mit.edu, September 26th 1998 
 
 % Make sure x and y are row vectors
 x=x(:)';
