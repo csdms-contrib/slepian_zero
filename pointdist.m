@@ -2,12 +2,13 @@ function [d,dvv,dvvv,dv]=pointdist(x1,y1,p1,x2,y2,p2)
 % [d,dvv,dvvv,dv]=POINTDIST(x1,y1,p1,x2,y2,p2)
 %
 % Distance of a set of POINTS given as planar coordinates (x1,y1) to a LINE
-% given as p2=[slope, intercept] (e.g., from POLYFIT). While the inputs p1
-% and (x2,y2) are neither needed nor used, the supplied points (x1,y1) would
-% fall on a line p1=[slope, intercept], and the given line p2 would contain
-% points (x2,y2) (e.g., through POLYVAL). The input slots for those unused
-% variables are present for symmetry (e.g., when called by LINEDIST), 
-% and for some internal numbers checking, now since deemed unnecessary.
+% given as p2=[slope, intercept]. While the inputs p1 and (x2,y2) are
+% neither needed nor used, the line p1=[slope, intercept] might be the
+% least-squares best fit through (x1,y1) (e.g., through POLYFIT), and the
+% given line p2 might exactly contain points (x2,y2) (e.g., through
+% POLYVAL). The input slots for those unused variables are present for
+% symmetry (e.g., when called by LINEDIST), and for some internal numbers
+% checking, since deemed unnecessary.
 % 
 % INPUT:
 %
@@ -43,7 +44,7 @@ function [d,dvv,dvvv,dv]=pointdist(x1,y1,p1,x2,y2,p2)
 % SEE ALSO:
 % http://mathworld.wolfram.com/Point-LineDistance2-Dimensional.html
 %
-% Last modified by fjsimons-at-alum.mit.edu, 10/12/2017
+% Last modified by fjsimons-at-alum.mit.edu, 03/11/2018
 
 % Straighten out input
 x1=x1(:); y1=y1(:);
