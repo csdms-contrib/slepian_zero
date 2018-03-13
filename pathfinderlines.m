@@ -2,7 +2,7 @@ function [lon,lat,elev,labu,code,codu]=pathfinderlines(fname)
 % [lon,lat,elev,labu,code,codu]=PATHFINDERLINES(fname)
 %
 % Reads a generic LINES coordinate file from GPS Pathfinder Office
-% stored with defaults in CSV format
+% stored with defaults in CSV format.
 %
 % INPUT:
 %
