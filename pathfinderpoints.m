@@ -2,7 +2,7 @@ function [lon,lat,elev,labs]=pathfinderpoints(fname)
 % [lon,lat,elev,labs]=PATHFINDERPOINTS(fname)
 %
 % Reads a generic POINTS coordinate file from GPS Pathfinder Office
-% stored with defaults in CSV format
+% stored with defaults in CSV format.
 %
 % INPUT:
 %
