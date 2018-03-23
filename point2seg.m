@@ -1,4 +1,4 @@
-function [d,xyd]=point2seg(x0y0,x1y1x2y2)
+function [d,xyd]=point2seg(x0y0,x1y1x2y2) 
 % [d,xyd]=POINT2SEG([x0 y0],[x1 y1 x2 y2])
 %
 % Distance of a point to a line SEGMENT, which ends up being either to an
