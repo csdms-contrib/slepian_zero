@@ -1,34 +1,52 @@
 function [bm,xc,yc,CT]=blockmean(mat,side,olap)
 % [bm,xc,yc,CT]=BLOCKMEAN(mat,[iside jside],[olapi olapj])
 %
-% Returns the mean of isideXjside blocks of
-% side length, tiled over the matrix.
-% If two arguments are given, tiles do not overlap.
-% If three arguments are given, overlaps the tiles.
-%
+% Block-averages a matrix, with or without overlap in the block tiles
 % When working with real coordinates, of course these indices
-% are pixel-centered. Also returns the center point of the boxes.
-% These are the centers for the averaging regions; with the overlap,
-% it is not possible to use them as the pixels centers for an image plot.
+% are pixel-centered. These then are the centers for the averaging
+% regions; with the overlap, it is not possible to use them as the pixels
+% centers for an image plot. 
+%
+% INPUT:
+%
+% mat         A certain matrix
+% side        [iside jside] block size
+% olap        [olapi olapj] overlap size
+%
+% OUTPUT:
+%
+% bm          The matrix of means as requested
+% xc,yc       The center point of the boxes
+% CT          The sparse matrix at the heart of it all
+%
+% TEST EXAMPLE:
 %
 % mat=peaks(64);
-% blockmean(mat,[1 1]) is the null operation
-% blockmean(mat,size(mat)) returns mean(mat(:))
-% blockmean(mat,[4 4],[0 0])==blockmean(mat,[4 4])
+% diferm(blockmean(mat,[1 1])-mat)
+% diferm(blockmean(mat,size(mat))-mean(mat(:)))
+% diferm(blockmean(mat,[4 4],[0 0])-blockmean(mat,[4 4]))
 %
+% EXAMPLE:
+% 
 % mat=rand(120,80);
 % for index=1:77
-% tile=blocktile(mat,20,50,index);
-% difm(index)=abs(mean(tile(:))-indeks(blockmean(mat,[20 20],[10 10]),index));
+%   tile=blocktile(mat,20,50,index);
+%   difm(index)=abs(mean(tile(:))-indeks(blockmean(mat,[20 20],[10 10]),index));
 % end
 % disp(sprintf('%8.3e\n',difm))
 %
-% This is a good function, it seems. Can get rid of first if
-% and just make default overlap zero.
+% SEE ALSO:
+% 
+% GAMINI, PAULI, PCHAVE, BLOCKMEAN
 %
-% Last modified by fjsimons-at-alum.mit.edu, 12/28/2006
+% Last modified by fjsimons-at-alum.mit.edu, 01/03/2018
 
+% Parse the second input input
 [iside,jside]=deal(side(1),side(2));
+
+% Could get rid of first if-statement and just make default overlap zero.
+
+% Non-overlapping tiles
 if nargin==2
   if any(mod(size(mat),side))
     error('Matrix not right size for nonoverlapping tiles')
@@ -46,10 +64,13 @@ if nargin==2
   bm=bm/prod(side);
   [xc,yc]=deal(NaN);
 else
+  % Overlapping tiles, parse the third input
   [olapi,olapj]=deal(olap(1),olap(2));
   [ny,nx]=size(mat);
-  nwj=(nx-olapj)/(jside-olapj); % Number of windows in X
-  nwi=(ny-olapi)/(iside-olapi); % Number of windows in Y
+  % Number of windows in X
+  nwj=(nx-olapj)/(jside-olapj); 
+  % Number of windows in Y
+  nwi=(ny-olapi)/(iside-olapi); 
   if ~all(fix([nwi nwj])==[nwi nwj])
     error('Matrix not right size for overlapping tiles')
   end  
