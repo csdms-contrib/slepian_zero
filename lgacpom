@@ -1,0 +1,37 @@
+#!/bin/tcsh
+#
+# An in-repository local version of the alias gacpom with meaningful commit messages
+
+git add readGEBCO.m
+git commit -m "Reads GEBCO2008 files and reformats them for storage as MAT files"
+git push
+
+git add point2line.m
+git commit -m "Distance of a SINGLE POINT to a line between a PAIR of points in the plane"
+git push
+
+git add point3line.m
+git commit -m "Distance of a SINGLE POINT to a line between a PAIR of points in three-dimensional space"
+git push
+
+git add pointdist.m
+git commit -m "Distances of POINTS to a PARAMETERIZED LINE in the plane"
+git push
+
+git add point2points.m
+git commit -m "Distances of POINTS to a LEAST-SQUARES LINE through ANOTHER set of points in the plane"
+git push
+
+git add pathfinderpoints.m
+git commit -m "Reads a generic POINTS coordinate CSV file from GPS Pathfinder Office"
+git push
+
+git add pathfinderlines.m
+git commit -m "Reads a generic LINES coordinate CSV file from GPS Pathfinder Office"
+git push
+
+
+
+
+
+
