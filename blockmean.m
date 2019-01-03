@@ -19,25 +19,22 @@ function [bm,xc,yc,CT]=blockmean(mat,side,olap)
 % xc,yc       The center point of the boxes
 % CT          The sparse matrix at the heart of it all
 %
-% TEST EXAMPLE:
+% TEST EXAMPLES THAT SHOULD PRODUCE NO OUTPUT:
 %
 % mat=peaks(64);
 % diferm(blockmean(mat,[1 1])-mat)
 % diferm(blockmean(mat,size(mat))-mean(mat(:)))
 % diferm(blockmean(mat,[4 4],[0 0])-blockmean(mat,[4 4]))
 %
-% EXAMPLE:
-% 
 % mat=rand(120,80);
 % for index=1:77
 %   tile=blocktile(mat,20,50,index);
-%   difm(index)=abs(mean(tile(:))-indeks(blockmean(mat,[20 20],[10 10]),index));
+%   diferm(mean(tile(:))-indeks(blockmean(mat,[20 20],[10 10]),index))
 % end
-% disp(sprintf('%8.3e\n',difm))
 %
 % SEE ALSO:
 % 
-% GAMINI, PAULI, PCHAVE, BLOCKMEAN
+% GAMINI, PAULI, PCHAVE, BLOCKMEAN, ...
 %
 % Last modified by fjsimons-at-alum.mit.edu, 01/03/2018
 
