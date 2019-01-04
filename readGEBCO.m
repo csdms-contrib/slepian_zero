@@ -6,8 +6,9 @@ function readGEBCO(vers,npc)
 %
 % INPUT:
 %
-% vers    2014 version (30 arc seconds)
-%         2008 version (30 arc seconds, deprecated)
+% vers     2014  version (30 arc seconds)
+%          2008  version (30 arc seconds, deprecated)
+%         '1MIN' version (1 arc minute, deprecated)
 % npc     sqrt(number) of fitting pieces to split the data into
 %
 % SEE ALSO:
@@ -31,22 +32,32 @@ gebcodir=fullfile(getenv('IFILES'),'TOPOGRAPHY','EARTH','GEBCO');
 
 switch vers
  case 2014
+  % The directory name for storage and retrieval
+  dname=fullfile(gebcodir,'GEBCO2014');
   % The full path to the 'GEBCO_2014 Grid' source '2015031'
-  fname=fullfile(gebcodir,'GEBCO2014','GEBCO_2014_1D.nc');
+  fname=fullfile(dname,'GEBCO_2014_1D.nc');
   % The root filename under which the pieces will be saved
   sname='GEBCO2014';
-  % The directory in which these pieces will be saved
-  dname=fullfile(gebcodir,'GEBCO2014','MATFILES');
  case 2008
+  % The directory name for storage and retrieval
+  dname=fullfile(gebcodir,'GEBCO2008');
   % The full path to the 'GEBCO_08\ Grid' source '20100927'
-  fname=fullfile(gebcodir,'GEBCO2008','gebco_08.nc');
+  fname=fullfile(dname,'gebco_08.nc');
   % The root filename under which the pieces will be saved
   sname='GEBCO_08';
-  % The directory in which these pieces will be saved
-  dname=fullfile(gebcodir,'GEBCO2008','MATFILES');
+ case '1MIN'
+  % The directory name for storage and retrieval
+  dname=fullfile(gebcodir,'GEBCO1MIN');
+  % The full path to the 'GEBCO One Minute Grid' source '233312401'
+  fname=fullfile(dname,'GRIDONE_1D.nc');
+  % The root filename under which the pieces will be saved
+  sname='GRIDONE';
  otherwise
   error('Specify the proper version of the GEBCO grid')
 end
+
+% The directory in which the pieces will be saved
+mname=fullfile(dname,'MATFILES');
 
 % Display some info on the file itself
 ncdisp(fname)
@@ -88,8 +99,9 @@ for rindex=1:npc
     % Compare with the equivalent BLOCKISOLATE call
     % zpcp=blockisolate(zr,double([NxNy(2) NxNy(1)])/npc,1);
     % Save those pieces to individual files
-    save(fullfile(dname,sprintf('%s_%2.2i_%2.2i',sname,rindex,cindex)),'zpc')
-    display(sprintf('Saveing tile %3.3i / %3.3i',(rindex-1)*npc+cindex,npc*npc))
+    save(fullfile(mname,sprintf('%s_%2.2i_%2.2i',sname,rindex,cindex)),'zpc')
+    % Talk about progress
+    display(sprintf('Saving tile %3.3i / %3.3i',(rindex-1)*npc+cindex,npc*npc))
   end
 end
 
