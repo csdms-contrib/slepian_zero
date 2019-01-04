@@ -25,7 +25,7 @@ function readGEBCO(vers,npc)
 defval('vers',2014)
 
 % sqrt(number) of fitting pieces that we will split the data into
-npc=10;
+defval('npc',10);
 
 % Make sure you have these various directories and data files
 gebcodir=fullfile(getenv('IFILES'),'TOPOGRAPHY','EARTH','GEBCO');
@@ -57,7 +57,9 @@ switch vers
 end
 
 % The directory in which the pieces will be saved
-mname=fullfile(dname,'MATFILES');
+mname=fullfile(dname,sprintf('MATFILES_%i_%i',npc,npc));
+% Make it if it doesn't exist it
+if exist(mname)~=7;  mkdir(mname); end
 
 % Display some info on the file itself
 ncdisp(fname)
