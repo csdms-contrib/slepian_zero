@@ -12,7 +12,7 @@ function [bm,xc,yc]=blockmean(mat,side,olap)
 % OUTPUT:
 %
 % bm          The matrix of means as requested
-% xc,yc       The center point of the boxes
+% xc,yc       The center points of the boxes
 %
 % TEST EXAMPLES THAT SHOULD PRODUCE NO OUTPUT:
 %
@@ -36,52 +36,47 @@ function [bm,xc,yc]=blockmean(mat,side,olap)
 % Just make default overlap zero
 defval('olap',[0 0])
 
-% Non-overlapping tiles, precisely fitting
-if olap(1)==0 && olap(2)==0
-  if any(mod(size(mat),side))
-    error('Matrix not right size for nonoverlapping tiles')
-  end
-  % Prepare the column space averaging
-  rocs=1:size(mat,2);
-  % Prepare row space averaging
-  rors=1:size(mat,1);
-else
-  % The number of tiles in either dimension
-  % Number of tiles in Y, the first or ith dimension
-  % Number of tiles in X, the second or jth dimension
-  nw(1)=(size(mat,1)-olap(1))/(side(1)-olap(1)); 
-  nw(2)=(size(mat,2)-olap(2))/(side(2)-olap(2));
-  if ~all(fix(nw)==nw)
-    error('Matrix not right size for overlapping tiles')
-  end  
-  % Prepare the column space averaging
-  rocs=pauli(1:size(mat,2),side(2));
-  rocs=rocs(1:side(2)-olap(2):end,:)';
-  rocs=rocs(:)';
-  % Prepare row space averaging
-  rors=pauli(1:size(mat,1),side(1));
-  rors=rors(1:side(1)-olap(1):end,:)';
-  rors=rors(:)';
+% Calculate the averaging operators in both dimensions
+[ny,CTl,yc]=avops(1,size(mat),side,olap);
+[nx,CTr,xc]=avops(2,size(mat),side,olap);
+
+% Calculate the required averages
+bm=CTl'*mat*CTr/prod(side);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function [n,CT,c]=avops(dim,sais,side,olap)
+% This function constructs an averaging operator in one dimension
+% For the first dimension, it results in a transpose matrix to left-multiply...
+% For the second dimension, it results in a matrix to right-multiply...
+% with the matrix whose row/column averages we seek
+
+% Calculate the number of tiles that it will be possible to generate
+n=[sais(dim)-olap(dim)]/[side(dim)-olap(dim)];
+
+% Check sizing
+if fix(n)~=n
+    error(sprintf('Matrix size %i not right for overlapping tiles',dim))
 end
 
-% Perform the column-space averaging
-cocs=gamini(1:length(rocs)/side(2),side(2));
-CTcs=sparse(rocs,cocs,1);
+% Prepare for the averaging
+if olap(dim)==0
+  ro=1:sais(dim);
+else
+  ro=pauli(1:sais(dim),side(dim));
+  ro=ro(1:side(dim)-olap(dim):end,:)';
+  ro=ro(:)';
+end
+% Construct indexing arrays
+co=gamini(1:length(ro)/side(dim),side(dim));
+CT=sparse(ro,co,1);
 
-% Perform the row-space averaging
-cors=gamini(1:length(rors)/side(1),side(1));
-CTrs=sparse(rors,cors,1)';
-
-% Normalization at the very end
-bm=CTrs*mat*CTcs/prod(side);
-
-% Output that you may or may not want
-xc=(1+(side(2)-1)/2):side(2)-olap(2):size(mat,2);
-yc=(1+(side(1)-1)/2):side(1)-olap(1):size(mat,1);
+% Center 'coordinates'
+c=[1+(side(dim)-1)/2]:side(dim)-olap(dim):sais(dim);
 
 % When working with real coordinates, of course these indices are
 % pixel-centered. These then are the centers for the averaging regions; with
 % the overlap, it is not possible to use them as the pixel centers for an
 % image plot. See SOL2BLOCK.
+
 
 
