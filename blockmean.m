@@ -71,7 +71,7 @@ else
   ro=pauli(1:sais(dim),side(dim));
   % ...so we subsample
   ro=ro(1:side(dim)-olap(dim):end,:)';
-  % By the way, the previous line results in what is inside PCHAVE as
+  % The previous line results in what is inside PCHAVE, which may be faster, as
   % repmat([1:side(dim)]',1,n)+repmat([0:(n-1)]*[side(dim)-olap(dim)],side(dim),1)
   ro=ro(:)';
 end
