@@ -18,22 +18,32 @@ function readGEBCO(vers,npc)
 %
 % 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu. 01/04/2019
+% Last modified by fjsimons-at-alum.mit.edu. 01/05/2019
 
 % Default value
-defval('vers',2008)
+defval('vers',2014)
 
 % sqrt(number) of fitting pieces that we will split the data into
 npc=10;
 
 % Make sure you have these various directories and data files
 gebcodir=fullfile(getenv('IFILES'),'TOPOGRAPHY','EARTH','GEBCO');
+
 switch vers
  case 2014
+  % The full path to the 'GEBCO_2014 Grid' source '2015031'
   fname=fullfile(gebcodir,'GEBCO2014','GEBCO_2014_1D.nc');
+  % The root filename under which the pieces will be saved
+  sname='GEBCO2014';
+  % The directory in which these pieces will be saved
+  dname=fullfile(gebcodir,'GEBCO2014','MATFILES');
  case 2008
   % The full path to the 'GEBCO_08\ Grid' source '20100927'
   fname=fullfile(gebcodir,'GEBCO2008','gebco_08.nc');
+  % The root filename under which the pieces will be saved
+  sname='GEBCO_08';
+  % The directory in which these pieces will be saved
+  dname=fullfile(gebcodir,'GEBCO2008','MATFILES');
  otherwise
   error('Specify the proper version of the GEBCO grid')
 end
@@ -60,20 +70,16 @@ zr=reshape(z,NxNy(:)')';
 diferm(size(zr,2)-NxNy(1))
 diferm(size(zr,1)-NxNy(2))
 
-% Check BLOCKISOLATE, BLOCKMEAN, BLOCKTILE, PCHAVE, etc
+% Check BLOCKISOLATE, BLOCKMEAN, BLOCKTILE, PCHAVE, PAULI, etc
 % but really, this here is quite efficient already...
 
-% Across - 
-rt=[0:NxNy(1)/npc:NxNy(1)];
-lt=rt+1; 
-rt=rt(2:end);
-lt=lt(1:end-1);
+% Across
+rt=[0:NxNy(1)/npc:NxNy(1)]; lt=rt+1; 
+rt=rt(2:end); lt=lt(1:end-1);
 
 % Down
-dn=[0:NxNy(2)/npc:NxNy(2)];
-up=dn+1;
-dn=dn(2:end);
-up=up(1:end-1);
+dn=[0:NxNy(2)/npc:NxNy(2)]; up=dn+1;
+dn=dn(2:end); up=up(1:end-1);
 
 % Segment patches and resave
 for rindex=1:npc
@@ -81,8 +87,9 @@ for rindex=1:npc
     zpc=zr(up(rindex):dn(rindex),lt(cindex):rt(cindex));
     % Compare with the equivalent BLOCKISOLATE call
     % zpcp=blockisolate(zr,double([NxNy(2) NxNy(1)])/npc,1);
-    % Save those pieces to file
-    save(sprintf('GEBCO_08_%2.2i_%2.2i',rindex,cindex),'zpc')
+    % Save those pieces to individual files
+    save(fullfile(dname,sprintf('%s_%2.2i_%2.2i',sname,rindex,cindex)),'zpc')
+    display(sprintf('Saveing tile %3.3i / %3.3i',(rindex-1)*npc+cindex,npc*npc))
   end
 end
 
