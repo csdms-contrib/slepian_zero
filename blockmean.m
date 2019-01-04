@@ -1,5 +1,5 @@
-function [bm,xyc]=blockmean(mat,side,olap)
-% [bm,yxc]=BLOCKMEAN(mat,[iside jside],[olapi olapj])
+function [bm,yc,xc,CTl,CTr]=blockmean(mat,side,olap)
+% [bm,yc,xc,CTl,CTr]=BLOCKMEAN(mat,[iside jside],[olapi olapj])
 %
 % Block-averages a matrix, with or without overlap in the block tiles
 %
@@ -12,7 +12,12 @@ function [bm,xyc]=blockmean(mat,side,olap)
 % OUTPUT:
 %
 % bm          The matrix of means as requested
-% yxc         The center points of the boxes
+% yc          The center indices of the tiles in the first dimension
+% xc          The center indices of the tiles in the second dimension
+% CTl         The matrix whose transpose left-multiplies the target 
+%             for first-dimension averaging, in sparse form
+% CTr         The matrix that right-multiplies the target 
+%             for second-dimension averaging, in sparse form
 %
 % TEST EXAMPLES THAT SHOULD PRODUCE NO OUTPUT:
 %
@@ -31,7 +36,7 @@ function [bm,xyc]=blockmean(mat,side,olap)
 % 
 % GAMINI, PAULI, PCHAVE, BLOCKTILE, ...
 %
-% Last modified by fjsimons-at-alum.mit.edu, 01/03/2018
+% Last modified by fjsimons-at-alum.mit.edu, 01/04/2019
 
 % Just make default overlap zero
 defval('olap',[0 0])
@@ -42,9 +47,6 @@ defval('olap',[0 0])
 
 % Calculate the required averages
 bm=CTl'*mat*CTr/prod(side);
-
-% Deliver output
-yxc=[yc xc];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [n,CT,c]=avops(dim,sais,side,olap)
@@ -65,15 +67,22 @@ end
 if olap(dim)==0
   ro=1:sais(dim);
 else
+  % This is overcomplete...
   ro=pauli(1:sais(dim),side(dim));
+  % ...so we subsample
   ro=ro(1:side(dim)-olap(dim):end,:)';
+  % By the way, the previous line results in what is inside PCHAVE as
+  % repmat([1:side(dim)]',1,n)+repmat([0:(n-1)]*[side(dim)-olap(dim)],side(dim),1)
   ro=ro(:)';
 end
-% Construct indexing arrays
+% Construct index arrays
 co=gamini(1:length(ro)/side(dim),side(dim));
 CT=sparse(ro,co,1);
 
-% Center 'coordinates'
+% By the way, this is the index array inside of PCHAVE, again...
+% [i,j]=find(full(CT)); reshape(i,side(dim),[])
+
+% Center indices
 c=[1+(side(dim)-1)/2]:side(dim)-olap(dim):sais(dim);
 
 % When working with real coordinates, of course these indices are
