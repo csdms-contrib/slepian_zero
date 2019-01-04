@@ -1,5 +1,5 @@
-function [bm,xc,yc]=blockmean(mat,side,olap)
-% [bm,xc,yc]=BLOCKMEAN(mat,[iside jside],[olapi olapj])
+function [bm,xyc]=blockmean(mat,side,olap)
+% [bm,yxc]=BLOCKMEAN(mat,[iside jside],[olapi olapj])
 %
 % Block-averages a matrix, with or without overlap in the block tiles
 %
@@ -12,7 +12,7 @@ function [bm,xc,yc]=blockmean(mat,side,olap)
 % OUTPUT:
 %
 % bm          The matrix of means as requested
-% xc,yc       The center points of the boxes
+% yxc         The center points of the boxes
 %
 % TEST EXAMPLES THAT SHOULD PRODUCE NO OUTPUT:
 %
@@ -29,7 +29,7 @@ function [bm,xc,yc]=blockmean(mat,side,olap)
 %
 % SEE ALSO:
 % 
-% GAMINI, PAULI, PCHAVE, BLOCKMEAN, ...
+% GAMINI, PAULI, PCHAVE, BLOCKTILE, ...
 %
 % Last modified by fjsimons-at-alum.mit.edu, 01/03/2018
 
@@ -42,6 +42,9 @@ defval('olap',[0 0])
 
 % Calculate the required averages
 bm=CTl'*mat*CTr/prod(side);
+
+% Deliver output
+yxc=[yc xc];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [n,CT,c]=avops(dim,sais,side,olap)
@@ -77,6 +80,3 @@ c=[1+(side(dim)-1)/2]:side(dim)-olap(dim):sais(dim);
 % pixel-centered. These then are the centers for the averaging regions; with
 % the overlap, it is not possible to use them as the pixel centers for an
 % image plot. See SOL2BLOCK.
-
-
-
