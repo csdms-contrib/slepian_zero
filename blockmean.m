@@ -27,13 +27,6 @@ function [bm,xc,yc]=blockmean(mat,side,olap)
 %   diferm(mean(tile(:))-indeks(blockmean(mat,[20 20],[10 10]),index))
 % end
 %
-% NOTE:
-%
-% When working with real coordinates, of course these indices
-% are pixel-centered. These then are the centers for the averaging
-% regions; with the overlap, it is not possible to use them as the pixel
-% centers for an image plot. 
-%
 % SEE ALSO:
 % 
 % GAMINI, PAULI, PCHAVE, BLOCKMEAN, ...
@@ -55,7 +48,9 @@ if olapi==0 && olapj==0
     error('Matrix not right size for nonoverlapping tiles')
   end
   % Prepare the column space averaging
-  ro=1:size(mat,2);
+  rocs=1:size(mat,2);
+  % Prepare row space averaging
+  rors=1:size(mat,1);
 else
   % Overlapping tiles, precisely fitting
   [ny,nx]=size(mat);
@@ -67,38 +62,33 @@ else
     error('Matrix not right size for overlapping tiles')
   end  
   % Prepare the column space averaging
-  ro=pauli(1:size(mat,2),jside);
-  ro=ro(1:jside-olapj:end,:)';
-  ro=ro(:)';
+  rocs=pauli(1:size(mat,2),jside);
+  rocs=rocs(1:jside-olapj:end,:)';
+  rocs=rocs(:)';
+  % Prepare row space averaging
+  rors=pauli(1:size(mat,1),iside);
+  rors=rors(1:iside-olapi:end,:)';
+  rors=rors(:)';
 end
 
 % Perform the column-space averaging
-co=gamini(1:length(ro)/jside,jside);
-CT=sparse(ro,co,1);
-post=mat*CT;
-
-% Non-overlapping tiles, precisely fitting
-if olapi==0 && olapj==0
-  % Prepare row space averaging
-  ro=1:size(mat,1);
-else
-  % Overlapping tiles, precisely fitting
-  % Prepare row space averaging
-  ro=pauli(1:size(mat,1),iside);
-  ro=ro(1:iside-olapi:end,:)';
-  ro=ro(:)';
-end
+cocs=gamini(1:length(rocs)/jside,jside);
+CTcs=sparse(rocs,cocs,1);
 
 % Perform the row-space averaging
-co=gamini(1:length(ro)/iside,iside);
-CT=sparse(ro,co,1)';
-bm=CT*post;
+cors=gamini(1:length(rors)/iside,iside);
+CTrs=sparse(rors,cors,1)';
 
 % Normalization at the very end
-bm=bm/prod(side);
+bm=CTrs*mat*CTcs/prod(side);
 
 % Output that will only make sense for the overlap
 xc=(1+(jside-1)/2):jside-olapj:size(mat,2);
 yc=(1+(iside-1)/2):iside-olapi:size(mat,1);
+
+% When working with real coordinates, of course these indices are
+% pixel-centered. These then are the centers for the averaging regions; with
+% the overlap, it is not possible to use them as the pixel centers for an
+% image plot. See SOL2BLOCK.
 
 
