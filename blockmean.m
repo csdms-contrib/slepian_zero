@@ -4,7 +4,7 @@ function [bm,xc,yc,CT]=blockmean(mat,side,olap)
 % Block-averages a matrix, with or without overlap in the block tiles
 % When working with real coordinates, of course these indices
 % are pixel-centered. These then are the centers for the averaging
-% regions; with the overlap, it is not possible to use them as the pixels
+% regions; with the overlap, it is not possible to use them as the pixel
 % centers for an image plot. 
 %
 % INPUT:
@@ -38,7 +38,7 @@ function [bm,xc,yc,CT]=blockmean(mat,side,olap)
 %
 % Last modified by fjsimons-at-alum.mit.edu, 01/03/2018
 
-% Parse the second input input
+% Parse the second input
 [iside,jside]=deal(side(1),side(2));
 
 % Could get rid of first if-statement and just make default overlap zero.
@@ -50,12 +50,12 @@ if nargin==2
   end
   % Column space averaging
   ro=1:size(mat,2);
-  co=gamini(1:size(mat,2)/jside,jside);
+  co=gamini(1:length(ro)/jside,jside);
   CT=sparse(ro,co,1);
   post=mat*CT;
   % Row space averaging
   ro=1:size(mat,1);
-  co=gamini(1:size(mat,1)/iside,iside);
+  co=gamini(1:length(ro)/iside,iside);
   CT=sparse(ro,co,1)';
   bm=CT*post;
   bm=bm/prod(side);
