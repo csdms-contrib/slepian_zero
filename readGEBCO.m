@@ -1,5 +1,5 @@
-function readGEBCO(vers,npc)
-% readGEBCO(vers,npc)
+function varargout=readGEBCO(vers,npc)
+% varargout=readGEBCO(vers,npc)
 %
 % Reads a GEBCO bathymetry grid, stored in NETCDF format, and splits it
 % into manageable MAT files each containing a chunk.
@@ -11,6 +11,13 @@ function readGEBCO(vers,npc)
 %         '1MIN' version (1 arc minute, deprecated)
 % npc     sqrt(number) of fitting pieces to split the data into
 %
+% OUTPUT: IF NONE REQUESTED, WILL READ, SPLIT & SAVE THE FILES,
+% OTHERWISE, IT WILL ASSUME THAT THAT HAS BEEN DONE AND RETURNS:
+% 
+% mname    The directory name where the split *.mat files are kept
+% vers     The version used, a replicate of what's input, or a default 
+% npc      The number of pieces used, a replicate or the default
+% 
 % SEE ALSO:
 %
 % https://www.gebco.net/
@@ -58,52 +65,63 @@ end
 
 % The directory in which the pieces will be saved
 mname=fullfile(dname,sprintf('MATFILES_%i_%i',npc,npc));
-% Make it if it doesn't exist it
-if exist(mname)~=7;  mkdir(mname); end
 
-% Display some info on the file itself
-ncdisp(fname)
-
-% Assign spacing, this should be 1/60/2 for 30 arc seconds
-dxdy=ncread(fname,'spacing');
-NxNy=ncread(fname,'dimension');
-xran=ncread(fname,'x_range');
-yran=ncread(fname,'y_range');
-
-% Read the actual elevation data
-z=ncread(fname,'z');
-
-% Double-check the size
-diferm(length(z)-prod(double(NxNy)))
-
-% Split it into pieces and resave
-zr=reshape(z,NxNy(:)')';
-
-% Double-check the dimensions
-diferm(size(zr,2)-NxNy(1))
-diferm(size(zr,1)-NxNy(2))
-
-% Check BLOCKISOLATE, BLOCKMEAN, BLOCKTILE, PCHAVE, PAULI, etc
-% but really, this here is quite efficient already...
-
-% Across
-rt=[0:NxNy(1)/npc:NxNy(1)]; lt=rt+1; 
-rt=rt(2:end); lt=lt(1:end-1);
-
-% Down
-dn=[0:NxNy(2)/npc:NxNy(2)]; up=dn+1;
-dn=dn(2:end); up=up(1:end-1);
-
-% Segment patches and resave
-for rindex=1:npc
-  for cindex=1:npc
-    zpc=zr(up(rindex):dn(rindex),lt(cindex):rt(cindex));
-    % Compare with the equivalent BLOCKISOLATE call
-    % zpcp=blockisolate(zr,double([NxNy(2) NxNy(1)])/npc,1);
-    % Save those pieces to individual files
-    save(fullfile(mname,sprintf('%s_%2.2i_%2.2i',sname,rindex,cindex)),'zpc')
-    % Talk about progress
-    display(sprintf('Saving tile %3.3i / %3.3i',(rindex-1)*npc+cindex,npc*npc))
+% If no output is requested, will just split the files
+if nargout==0
+  % Make it if it doesn't exist it
+  if exist(mname)~=7;  mkdir(mname); end
+  
+  % Display some info on the file itself
+  ncdisp(fname)
+  
+  % Assign spacing, this should be 1/60/2 for 30 arc seconds
+  dxdy=ncread(fname,'spacing');
+  NxNy=ncread(fname,'dimension');
+  xran=ncread(fname,'x_range');
+  yran=ncread(fname,'y_range');
+  
+  % Read the actual elevation data
+  z=ncread(fname,'z');
+  
+  % Double-check the size
+  diferm(length(z)-prod(double(NxNy)))
+  
+  % Split it into pieces and resave
+  zr=reshape(z,NxNy(:)')';
+  
+  % Double-check the dimensions
+  diferm(size(zr,2)-NxNy(1))
+  diferm(size(zr,1)-NxNy(2))
+  
+  % Check BLOCKISOLATE, BLOCKMEAN, BLOCKTILE, PCHAVE, PAULI, etc
+  % but really, this here is quite efficient already...
+  
+  % Across
+  rt=[0:NxNy(1)/npc:NxNy(1)]; lt=rt+1; 
+  rt=rt(2:end); lt=lt(1:end-1);
+  
+  % Down
+  dn=[0:NxNy(2)/npc:NxNy(2)]; up=dn+1;
+  dn=dn(2:end); up=up(1:end-1);
+  
+  % Segment patches and resave
+  for rindex=1:npc
+    for cindex=1:npc
+      zpc=zr(up(rindex):dn(rindex),lt(cindex):rt(cindex));
+      % Compare with the equivalent BLOCKISOLATE call
+      % zpcp=blockisolate(zr,double([NxNy(2) NxNy(1)])/npc,1);
+      % Save those pieces to individual files
+      save(fullfile(mname,sprintf('%s_%2.2i_%2.2i',sname,rindex,cindex)),'zpc')
+      % Talk about progress
+      display(sprintf('Saving tile %3.3i / %3.3i',(rindex-1)*npc+cindex,npc*npc))
+    end
   end
+else
+  % If you ask for output you just get some basic information back
+  varns={mname,vers,npc};
+  varargout=varns(1:nargout);
 end
+
+
+  
 
