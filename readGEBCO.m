@@ -15,6 +15,7 @@ function varargout=readGEBCO(vers,npc)
 % OTHERWISE, IT WILL ASSUME THAT THAT HAS BEEN DONE AND RETURNS:
 % 
 % mname    The directory name where the split *.mat files are kept
+% sname    The root filename under which the pieces are being kept
 % up,dn    The top/down (first dimension) indices into the global grid for every tile
 % lt,rt    The left/right (second dimension) indices into the global grid for every tile
 % dxdy     The grid spacing in decimal degrees
@@ -45,7 +46,7 @@ switch vers
  case 2014
   % The directory name for storage and retrieval
   dname=fullfile(gebcodir,'GEBCO2014');
-  % The full path to the 'GEBCO_2014 Grid' source '2015031'
+  % The full path to the 'GEBCO_2014 Grid' source '20150318'
   fname=fullfile(dname,'GEBCO_2014_1D.nc');
   % The root filename under which the pieces will be saved
   sname='GEBCO2014';
@@ -123,7 +124,7 @@ if nargout==0
   end
 else
   % If you ask for output you just get some basic information back
-  varns={mname,up,dn,lt,rt,dxdy,NxNy,vers,npc};
+  varns={mname,sname,up,dn,lt,rt,dxdy,NxNy,vers,npc};
   varargout=varns(1:nargout);
 end
 
