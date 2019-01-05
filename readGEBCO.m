@@ -31,7 +31,7 @@ function varargout=readGEBCO(vers,npc)
 %
 % 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu. 01/05/2019
+% Last modified by fjsimons-at-alum.mit.edu. 01/06/2019
 
 % Default value
 defval('vers',2014)
@@ -113,6 +113,7 @@ if nargout==0
   % Segment patches and resave
   for rindex=1:npc
     for cindex=1:npc
+      % Watch this indexing, it will serve us again in GEBCO
       zpc=zr(up(rindex):dn(rindex),lt(cindex):rt(cindex));
       % Compare with the equivalent BLOCKISOLATE call
       % zpcp=blockisolate(zr,double([NxNy(2) NxNy(1)])/npc,1);
