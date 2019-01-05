@@ -1,5 +1,5 @@
-function z=gebco(lon,lat,vers,npc,xver)
-% z=gebco(lon,lat,vers,npc,xver)
+function varargout=gebco(lon,lat,vers,npc,method,xver)
+% z=gebco(lon,lat,vers,npc,method,xver)
 %
 % Returns the GEBCO bathymetry interpolated to the requested location
 %
@@ -11,11 +11,18 @@ function z=gebco(lon,lat,vers,npc,xver)
 %          2008  version (30 arc seconds, deprecated)
 %         '1MIN' version (1 arc minute, deprecated)
 % npc     sqrt(number) of split pieces [default: 10]
+% method  'nearest' (default), 'linear', etc, for the interpolation
 % xver    Extra verification [1] or not [0]
 %
 % OUTPUT:
 %
 % z        The elevation/bathymetry at the requested point
+% lon,lat  The longitude and latitude of the requested point
+%
+% EXAMPLE:
+%
+% mn=randij(21); [z,lon,lat]=gebco(-180+rand(mn)*36,-90+rand(mn)*18);
+% mn=randij(210); [z,lon,lat]=gebco(-180+rand(mn)*360,-90+rand(mn)*180);
 %
 % SEE ALSO:
 %
@@ -33,10 +40,15 @@ function z=gebco(lon,lat,vers,npc,xver)
 defval('lon',-19.979167)
 defval('lat', 50.9625)
 
+% Check size
+if any(size(lon)~=size(lat)); error('Inconsistent input data size'); end
+
 % Default version
 defval('vers',2014)
 % Default tiling
 defval('npc',10);
+% Default method
+defval('method','nearest');
 
 % Extra verification
 defval('xver',1)
@@ -51,11 +63,22 @@ cmn=[ 180-dxdy(1)/2 -90+dxdy(2)/2];
 
 % In which of the tiles have we landed? We know that the original global
 % grid was quoted from -180 across in lon and from 90 down in lat..
-cindex=max(1,ceil(    [lon+180]/[360/npc]));
-rindex=max(1,ceil(npc-[lat+90 ]/[180/npc]));
+cindep=max(1,ceil(    [lon+180]/[360/npc]));
+rindep=max(1,ceil(npc-[lat+90 ]/[180/npc]));
+cindex=unique(cindep);
+rindex=unique(rindep);
+
+% If you are spread across multiple tiles you're in trouble
+if length(cindex)~=1 || length(rindex)~=1
+  % You should recursively apply this algorithm for the unique pairs!
+  
+  keyboard
+end
 
 % So which file should we load? By the way, The stored variable is 'zpc'.
-load(fullfile(mname,sprintf('%s_%2.2i_%2.2i',sname,rindex,cindex)));
+loadit=fullfile(mname,sprintf('%s_%2.2i_%2.2i',sname,rindex,cindex));
+if xver==1 ; disp(sprintf('Loading %s',loadit)) ; end
+load(loadit);
 
 % The pixel-centers of the longitudes in the global grid, alternatively:
 lons =linspace(c11(1),         cmn(1),NxNy(1));
@@ -76,13 +99,23 @@ lonpc=lons(lt(cindex):rt(cindex));
 
 % Then interpolate from what you've just loaded to what you want
 % Make sure you use a rule that can extrapolate... if it comes out as a NaN
-z=interp2(lonpc,latpc,zpc,lon,lat);
+z=interp2(lonpc,latpc,zpc,lon,lat,method);
 % Fix any and all of the NaN
 
 if any(isnan(z))
-  % Need for a different interpolation
+  % Need a different interpolation, it's an extrapolation in a sense
+  disp(sprintf('Longitude given %g to %g wanted %g',min(lonpc),max(lonpc),lon))
+  disp(sprintf('Latitude given %g to %g wanted %g',min(latpc),max(latpc),lat))
+  % This is a bit of a pain, I suppose
+  F=griddedInterpolant({flipud(latpc(:)) lonpc(:)},flipud(zpc),method);
+  % Apply the interpolation for the whole set, make sure there are no surprises
+  zi=F(lat,lon);
   keyboard
 end
+
+% Output
+varns={z,lon,lat};
+varargout=varns(1:nargout);
 
 % Grid documentation
 % https://www.bodc.ac.uk/data/documents/nodb/301801/#6_format
