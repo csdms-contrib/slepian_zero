@@ -5,8 +5,8 @@ function z=gebco(lon,lat,vers,npc)
 %
 % INPUT:
 %
-% lon      Requested longitude, in decimal degreess
-% lat      Requested latitudes, in decimal degrees
+% lon      Requested longitude, in decimal degrees, ideally -180<=lon<180
+% lat      Requested latitudes, in decimal degrees, ideally -90<=lat<=90
 % vers     2014  version (30 arc seconds) [default]
 %          2008  version (30 arc seconds, deprecated)
 %         '1MIN' version (1 arc minute, deprecated)
@@ -30,7 +30,7 @@ function z=gebco(lon,lat,vers,npc)
 % https://www.gebco.net/data_and_products/gebco_web_services/web_map_service/#getmap
 % for comparison with WMS GetFeatureInfo requests
 defval('lon',-19.979167)
-defval('lat',50.9625)
+defval('lat', 50.9625)
 
 % Default version
 defval('vers',2014)
@@ -38,7 +38,7 @@ defval('vers',2014)
 defval('npc',10);
 
 % Get information on where the data files are being kept
-mname=readGEBCO(vers,npc);
+[mname,up,dn,lt,rt]=readGEBCO(vers,npc);
 
 keyboard
 
