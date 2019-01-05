@@ -15,6 +15,10 @@ function varargout=readGEBCO(vers,npc)
 % OTHERWISE, IT WILL ASSUME THAT THAT HAS BEEN DONE AND RETURNS:
 % 
 % mname    The directory name where the split *.mat files are kept
+% up,dn    The top/down (first dimension) indices into the global grid for every tile
+% lt,rt    The left/right (second dimension) indices into the global grid for every tile
+% dxdy     The grid spacing in decimal degrees
+% NxNy     The size of the complete global grid 
 % vers     The version used, a replicate of what's input, or a default 
 % npc      The number of pieces used, a replicate or the default
 % 
@@ -66,6 +70,21 @@ end
 % The directory in which the pieces will be saved
 mname=fullfile(dname,sprintf('MATFILES_%i_%i',npc,npc));
 
+% Assign spacing, this should be 1/60/2 for 30 arc seconds
+dxdy=ncread(fname,'spacing');
+NxNy=ncread(fname,'dimension');
+
+% Check BLOCKISOLATE, BLOCKMEAN, BLOCKTILE, PCHAVE, PAULI, etc
+% but really, this here is quite efficient already...
+
+% Make the 'across' indices into the global matrix
+rt=[0:NxNy(1)/npc:NxNy(1)]; lt=rt+1; 
+rt=rt(2:end); lt=lt(1:end-1);
+
+% Make the 'down' indices into the global matrix
+dn=[0:NxNy(2)/npc:NxNy(2)]; up=dn+1;
+dn=dn(2:end); up=up(1:end-1);
+
 % If no output is requested, will just split the files
 if nargout==0
   % Make it if it doesn't exist it
@@ -74,9 +93,6 @@ if nargout==0
   % Display some info on the file itself
   ncdisp(fname)
   
-  % Assign spacing, this should be 1/60/2 for 30 arc seconds
-  dxdy=ncread(fname,'spacing');
-  NxNy=ncread(fname,'dimension');
   xran=ncread(fname,'x_range');
   yran=ncread(fname,'y_range');
   
@@ -93,17 +109,6 @@ if nargout==0
   diferm(size(zr,2)-NxNy(1))
   diferm(size(zr,1)-NxNy(2))
   
-  % Check BLOCKISOLATE, BLOCKMEAN, BLOCKTILE, PCHAVE, PAULI, etc
-  % but really, this here is quite efficient already...
-  
-  % Across
-  rt=[0:NxNy(1)/npc:NxNy(1)]; lt=rt+1; 
-  rt=rt(2:end); lt=lt(1:end-1);
-  
-  % Down
-  dn=[0:NxNy(2)/npc:NxNy(2)]; up=dn+1;
-  dn=dn(2:end); up=up(1:end-1);
-  
   % Segment patches and resave
   for rindex=1:npc
     for cindex=1:npc
@@ -118,7 +123,7 @@ if nargout==0
   end
 else
   % If you ask for output you just get some basic information back
-  varns={mname,vers,npc};
+  varns={mname,up,dn,lt,rt,dxdy,NxNy,vers,npc};
   varargout=varns(1:nargout);
 end
 
