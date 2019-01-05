@@ -1,5 +1,5 @@
-function z=gebco(lon,lat,vers,npc)
-% z=gebco(lon,lat,vers,npc)
+function z=gebco(lon,lat,vers,npc,xver)
+% z=gebco(lon,lat,vers,npc,xver)
 %
 % Returns the GEBCO bathymetry interpolated to the requested location
 %
@@ -11,6 +11,7 @@ function z=gebco(lon,lat,vers,npc)
 %          2008  version (30 arc seconds, deprecated)
 %         '1MIN' version (1 arc minute, deprecated)
 % npc     sqrt(number) of split pieces [default: 10]
+% xver    Extra verification [1] or not [0]
 %
 % OUTPUT:
 %
@@ -24,7 +25,7 @@ function z=gebco(lon,lat,vers,npc)
 %
 % 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 01/05/2019
+% Last modified by fjsimons-at-alum.mit.edu, 01/06/2019
 
 % Default lon and lat, for good measure, take those from the examples of 
 % https://www.gebco.net/data_and_products/gebco_web_services/web_map_service/#getmap
@@ -37,49 +38,55 @@ defval('vers',2014)
 % Default tiling
 defval('npc',10);
 
+% Extra verification
+defval('xver',1)
+
 % Get information on where the data files are being kept
 [mname,sname,up,dn,lt,rt,dxdy,NxNy]=readGEBCO(vers,npc);
 
-% Now you should know that the original global grid was quoted from -180
-% across in longitude and from 90 down in latitude, so that you can figure
-% out which tile you are in based on the piecewise subdivision. You
-% should also note that the data were pixel centered, from the
-% documentation, quoted at the bottom of this function,
-% https://www.bodc.ac.uk/data/documents/nodb/301801/#6_format
-
-% In other words, here are the matrix corner pixel centers of the global map
+% We know that the data were pixel-centered, see at the bottom of this
+% function. So here are the matrix corner pixel centers of the global map.
 c11=[-180+dxdy(1)/2  90-dxdy(2)/2];
 cmn=[ 180-dxdy(1)/2 -90+dxdy(2)/2];
 
-% Which tile are we in? THIS WILL NEED REVISITING
-cindex=max(1,ceil([lon-c11(1)]/[360/npc]));
-rindex=max(1,ceil(npc-[lat-cmn(2)]/[180/npc]));
-% So which file should we be loading? The stored variable is 'zpc'
+% In which of the tiles have we landed? We know that the original global
+% grid was quoted from -180 across in lon and from 90 down in lat..
+cindex=max(1,ceil(    [lon+180]/[360/npc]));
+rindex=max(1,ceil(npc-[lat+90 ]/[180/npc]));
+
+% So which file should we load? By the way, The stored variable is 'zpc'.
 load(fullfile(mname,sprintf('%s_%2.2i_%2.2i',sname,rindex,cindex)));
 
-% The pixel-centers of the longitudes in the global grid
-lons1=linspace(c11(1),         cmn(1),NxNy(1));
-lons2=         c11(1): dxdy(1):cmn(1);
-% Extra verification
-diferm(lons1,lons2,9)
-% The pixel-centers of the latitudes in the global grid
-lats1=linspace(c11(2),         cmn(2),NxNy(2));
-lats2=         c11(2):-dxdy(2):cmn(2);
-% Extra verification
-diferm(lats1,lats2,9)
+% The pixel-centers of the longitudes in the global grid, alternatively:
+lons =linspace(c11(1),         cmn(1),NxNy(1));
+% The pixel-centers of the latitudes in the global grid, alternatively:
+lats =linspace(c11(2),         cmn(2),NxNy(2));
 
-% Assign a local grid to the pieces loaded
+% Being extra careful here
+if xver==1
+  lons2=       c11(1): dxdy(1):cmn(1);
+  diferm(lons,lons2,9)
+  lats2=       c11(2):-dxdy(2):cmn(2);
+  diferm(lats,lats2,9)
+end
+
+% Assign a local grid to the data in the tile loaded, see readGEBCO
 latpc=lats(up(rindex):dn(rindex));
-lonpc=lons(lt(cindex):rt(cindex);
+lonpc=lons(lt(cindex):rt(cindex));
 
 % Then interpolate from what you've just loaded to what you want
 % Make sure you use a rule that can extrapolate... if it comes out as a NaN
-z=interp2(lonpc,latpc,lon,lat);
+z=interp2(lonpc,latpc,zpc,lon,lat);
 % Fix any and all of the NaN
 
-keyboard
+if any(isnan(z))
+  % Need for a different interpolation
+  keyboard
+end
 
 % Grid documentation
+% https://www.bodc.ac.uk/data/documents/nodb/301801/#6_format
+%
 % The grid is stored as a two-dimensional array of 2-byte signed integer ...
 %     values of elevation in metres, with negative values for bathymetric ...
 %     depths and positive values for topographic heights.
