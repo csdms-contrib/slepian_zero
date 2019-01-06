@@ -19,10 +19,18 @@ function varargout=gebco(lon,lat,vers,npc,method,xver)
 % z        The elevation/bathymetry at the requested point
 % lon,lat  The longitude and latitude of the requested point
 %
-% EXAMPLE:
+% EXAMPLES:
 %
-% mn=randij(21); [z,lon,lat]=gebco(-180+rand(mn)*36,-90+rand(mn)*18);
+%% Some random locations:
 % mn=randij(210); [z,lon,lat]=gebco(-180+rand(mn)*360,-90+rand(mn)*180);
+%% A whole grid that should LOOK like the original data set
+% [LO,LA]=meshgrid(-180:3:180,90:-3:-90);
+% [z,lon,lat]=gebco(LO,LA); imagefnan([-180 90],[180 -90],z)
+%% A whole grid that should BE like the original data set around somewhere
+% c11=[100 -10]; cmn=[140 -40]; spc=1/10;
+% [LO,LA]=meshgrid(c11(1):spc:cmn(1),c11(2):-spc*2:cmn(2));
+% [z,lon,lat]=gebco(LO,LA); imagefnan(c11,cmn,z,'demmap',[-7473 5731])
+%% Test it against the WMS on the GEBCO page itself! See below
 %
 % SEE ALSO:
 %
@@ -70,9 +78,30 @@ rindex=unique(rindep);
 
 % If you are spread across multiple tiles you're in trouble
 if length(cindex)~=1 || length(rindex)~=1
+  % What are the unique running tile numbers?
+  wtile=sub2ind([npc npc],rindep,cindep);
+  utile=unique(wtile);
+  % Initialize output
+  z=nan(size(lon));
   % You should recursively apply this algorithm for the unique pairs!
-  
-  keyboard
+  for index=1:length(utile)
+    % Where are those that these unique tiles refer to?
+    witsj=wtile==utile(index);
+    % Prepare to preserve the size of the input/output, temp array that
+    % won't throw the tiles off... not a memory-saving trip...
+    lonw=lon; lonw(~witsj)=mean(lonw(witsj));
+    latw=lat; latw(~witsj)=mean(latw(witsj));
+    % If you are doing this right, you NOW end up in unique tiles
+    zz=gebco(lonw,latw,vers,npc,method,xver);
+    % And then stick in the output at the right place
+    z(witsj)=zz(witsj);
+  end
+
+  % And then leave, because you are finished
+  % Output
+  varns={z,lon,lat};
+  varargout=varns(1:nargout);
+  return
 end
 
 % So which file should we load? By the way, The stored variable is 'zpc'.
@@ -102,15 +131,24 @@ lonpc=lons(lt(cindex):rt(cindex));
 z=interp2(lonpc,latpc,zpc,lon,lat,method);
 % Fix any and all of the NaN
 
-if any(isnan(z))
+% Note that "any" needs a vector input to do this job
+if any(isnan(z(:)))
   % Need a different interpolation, it's an extrapolation in a sense
-  disp(sprintf('Longitude given %g to %g wanted %g',min(lonpc),max(lonpc),lon))
-  disp(sprintf('Latitude given %g to %g wanted %g',min(latpc),max(latpc),lat))
+  % If it's only one number, give a simple reason
+  if length(lon)*length(lat)==1
+    disp(sprintf('Longitude given %g to %g wanted %g',min(lonpc),max(lonpc),lon))
+    disp(sprintf('Latitude given %g to %g wanted %g',min(latpc), max(latpc),lat))
+  end
   % This is a bit of a pain, I suppose
   F=griddedInterpolant({flipud(latpc(:)) lonpc(:)},flipud(zpc),method);
   % Apply the interpolation for the whole set, make sure there are no surprises
-  zi=F(lat,lon);
-  keyboard
+  if xver==1
+    zi=F(lat,lon);
+    diferm(zi(~isnan(z))-z(~isnan(z)))
+    z=zi;
+  else
+    z=F(lat,lon);
+  end
 end
 
 % Output
@@ -142,3 +180,6 @@ varargout=varns(1:nargout);
 %     centre registered i.e. they refer to elevations at the centre of grid ...
 %     cells.
 
+% Check the WMS!
+% c11=[-20 51] ; cmn=[-19 50];
+% urlread(sprintf('http://www.gebco.net/data_and_products/gebco_web_services/web_map_service/mapserv?request=getfeatureinfo&service=wms&crs=EPSG:4326&layers=gebco_latest_2&query_layers=gebco_latest_2&BBOX=%i,%i,%i,%i&info_format=text/plain&service=wms&x=20&y=20&width=900&height=600&version=1.3.0',cmn(2),c11(1),c11(2),cmn(1)))
