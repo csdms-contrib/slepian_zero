@@ -40,7 +40,7 @@ function varargout=gebco(lon,lat,vers,npc,method,xver)
 %
 % 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 01/06/2019
+% Last modified by fjsimons-at-alum.mit.edu, 01/11/2019
 
 % Default lon and lat, for good measure, take those from the examples of 
 % https://www.gebco.net/data_and_products/gebco_web_services/web_map_service/#getmap
@@ -64,10 +64,15 @@ defval('xver',1)
 % Get information on where the data files are being kept
 [mname,sname,up,dn,lt,rt,dxdy,NxNy]=readGEBCO(vers,npc);
 
+% Grid or pixel registration? See below
+if strcmp(vers,'1MIN')
+  flg=0; else ; flg=1;
+end
+
 % We know that the data were pixel-centered, see at the bottom of this
 % function. So here are the matrix corner pixel centers of the global map.
-c11=[-180+dxdy(1)/2  90-dxdy(2)/2];
-cmn=[ 180-dxdy(1)/2 -90+dxdy(2)/2];
+c11=[-180+dxdy(1)/2*flg  90-dxdy(2)/2*flg];
+cmn=[ 180-dxdy(1)/2*flg -90+dxdy(2)/2*flg];
 
 % In which of the tiles have we landed? We know that the original global
 % grid was quoted from -180 across in lon and from 90 down in lat..
@@ -155,7 +160,7 @@ end
 varns={z,lon,lat};
 varargout=varns(1:nargout);
 
-% Grid documentation
+% Grid documentation for 2008 and 2014 it's pixel-registered.
 % https://www.bodc.ac.uk/data/documents/nodb/301801/#6_format
 %
 % The grid is stored as a two-dimensional array of 2-byte signed integer ...
@@ -179,7 +184,25 @@ varargout=varns(1:nargout);
 %     latitude intervals down to 89° 59' 45'' S. The data values are pixel ...
 %     centre registered i.e. they refer to elevations at the centre of grid ...
 %     cells.
+%
+%
+% NOTE: FOR '1MIN' it's grid registered. The complete data set gives global
+% coverage, spanning 90° N, 180° W to 90° S, 180° E on a one arc-minute
+% grid. The grid consists of 10,801 rows x 21,601 columns giving a total of
+% 233,312,401 points. The data values are grid line registered i.e. they
+% refer to elevations centred on the intersection of the grid lines.
 
 % Check the WMS!
 % c11=[-20 51] ; cmn=[-19 50];
 % urlread(sprintf('http://www.gebco.net/data_and_products/gebco_web_services/web_map_service/mapserv?request=getfeatureinfo&service=wms&crs=EPSG:4326&layers=gebco_latest_2&query_layers=gebco_latest_2&BBOX=%i,%i,%i,%i&info_format=text/plain&service=wms&x=20&y=20&width=900&height=600&version=1.3.0',cmn(2),c11(1),c11(2),cmn(1)))
+
+% http://webhelp.esri.com/arcims/9.3/general/mergedprojects/wms_connect/wms_connector/get_featureinfo.htm
+% BBOX is minx,miny,maxx,maxy
+% X=pixel_column X coordinate in pixels of feature measured from upper
+% left corner of the map. YY=pixel_row Y coordinate in pixels of feature
+% measured from upper left corner of the map. 
+% http://webhelp.esri.com/arcims/9.3/general/mergedprojects/wms_connect/wms_connector/get_featureinfo.htm
+
+
+% ETOPO1 vs GEBCO2014
+% http://www.oceanpotential.com/pre-assessment/datasets/bathymetry/index.html
