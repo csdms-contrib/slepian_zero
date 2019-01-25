@@ -1,14 +1,15 @@
 function varargout=readGEBCO(vers,npc)
-% varargout=readGEBCO(vers,npc)
+% [mname,sname,up,dn,lt,rt,dxdy,NxNy,vers,npc]=readGEBCO(vers,npc)
 %
 % Reads a GEBCO bathymetry grid, stored in NETCDF format, and splits it
 % into manageable MAT files each containing a chunk.
 %
 % INPUT:
 %
-% vers     2014  version (30 arc seconds)
-%          2008  version (30 arc seconds, deprecated)
+% vers     2014 or '2014' version (30 arc seconds)
+%          2008 or '2008' version (30 arc seconds, deprecated)
 %         '1MIN' version (1 arc minute, deprecated)
+%         'WMS' version (maps to the 2014 parameters)
 % npc     sqrt(number) of fitting pieces to split the data into
 %
 % OUTPUT: IF NONE REQUESTED, WILL READ, SPLIT & SAVE THE FILES,
@@ -31,7 +32,7 @@ function varargout=readGEBCO(vers,npc)
 %
 % 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu. 01/06/2019
+% Last modified by fjsimons-at-alum.mit.edu. 01/25/2019
 
 % Default value
 defval('vers',2014)
@@ -43,14 +44,14 @@ defval('npc',10);
 gebcodir=fullfile(getenv('IFILES'),'TOPOGRAPHY','EARTH','GEBCO');
 
 switch vers
- case 2014
+ case {2014,'2014','WMS'}
   % The directory name for storage and retrieval
   dname=fullfile(gebcodir,'GEBCO2014');
   % The full path to the 'GEBCO_2014 Grid' source '20150318'
   fname=fullfile(dname,'GEBCO_2014_1D.nc');
   % The root filename under which the pieces will be saved
   sname='GEBCO2014';
- case 2008
+ case {2008,'2008'}
   % The directory name for storage and retrieval
   dname=fullfile(gebcodir,'GEBCO2008');
   % The full path to the 'GEBCO_08\ Grid' source '20100927'
