@@ -22,7 +22,7 @@ function [timstamp,parsdata]=nwis(code,param,begd,endd)
 %
 % [ts,cfs]=nwis('01401000','00060','1953-10-02','2017-10-02');
 %
-% Last modified by fjsimons-at-alum.mit.edu, 10/02/2017
+% Last modified by fjsimons-at-alum.mit.edu, 01/25/2019
 
 % Specify where to get it by building the query
 servername='https://nwis.waterdata.usgs.gov';
