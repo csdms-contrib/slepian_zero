@@ -1,5 +1,5 @@
 function varargout=gebco(lon,lat,vers,npc,method,xver)
-% [z,lon,lat]=gebco(lon,lat,vers,npc,method,xver)
+% [z,lon,lat,A,R]=gebco(lon,lat,vers,npc,method,xver)
 %
 % Returns the GEBCO bathymetry interpolated to the requested location
 %
@@ -19,11 +19,16 @@ function varargout=gebco(lon,lat,vers,npc,method,xver)
 %
 % z        The elevation/bathymetry at the requested point
 % lon,lat  The longitude and latitude of the requested point
+% A,R      A map and its raster, in case you went with 'WMS' and xver==1
 %
 % EXAMPLES:
 %
-%% Some random locations:
-% mn=randij(210); [z,lon,lat]=gebco(-180+rand(mn)*360,-90+rand(mn)*180);
+%% Some random locations with varying method
+% mn=randij(210); lons=-180+rand(mn)*360; lats=-90+rand(mn)*180;
+% [z1,lon1,lat1]=gebco(lons,lats,2014);
+% [z2,lon2,lat2]=gebco(lons,lats,2008);
+% [z3,lon3,lat3]=gebco(lons,lats,'1MIN');
+% [z4,lon4,lat4]=gebco(lons,lats,'WMS');
 %% A whole grid that should LOOK like the original data set
 % [LO,LA]=meshgrid(-180:3:180,90:-3:-90);
 % [z,lon,lat]=gebco(LO,LA); imagefnan([-180 90],[180 -90],z)
@@ -57,97 +62,147 @@ defval('vers',2014)
 defval('npc',10);
 % Default method
 defval('method','nearest');
+% Default server
+defstruct('wms','srv','http://www.gebco.net/data_and_products/gebco_web_services/web_map_service/mapserv?');
 
 % Extra verification
 defval('xver',1)
 
+% Default outputs
+defval('A',NaN)
+defval('R',NaN)
+
 % If it is a WMS request, skip ahead
 if strcmp(vers,'WMS')
-  % Access the data base of all WMS servers, retusn a WMSLayer object
-  wmsl=wmsfind('GEBCO_2014_Grid','SearchField','LayerTitle');
-
-  % Make a little bounding box around the request, inspired by the known 2014 resolution
-  % latlim and lonlim must be ascending and between what the WMS layer can support
-  latlim=lat+[-1 +1]/60/2;
-  lonlim=lon+[-1 +1]/60/2;
-  if min(latlim)<min(wmsl.Latlim) ||  max(latlim)>max(wmsl.Latlim) ...
-	|| min(lonlim)<min(wmsl.Lonlim) ||  max(lonlim)>max(wmsl.Lonlim)
-    error(sprintf('Latitude and longitude request out of bounds [%g %g] and [%g %g]',...
-		  wmsl.Latlim,wmsl.Lonlim))
+  % Executive this sequentially if the inputs are manifold
+  if length(lon)~=1 || length(lat)~=1
+    [zz,lonz,latz]=deal(nan(size(lon)));
+    % Should probably take advantage of the parallellization here
+    parfor index=1:prod(size(lon))
+      disp(sprintf('Making WMS request %3.3i/%3.3i',index,length(lon)))
+      [zz(index),lonz(index),latz(index)]=gebco(lon(index),lat(index),vers,[],[],xver);
+    end
+    % And then leave, because you are finished, output
+    varns={zz,lonz,latz,A,R};
+    varargout=varns(1:nargout);
+    return
   else
+    % Make a little bounding box around the request, inspired by the known 2014 resolution
+    % latlim and lonlim must be ascending and between what the WMS layer can support
+    latlim=lat+[-1 +1]/60/2;
+    lonlim=lon+[-1 +1]/60/2;
+    
+    if xver==1
+      % Access the data base of all WMS servers, return a WMSLayer object
+      wmsl=wmsfind('GEBCO_2014_Grid','SearchField','LayerTitle');
+      
+      if min(latlim)<min(wmsl.Latlim) ||  max(latlim)>max(wmsl.Latlim) ...
+	    || min(lonlim)<min(wmsl.Lonlim) ||  max(lonlim)>max(wmsl.Lonlim)
+	error(sprintf('Latitude and longitude request out of bounds [%g %g] and [%g %g]',...
+		      wmsl.Latlim,wmsl.Lonlim))
+      end
+      
+      % Supplant the server if you came this far
+      wms.srv=wmsl.ServerURL;
+
+      % Stuff that could have, but didn't work:
+
+      % [Not needed] Gets more info! And collects a whole bunch of other stuff. See "refine".
+      % [wms.inf,wms.inq]=wmsinfo(wmsl.ServerURL);
+      % [Not needed] Gets the webmap server capabilities, or do XMLREAD
+      % wms.cap=urlread(wms.inq); 
+      % [Not needed] Gets the webmap server proxy
+      % wms.spr=WebMapServer(wmsl.ServerURL);
+
+      % [Not working] Gets a webmap request (template?)
+      % wms.mpr=WMSMapRequest(wmsl,wms.spr);
+      % [Not working] Direct read, or getting a template request
+      % [A,R,wms.mpr]=wmsread(wmsl,'Latlim',latlim,'Lonlim',lonlim,'ImageHeight',2,'ImageWidth',2);
+    end
     % Just to make sure for later
     latlim=sort(latlim); lonlim=sort(lonlim);
+
+    % Instead, we prepare for making our own damn request,  adding some
+    % things, in a new variable wms, that (from gebco.net or from wmsc
+    % properties) I know are necessary to make a direct url request
+
+    % Coordinate Reference System, see, e.g. https://epsg.io/4326 or http://spatialreference.org/ref/epsg/wgs-84/
+    wms.crs='EPSG:4326';
+    % Version
+    wms.ver='1.3.0';
+    % Service
+    wms.ser='wms';
+    % Info_format
+    wms.iff='text/plain';
+
+    % Layer titles also 'gebco_south_polar_view', 'gebco_north_polar_view' but those go with EPSG:3031 and different
+    % bounding box specifications, see https://www.gebco.net/data_and_products/gebco_web_services/web_map_service/
+    % You might think that 'GEBCO_2014_Grid' would be acceptable, but
+    % apparently it is not even wmsl.LayerName if you had that from above
+    wms.lyr='gebco_latest_2';
+
+    % Integer width and height of the map (when requesting a feature, keep it small!)
+    wms.pxw=10;
+    wms.pxh=10;
+
+    % Integer pixel count inside the map where you want to extract the
+    % point, X is column measured from upper left map corner and Y ir row
+    % measured from upper left corner of the map
+    wms.pxx=5;
+    wms.pxy=5;
+
+    % For a point, need 'GetFeatureinfo', not 'GetCapabilities' or 'GetMap'
+    wms.rqt='GetFeatureInfo';
+
+    % Construct the direct request myself from the gebco.net website example
+    wms.req=sprintf(...
+	'%srequest=%s&service=%s&crs=%s&version=%s&info_format=%s&layers=%s&query_layers=%s&BBOX=%s,%s,%s,%s&x=%i&y=%i&width=%i&height=%i',...
+	wms.srv,...
+	wms.rqt,wms.ser,wms.crs,wms.ver,wms.iff,wms.lyr,wms.lyr,...
+	num2str(latlim(1)),num2str(lonlim(1)),num2str(latlim(2)),num2str(lonlim(2)),...
+	wms.pxx,wms.pxy,wms.pxw,wms.pxh);
+
+    if xver==1
+      % Also make a map request, to take a look...
+      wms.rqt='GetMap';
+      wms.fmt='image/png';
+
+      % Construct the direct request myself from the gebco.net website example
+      wms.mpr=sprintf(...
+	  '%srequest=%s&service=%s&crs=%s&version=%s&format=%s&layers=%s&query_layers=%s&BBOX=%s,%s,%s,%s&width=%i&height=%i',...
+	  wms.srv,...
+	  wms.rqt,wms.ser,wms.crs,wms.ver,wms.fmt,wms.lyr,wms.lyr,...
+	  num2str(latlim(1)),num2str(lonlim(1)),num2str(latlim(2)),num2str(lonlim(2)),...
+	  wms.pxw,wms.pxh);
+      % Get the output, use wmsread only for GetMap request... 
+      % first output is image, second output is the raster used
+      [A,R,r]=wmsread(wms.mpr);
+    end
+
+    % Get the output, cannot use wmsread if it isn't a GetMap request...
+    % [wmsu,R,U]=wmsread(wmsr);
+    % So, need to parse the output
+    wms.out=parse(urlread(wms.req));
+
+    % Get the lon and lat out that you have actually received and
+    % the bathymetry at that point, which is what you really wanted
+    try 
+      lon=sscanf(strtrim(wms.out(4,:)),'x = ''%f''');
+      lat=sscanf(strtrim(wms.out(5,:)),'y = ''%f''');
+      z=  sscanf(strtrim(wms.out(6,:)),'value_list = ''%i''');
+    catch
+      % Sometimes there are no data being returned
+      error('You should try increasing the pixel size of the webmap')
+    end
+
+    % And then leave, because you are finished, output
+    varns={z,lon,lat,A,R};
+    varargout=varns(1:nargout);
+    return
   end
-
-  % Stuff that could have, but didn't work:
-
-  % [Not needed] Gets more info! And collects a whole bunch of other stuff. See "refine".
-  % [wmsi,wmsq]=wmsinfo(wmsl.ServerURL);
-  % [Not needed] Gets the webmap server capabilities, or do XMLREAD
-  % wmsc=urlread(wmsq); 
-  % [Not needed] Gets the webmap server proxy
-  % wmss=WebMapServer(wmsl.ServerURL);
-  % [Not working] Gets a webmap request (template?)
-  % wmsr=WMSMapRequest(wmsl,wmss);
-  % [Not working] Direct read, or getting a template request
-  % [A,R,wmsr]=wmsread(wmsl,'Latlim',latlim,'Lonlim',lonlim,'ImageHeight',2,'ImageWidth',2);
-
-  % Instead, we prepare for making our own damn request,  adding some
-  % things, in a new variable wms, that (from gebco.net or from wmsc
-  % properties) I know are necessary to make a direct url request
-
-  % Coordinate Reference System, see, e.g. https://epsg.io/4326 or http://spatialreference.org/ref/epsg/wgs-84/
-  wms.crs='EPSG:4326';
-  % Version
-  wms.ver='1.3.0';
-  % Service
-  wms.ser='wms';
-  % Info_format
-  wms.iff='text/plain';
-
-  % Layer titles also 'gebco_south_polar_view', 'gebco_north_polar_view' but those go with EPSG:3031 and different
-  % bounding box specifications, see https://www.gebco.net/data_and_products/gebco_web_services/web_map_service/
-  % You might think that 'GEBCO_2014_Grid' would be acceptable, but
-  % apparently it is not even wmsl.LayerName
-  wms.lyr='gebco_latest_2';
-
-  % Integer width and height of the map (when requesting a feature, keep it small!)
-  wms.pxw=50;
-  wms.pxh=50;
-
-  % Integer pixel count inside the map where you want to extract the
-  % point, X is column measured from upper left map corner and Y ir row
-  % measured from upper left corner of the map
-  wms.pxx=1;
-  wms.pxy=1;
-
-  % For a point, need 'GetFeatureinfo', not 'GetCapabilities' or 'GetMap'
-  wms.req='GetFeatureinfo';
-
-  % Construct the direct request myself from the gebco.net website example
-  wmsr=sprintf(...
-      '%srequest=%s&service=%s&crs=%s&version=%s&info_format=%s&layers=%s&query_layers=%s&BBOX=%s,%s,%s,%s&x=%i&y=%i&width=%i&height=%i',...
-      wmsl.ServerURL,...
-      wms.req,wms.ser,wms.crs,wms.ver,wms.iff,wms.lyr,wms.lyr,...
-      num2str(latlim(1)),num2str(lonlim(1)),num2str(latlim(2)),num2str(lonlim(2)),...
-      wms.pxx,wms.pxy,wms.pxw,wms.pxh);
-
-       % Get the output, cannot use wmsread if it isn't a GetMap request...
-       % [wmsu,R,U]=wmsread(wmsr);
-       % So, need to parse the output
-       wmsu=parse(urlread(wmsr));
-       
-       % Get the lon and lat out that you have gotten, apparently, and
-       % the bathymetry at that point, which is what you really wanted
-       lon=sscanf(strtrim(wmsu(4,:)),'x = ''%f''');
-       lat=sscanf(strtrim(wmsu(5,:)),'y = ''%f''');
-       z=  sscanf(strtrim(wmsu(6,:)),'value_list = ''%i''');
-
-       % And then leave, because you are finished, output
-       varns={z,lon,lat};
-       varargout=varns(1:nargout);
-       return
 end
+
+% Now it's NOT a WMS request but we interpolate our presaved data files
 
 % Get information on where the data files are being kept
 [mname,sname,up,dn,lt,rt,dxdy,NxNy]=readGEBCO(vers,npc);
@@ -177,6 +232,7 @@ if length(cindex)~=1 || length(rindex)~=1
   % Initialize output
   z=nan(size(lon));
   % You should recursively apply this algorithm for the unique pairs!
+  % Needs a change to be able to use parfor, probably using a cell
   for index=1:length(utile)
     % Where are those that these unique tiles refer to?
     witsj=wtile==utile(index);
@@ -191,7 +247,7 @@ if length(cindex)~=1 || length(rindex)~=1
   end
 
   % And then leave, because you are finished, output
-  varns={z,lon,lat};
+  varns={z,lon,lat,A,R};
   varargout=varns(1:nargout);
   return
 end
@@ -244,7 +300,7 @@ if any(isnan(z(:)))
 end
 
 % Output
-varns={z,lon,lat};
+varns={z,lon,lat,A,R};
 varargout=varns(1:nargout);
 
 % Grid documentation for 2008 and 2014 it's pixel-registered.
