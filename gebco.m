@@ -1,5 +1,5 @@
 function varargout=gebco(lon,lat,vers,npc,method,xver)
-% z=gebco(lon,lat,vers,npc,method,xver)
+% [z,lon,lat]=gebco(lon,lat,vers,npc,method,xver)
 %
 % Returns the GEBCO bathymetry interpolated to the requested location
 %
@@ -9,7 +9,8 @@ function varargout=gebco(lon,lat,vers,npc,method,xver)
 % lat      Requested latitudes, in decimal degrees, ideally -90<=lat<=90
 % vers     2014  version (30 arc seconds) [default]
 %          2008  version (30 arc seconds, deprecated)
-%         '1MIN' version (1 arc minute, deprecated)
+%          '1MIN' version (1 arc minute, deprecated)
+%          'WMS' uses the GEBCO Web Map Service request server
 % npc     sqrt(number) of split pieces [default: 10]
 % method  'nearest' (default), 'linear', etc, for the interpolation
 % xver    Extra verification [1] or not [0]
@@ -30,7 +31,6 @@ function varargout=gebco(lon,lat,vers,npc,method,xver)
 % c11=[100 -10]; cmn=[140 -40]; spc=1/10;
 % [LO,LA]=meshgrid(c11(1):spc:cmn(1),c11(2):-spc*2:cmn(2));
 % [z,lon,lat]=gebco(LO,LA); imagefnan(c11,cmn,z,'demmap',[-7473 5731])
-%% Test it against the WMS on the GEBCO page itself! See below
 %
 % SEE ALSO:
 %
@@ -40,10 +40,10 @@ function varargout=gebco(lon,lat,vers,npc,method,xver)
 %
 % 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 01/11/2019
+% Last modified by fjsimons-at-alum.mit.edu, 01/25/2019
 
 % Default lon and lat, for good measure, take those from the examples of 
-% https://www.gebco.net/data_and_products/gebco_web_services/web_map_service/#getmap
+% https://www.gebco.net/data_and_products/gebco_web_services/web_map_service/
 % for comparison with WMS GetFeatureInfo requests
 defval('lon',-19.979167)
 defval('lat', 50.9625)
@@ -60,6 +60,94 @@ defval('method','nearest');
 
 % Extra verification
 defval('xver',1)
+
+% If it is a WMS request, skip ahead
+if strcmp(vers,'WMS')
+  % Access the data base of all WMS servers, retusn a WMSLayer object
+  wmsl=wmsfind('GEBCO_2014_Grid','SearchField','LayerTitle');
+
+  % Make a little bounding box around the request, inspired by the known 2014 resolution
+  % latlim and lonlim must be ascending and between what the WMS layer can support
+  latlim=lat+[-1 +1]/60/2;
+  lonlim=lon+[-1 +1]/60/2;
+  if min(latlim)<min(wmsl.Latlim) ||  max(latlim)>max(wmsl.Latlim) ...
+	|| min(lonlim)<min(wmsl.Lonlim) ||  max(lonlim)>max(wmsl.Lonlim)
+    error(sprintf('Latitude and longitude request out of bounds [%g %g] and [%g %g]',...
+		  wmsl.Latlim,wmsl.Lonlim))
+  else
+    % Just to make sure for later
+    latlim=sort(latlim); lonlim=sort(lonlim);
+  end
+
+  % Stuff that could have, but didn't work:
+
+  % [Not needed] Gets more info! And collects a whole bunch of other stuff. See "refine".
+  % [wmsi,wmsq]=wmsinfo(wmsl.ServerURL);
+  % [Not needed] Gets the webmap server capabilities, or do XMLREAD
+  % wmsc=urlread(wmsq); 
+  % [Not needed] Gets the webmap server proxy
+  % wmss=WebMapServer(wmsl.ServerURL);
+  % [Not working] Gets a webmap request (template?)
+  % wmsr=WMSMapRequest(wmsl,wmss);
+  % [Not working] Direct read, or getting a template request
+  % [A,R,wmsr]=wmsread(wmsl,'Latlim',latlim,'Lonlim',lonlim,'ImageHeight',2,'ImageWidth',2);
+
+  % Instead, we prepare for making our own damn request,  adding some
+  % things, in a new variable wms, that (from gebco.net or from wmsc
+  % properties) I know are necessary to make a direct url request
+
+  % Coordinate Reference System, see, e.g. https://epsg.io/4326 or http://spatialreference.org/ref/epsg/wgs-84/
+  wms.crs='EPSG:4326';
+  % Version
+  wms.ver='1.3.0';
+  % Service
+  wms.ser='wms';
+  % Info_format
+  wms.iff='text/plain';
+
+  % Layer titles also 'gebco_south_polar_view', 'gebco_north_polar_view' but those go with EPSG:3031 and different
+  % bounding box specifications, see https://www.gebco.net/data_and_products/gebco_web_services/web_map_service/
+  % You might think that 'GEBCO_2014_Grid' would be acceptable, but
+  % apparently it is not even wmsl.LayerName
+  wms.lyr='gebco_latest_2';
+
+  % Integer width and height of the map (when requesting a feature, keep it small!)
+  wms.pxw=50;
+  wms.pxh=50;
+
+  % Integer pixel count inside the map where you want to extract the
+  % point, X is column measured from upper left map corner and Y ir row
+  % measured from upper left corner of the map
+  wms.pxx=1;
+  wms.pxy=1;
+
+  % For a point, need 'GetFeatureinfo', not 'GetCapabilities' or 'GetMap'
+  wms.req='GetFeatureinfo';
+
+  % Construct the direct request myself from the gebco.net website example
+  wmsr=sprintf(...
+      '%srequest=%s&service=%s&crs=%s&version=%s&info_format=%s&layers=%s&query_layers=%s&BBOX=%s,%s,%s,%s&x=%i&y=%i&width=%i&height=%i',...
+      wmsl.ServerURL,...
+      wms.req,wms.ser,wms.crs,wms.ver,wms.iff,wms.lyr,wms.lyr,...
+      num2str(latlim(1)),num2str(lonlim(1)),num2str(latlim(2)),num2str(lonlim(2)),...
+      wms.pxx,wms.pxy,wms.pxw,wms.pxh);
+
+       % Get the output, cannot use wmsread if it isn't a GetMap request...
+       % [wmsu,R,U]=wmsread(wmsr);
+       % So, need to parse the output
+       wmsu=parse(urlread(wmsr));
+       
+       % Get the lon and lat out that you have gotten, apparently, and
+       % the bathymetry at that point, which is what you really wanted
+       lon=sscanf(strtrim(wmsu(4,:)),'x = ''%f''');
+       lat=sscanf(strtrim(wmsu(5,:)),'y = ''%f''');
+       z=  sscanf(strtrim(wmsu(6,:)),'value_list = ''%i''');
+
+       % And then leave, because you are finished, output
+       varns={z,lon,lat};
+       varargout=varns(1:nargout);
+       return
+end
 
 % Get information on where the data files are being kept
 [mname,sname,up,dn,lt,rt,dxdy,NxNy]=readGEBCO(vers,npc);
@@ -102,8 +190,7 @@ if length(cindex)~=1 || length(rindex)~=1
     z(witsj)=zz(witsj);
   end
 
-  % And then leave, because you are finished
-  % Output
+  % And then leave, because you are finished, output
   varns={z,lon,lat};
   varargout=varns(1:nargout);
   return
@@ -191,18 +278,6 @@ varargout=varns(1:nargout);
 % grid. The grid consists of 10,801 rows x 21,601 columns giving a total of
 % 233,312,401 points. The data values are grid line registered i.e. they
 % refer to elevations centred on the intersection of the grid lines.
-
-% Check the WMS!
-% c11=[-20 51] ; cmn=[-19 50];
-% urlread(sprintf('http://www.gebco.net/data_and_products/gebco_web_services/web_map_service/mapserv?request=getfeatureinfo&service=wms&crs=EPSG:4326&layers=gebco_latest_2&query_layers=gebco_latest_2&BBOX=%i,%i,%i,%i&info_format=text/plain&service=wms&x=20&y=20&width=900&height=600&version=1.3.0',cmn(2),c11(1),c11(2),cmn(1)))
-
-% http://webhelp.esri.com/arcims/9.3/general/mergedprojects/wms_connect/wms_connector/get_featureinfo.htm
-% BBOX is minx,miny,maxx,maxy
-% X=pixel_column X coordinate in pixels of feature measured from upper
-% left corner of the map. YY=pixel_row Y coordinate in pixels of feature
-% measured from upper left corner of the map. 
-% http://webhelp.esri.com/arcims/9.3/general/mergedprojects/wms_connect/wms_connector/get_featureinfo.htm
-
 
 % ETOPO1 vs GEBCO2014
 % http://www.oceanpotential.com/pre-assessment/datasets/bathymetry/index.html
