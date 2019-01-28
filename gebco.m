@@ -45,7 +45,7 @@ function varargout=gebco(lon,lat,vers,npc,method,xver)
 %
 % 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 01/25/2019
+% Last modified by fjsimons-at-alum.mit.edu, 01/26/2019
 
 % Default lon and lat, for good measure, take those from the examples of 
 % https://www.gebco.net/data_and_products/gebco_web_services/web_map_service/
