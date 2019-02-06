@@ -40,7 +40,7 @@ function varargout=gebco(lon,lat,vers,npc,method,xver,jig)
 %
 % 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 02/05/2019
+% Last modified by fjsimons-at-alum.mit.edu, 02/06/2019
 
 if ~isstr(lon)
   % Default lon and lat, for good measure, take those from the examples of 
