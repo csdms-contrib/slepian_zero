@@ -1,7 +1,7 @@
 function varargout=lineshift(x,y,dofs,sens,scl)
 % [xofs,yofs,xs,ys,yy,x,y,p]=LINESHIFT(x,y,dofs,sens,scl)
 %
-% Shifts a set of scattered points along their best-fitting line.
+% Shifts a set of scattered points along their best-fitting line
 %
 % INPUT:
 %
@@ -20,7 +20,7 @@ function varargout=lineshift(x,y,dofs,sens,scl)
 % x,y        The original coordinates of the input points
 % p          The regression parameters
 %
-% Last modified by fjsimons-at-alum.mit.edu, 11/14/2012
+% Last modified by fjsimons-at-alum.mit.edu, 03/01/2019
 
 % Set default
 defval('meth','scaled');
