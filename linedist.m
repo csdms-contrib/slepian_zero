@@ -5,7 +5,8 @@ function [d,dvv]=linedist(x1,y1,p1,x2,y2,p2)
 % plane, as, e.g. determined by LINESHIFT, determines the distance between
 % the two lines, which needn't be parallel, as the MEDIAN of the
 % perpendicular distances of all the points in one of the lines with respect
-% to the other line (and vice versa), using POINTDIST..
+% to the other line (and vice versa), using POINTDIST. This function is
+% only used by POLISMAG, that should be a warning against general use.
 %
 % INPUT:
 %
@@ -21,7 +22,7 @@ function [d,dvv]=linedist(x1,y1,p1,x2,y2,p2)
 %
 % CURVEDIST, POINTDIST, POINT2LINE, POINT3LINE, LINESHIFT
 %
-% Last modified by fjsimons-at-alum.mit.edu, 10/12/2017
+% Last modified by fjsimons-at-alum.mit.edu, 03/12/2018
 
 % Straighten out input
 x1=x1(:); y1=y1(:);
