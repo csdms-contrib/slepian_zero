@@ -2,8 +2,36 @@
 #
 # An in-repository local version of the alias gacpom with meaningful commit messages
 
+git add lgacpom
+git commit -m "An instruction set for meaningful commit messages"
+git push origin master
+
 git add readGEBCO.m
-git commit -m "Reads GEBCO2008 files and reformats them for storage as MAT files"
+git commit -m "Reads GEBCO bathymetry files and reformats them for storage as MAT files"
+git push
+
+git add nwis.m
+git commit -m "Reads water (streamflow etc) data from the USGS, through the RDB format"
+git push
+
+git add randij.m
+git commit -m "Returns a random size for a matrix of a certain total number of elements"
+git push
+
+git add gebco.m
+git commit -m "Returns GEBCO bathymetry interpolated to the requested location"
+git push
+
+git add blockmean.m
+git commit -m "Calculates means of submatrices within a matrix"
+git push
+
+git add croputm.m
+git commit -m "Limit view and transform WGS84 geocentric degrees to UTM coordinates"
+git push
+
+git add utmlabels.m
+git commit -m "Plots good-looking UTM labels on the current axes"
 git push
 
 git add point2line.m
@@ -28,6 +56,14 @@ git push
 
 git add pathfinderlines.m
 git commit -m "Reads a generic LINES coordinate CSV file from GPS Pathfinder Office"
+git push
+
+git add linedist.m
+git commit -m "Distance of a line to a line"
+git push
+
+git add lineshift.m
+git commit -m "Shifts a set of scattered points along their best-fitting line"
 git push
 
 
