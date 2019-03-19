@@ -31,6 +31,8 @@ function varargout=gebco(lon,lat,vers,npc,method,xver,jig)
 % gebco('demo2')
 %% A whole grid that should BE like the original data set around somewhere
 % gebco('demo3')
+%% A log of a MERMAID float
+% gebco('demo4','P006'))
 %
 % SEE ALSO:
 %
@@ -40,7 +42,7 @@ function varargout=gebco(lon,lat,vers,npc,method,xver,jig)
 %
 % 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 02/06/2019
+% Last modified by fjsimons-at-alum.mit.edu, 03/19/2019
 
 if ~isstr(lon)
   % Default lon and lat, for good measure, take those from the examples of 
@@ -177,7 +179,8 @@ if ~isstr(lon)
 	  wms.rqt,wms.ser,wms.crs,wms.ver,wms.iff,wms.lyr,wms.lyr,...
 	  num2str(latlim(1)),num2str(lonlim(1)),num2str(latlim(2)),num2str(lonlim(2)),...
 	  wms.pxx,wms.pxy,wms.pxw,wms.pxh);
-      
+
+     
       % Get the output, cannot use wmsread if it isn't a GetMap request...
       % [wmsu,R,U]=wmsread(wmsr);
       % So, need to parse the output
@@ -196,7 +199,7 @@ if ~isstr(lon)
 	% In which case we force an xver
 	[z,lon,lat,~,~,jig]=gebco(lon,lat,vers,[],[],1,jig+1);
       end
-      
+
       % And then leave, because you are finished, output
       varns={z,lon,lat,A,R,jig};
       varargout=varns(1:nargout);
@@ -258,9 +261,12 @@ if ~isstr(lon)
     for index=1:length(utile)
       z(witsj{index})=zz{index};
     end
-    
+
+    % If you hadn't yet by now
+    defval('jig',NaN)
+
     % And then leave, because you are finished, output
-    varns={z,lon,lat,A,R};
+    varns={z,lon,lat,A,R,jig};
     varargout=varns(1:nargout);
     return
   end
@@ -314,8 +320,11 @@ if ~isstr(lon)
     end
   end
   
+  % If you hadn't yet by now
+  defval('jig',NaN)
+
   % Output
-  varns={z,lon,lat,A,R};
+  varns={z,lon,lat,A,R,jig};
   varargout=varns(1:nargout);
   
   % Grid documentation for 2008 and 2014 it's pixel-registered.
@@ -389,4 +398,27 @@ elseif strcmp(lon,'demo3')
   c11=[100 -10]; cmn=[140 -40]; spc=1/10;
   [LO,LA]=meshgrid(c11(1):spc:cmn(1),c11(2):-spc*2:cmn(2));
   [z,lon,lat]=gebco(LO,LA); imagefnan(c11,cmn,z,'demmap',[-7473 5731])
+elseif strcmp(lon,'demo4')
+  % Go grab a float's log from this directory
+  dname='/u/fjsimons/MERMAID/serverdata/locdata';
+  % Construct te filename from the number given after the 'demo4' input
+  defval('lat','P006')
+  fname=sprintf('%s_all.txt',lat);
+  % Extracts the longitudes and latitudes out of a particular float's log
+  % Look up the format codes in VIT2TBL, do not confuse latitude and longitude
+  cname=sprintf('awk ''{printf "%%12.6f %%11.6f\\n",$5,$4}'' %s',...
+		fullfile(dname,fname));
+  % Read, then parse
+  [~,lolas]=system(cname); C=textscan(lolas,'%12.6f %11.6f');
+  lola=[C{1} C{2}]; clear lolas C
+  % Now run the GEBCO identification in some incarnations
+  [z2014,lon2014,lat2014]=gebco(lola(:,1),lola(:,2),2014);
+  [zWMS ,lonWMS  ,latWMS]=gebco(lola(:,1),lola(:,2),'WMS');
+  % And reprint the file to a new destination
+  fid=fopen(fullfile(dname,sprintf('%s.bat',pref(fname))),'w+');
+  % Look up the format for the bathymetry itself rigt here in GEBCO
+  fprintf(fid,'%12.6f %11.6f %12.6f %11.6f %12.6f %11.6f %i %i\n',...
+	 [lola' ; lon2014' ; lat2014' ; lonWMS' ; latWMS' ; z2014' ; zWMS'])
+  fclose(fid)
 end
+
