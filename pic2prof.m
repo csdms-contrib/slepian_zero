@@ -24,10 +24,10 @@ function varargout=pic2prof(mn1,mn2,A,fname,dname)
 % tic; [~,A]=pic2prof         ; toc
 % tic;       pic2prof([],[],A); toc
 %
-% Written by AC on 03212019
+% Last modified by fjsimons-at-alum.mit.edu, 03/21/2019
 
 % Specify defaults
-defval('dname','C:\Users\acavoli\Desktop\jp2')
+defval('dname','/u/fjsimons/STUDENTS/AlexCavoli/')
 defval('fname','Around180_greyscale.jpg')
 
 % exist(fullfile(dname,fname)) 
