@@ -2,6 +2,14 @@
 #
 # An in-repository local version of the alias gacpom with meaningful commit messages
 
+git add pic2prof.m
+git commit -m "Takes picture, makes a profile"
+git push origin master
+
+git add rapideye.m
+git commit -m "Reads RAPIDEYE imagery"
+git push origin master
+
 git add lgacpom
 git commit -m "An instruction set for meaningful commit messages"
 git push origin master
