@@ -1,4 +1,4 @@
-function varargout=rapideye(froot,dirp,diro,xver,urld)
+function varargout=rapideye(froot,dirp,dirpo,xver,urld)
 % [alldata,nprops,props,rgbdata,alfadat]=RAPIDEYE(froot,dirp,diro,xver,urld)
 %
 % Loads an returns a RAPIDEYE satellite image and its properties.
@@ -29,6 +29,8 @@ function varargout=rapideye(froot,dirp,diro,xver,urld)
 %            nprops.sx   The pixel resolution in m
 %            nprops.lo   The four limit longitudes clockwise from NW
 %            nprops.la   The four limit latitudes clockwise from NW
+%            nprops.nc   The number of rows
+%            nprops.nr   The number of columns
 % props      The complete properties structure directly from the TIFF
 % rgbdata    Just the RGB data values, UINT8
 % alfadat    Just the alfa data values, UINT8
@@ -43,8 +45,10 @@ function varargout=rapideye(froot,dirp,diro,xver,urld)
 %                 3357121_2018-09-11_RE3_3A_Analytic_metadata.xml
 % 20180911_094536_3357121_RapidEye-3_metadata.json
 % And in that case, I am able to do, without any further inputs:
-%  
 % [alldata,nprops,props,rgbdata,alfadat]=rapideye;
+% Most often you will be in the directory one up from 'dirp' and
+% call it as follows:
+% [alldata,nprops,props,rgbdata,alfadat]=rapideye('20180911_094536_3357121_RapidEye-3',[],[],1);
 %
 % SEE ALSO
 %
@@ -58,11 +62,10 @@ function varargout=rapideye(froot,dirp,diro,xver,urld)
 
 %%%%%%%%%% FILENAME AND DIRECTORY ORGANIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Bottom-level directory name, taken from the Rapideye download
-defval('dirp','20180911_094536_3357121_RapidEye-3')
 % Root of the filename for three of the four files inside the directory
 defval('froot','3357121_2018-09-11_RE3_3A')
-
+% Bottom-level directory name, taken from the Rapideye download
+defval('dirp','20180911_094536_3357121_RapidEye-3')
 % Top-level directory name, where you keep the Rapideye directory
 defval('diro','~fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE')
 
@@ -72,7 +75,7 @@ defval('diro','~fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE')
 defval('urld','http://geoweb.princeton.edu/people/simons/JSON')
 
 % The JSON metadata local file, if it exists
-file1=fullfile(diro,dirp,sprintf('%s_metadata.json'        ,dirp));
+file1=fullfile(diro,dirp,sprintf('%s_metadata.json'        ,dirp ));
 % The UDM metadata local file, which should exist
 file2=fullfile(diro,dirp,sprintf('%s_udm.tif'              ,froot));
 % The XML metadata local file, which should exist
@@ -81,7 +84,7 @@ file3=fullfile(diro,dirp,sprintf('%s_Analytic_metadata.xml',froot));
 file4=fullfile(diro,dirp,sprintf('%s_Analytic.tif'         ,froot));
 
 % The JSON metadata webfile, may be a backup for the local file
-file5=fullfile(     urld,sprintf('%s_metadata.json'        ,dirp));
+file5=fullfile(     urld,sprintf('%s_metadata.json'        ,dirp ));
 
 % I advocate checking grid parameters and file sizes for a ever
 defval('xver',1)
@@ -159,6 +162,8 @@ nprops.ys=props.origin_y;
 nprops.sx=sx;
 nprops.lo=lons(1:4);
 nprops.la=lats(1:4);
+nprops.nc=props.columns;
+nprops.nr=props.rows;
 
 % Reorder if you like, but then reorder the help above also
 varns={alldata,nprops,props,rgbdata,alfadat};
