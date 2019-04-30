@@ -1,4 +1,4 @@
-function varargout=rapideye(froot,dirp,dirpo,xver,urld)
+function varargout=rapideye(froot,dirp,diro,xver,urld)
 % [alldata,nprops,props,rgbdata,alfadat]=RAPIDEYE(froot,dirp,diro,xver,urld)
 %
 % Loads an returns a RAPIDEYE satellite image and its properties.
@@ -26,7 +26,7 @@ function varargout=rapideye(froot,dirp,dirpo,xver,urld)
 % nprops     A minimal properties structure with
 %            nprops.xs   The top left pixel edge in UTM easting
 %            nprops.ys   The top left pixel edge in UTM northing
-%            nprops.sx   The pixel resolution in m
+%            nprops.sp   The pixel resolution in m
 %            nprops.lo   The four limit longitudes clockwise from NW
 %            nprops.la   The four limit latitudes clockwise from NW
 %            nprops.nc   The number of rows
@@ -47,8 +47,9 @@ function varargout=rapideye(froot,dirp,dirpo,xver,urld)
 % And in that case, I am able to do, without any further inputs:
 % [alldata,nprops,props,rgbdata,alfadat]=rapideye;
 % Most often you will be in the directory one up from 'dirp' and
-% call it as follows:
-% [alldata,nprops,props,rgbdata,alfadat]=rapideye('20180911_094536_3357121_RapidEye-3',[],[],1);
+% call it as follows, either of:
+% [alldata,nprops,props,rgbdata,alfadat]=rapideye('3357121_2018-09-11_RE3_3A','20180911_094536_3357121_RapidEye-3','.',1);
+% [alldata,nprops,props,rgbdata,alfadat]=rapideye('3357121_2018-09-11_RE3_3A','20180911_094536_3357121_RapidEye-3',pwd,1);
 %
 % SEE ALSO
 %
@@ -67,7 +68,7 @@ defval('froot','3357121_2018-09-11_RE3_3A')
 % Bottom-level directory name, taken from the Rapideye download
 defval('dirp','20180911_094536_3357121_RapidEye-3')
 % Top-level directory name, where you keep the Rapideye directory
-defval('diro','~fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE')
+defval('diro','/u/fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE')
 
 % Remote directory where I copied the JSON file from DIRP so as to use
 % WEBREAD, noting that the JSON filename derives from DIRP, see
@@ -86,7 +87,7 @@ file4=fullfile(diro,dirp,sprintf('%s_Analytic.tif'         ,froot));
 % The JSON metadata webfile, may be a backup for the local file
 file5=fullfile(     urld,sprintf('%s_metadata.json'        ,dirp ));
 
-% I advocate checking grid parameters and file sizes for a ever
+% I advocate checking grid parameters and file sizes for ever
 defval('xver',1)
 
 % Some checks and balances
@@ -120,7 +121,7 @@ lons=coords(:,:,1);
 lats=coords(:,:,2);
 
 % Pixel resolution in m
-sx=props.pixel_resolution;
+sp=props.pixel_resolution;
 
 
 %%%%%%%%%% DATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -148,6 +149,8 @@ if nargout>3
   % Three-dimensional plus an extra one
   diferm(size(rgbdata)-[props.rows props.columns 3])
   diferm(size(alfadat)-[props.rows props.columns  ])
+else
+  [rgbdata,alfadat]=deal(NaN);
 end
 
 % Close the TIFF for good measure
@@ -159,7 +162,7 @@ close(tiffo)
 % Summaries the useful properties, see the help above
 nprops.xs=props.origin_x;
 nprops.ys=props.origin_y;
-nprops.sx=sx;
+nprops.sp=sp;
 nprops.lo=lons(1:4);
 nprops.la=lats(1:4);
 nprops.nc=props.columns;
@@ -175,7 +178,9 @@ varargout=varns(1:nargout);
 if xver>0
   % Convert the limit coordinates to UTM using a hack function which
   % gets N and S mixed up, sometimes... but the point is that it's unique
+  warning off MATLAB:nargchk:deprecated
   [xs,ys,zs]=deg2utm(lats,lons);
+  warning on MATLAB:nargchk:deprecated
   % Need to round these
   xs=round(xs); ys=round(ys);
   
@@ -183,12 +188,12 @@ if xver>0
   diferm(props.origin_x-xs(1))
   diferm(props.origin_y-ys(1))
   % This is the most useful grid information for later understanding
-  diferm(props.columns-length(xs(1)+sx/2:+sx:xs(2)))
-  diferm(props.rows   -length(ys(1)-sx/2:-sx:ys(3)))
+  diferm(props.columns-length(xs(1)+sp/2:+sp:xs(2)))
+  diferm(props.rows   -length(ys(1)-sp/2:-sp:ys(3)))
   % Two alternatives to understand the pixel center grid, knowing
   % that the colon opeator won't necessarily hit the end boundary...
-  diferm(linspace(xs(1)+sx/2,xs(2)-sx/2,props.columns)-[xs(1)+sx/2:+sx:xs(2)])
-  diferm(linspace(ys(1)-sx/2,ys(3)+sx/2,props.rows)   -[ys(1)-sx/2:-sx:ys(3)])
+  diferm(linspace(xs(1)+sp/2,xs(2)-sp/2,props.columns)-[xs(1)+sp/2:+sp:xs(2)])
+  diferm(linspace(ys(1)-sp/2,ys(3)+sp/2,props.rows)   -[ys(1)-sp/2:-sp:ys(3)])
   % Need to have a unique UTM zone
   diferm(sum(zs,1)/length(zs)-zs(1,:))
 
@@ -204,7 +209,7 @@ if xver>0
 
     % If I get this right, this should hold mutely
     diferm(props.origin_x        -bbox(1))
-    diferm(props.origin_y        -bbox(1))
+    diferm(props.origin_y        -bbox(4))
     diferm(props.pixel_resolution-refmat(2))
 
     if xver==2
@@ -217,8 +222,8 @@ if xver>0
 
   if xver==2
     % If I get this all right, this should plot nicely 
-    letterit(xs,ys);
-    plot(xs,ys,'k-');
+    letterit(xs,ys); hold on
+    plot(xs,ys,'k+');
     hold off
   end
 end
@@ -231,5 +236,4 @@ for in=1:length(lons)
   hold on
   text(lons(in),lats(in),num2str(in)) 
 end
-
 hold off
