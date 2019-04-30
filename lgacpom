@@ -2,12 +2,20 @@
 #
 # An in-repository local version of the alias gacpom with meaningful commit messages
 
-git add pic2prof.m
-git commit -m "Takes picture, makes a profile"
+git add tinitalia.m
+git commit -m "Converts TINITALY topography"
+git push origin master
+
+git add tinitaly.m
+git commit -m "Reads TINITALY topography"
 git push origin master
 
 git add rapideye.m
 git commit -m "Reads RAPIDEYE imagery"
+git push origin master
+
+git add pic2prof.m
+git commit -m "Takes picture, makes a profile"
 git push origin master
 
 git add lgacpom
