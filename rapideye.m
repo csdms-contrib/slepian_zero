@@ -26,6 +26,7 @@ function varargout=rapideye(froot,dirp,diro,xver,urld)
 % nprops     A minimal properties structure with
 %            nprops.xs   The top left pixel edge in UTM easting
 %            nprops.ys   The top left pixel edge in UTM northing
+%            nprops.zs   The UTM zone according to DEG2UTM
 %            nprops.sp   The pixel resolution in m
 %            nprops.lo   The four limit longitudes clockwise from NW
 %            nprops.la   The four limit latitudes clockwise from NW
@@ -111,7 +112,7 @@ end
 
 % The limit coordinates in https://epsg.io/4326
 coords=tiffm.geometry.coordinates;
-% The corresponding reference system
+% The corresponding reference system, http://epsg.io/32633 which is 33N
 coordr=tiffm.properties.epsg_code;
 % All other properties including a bigger bounding box
 props=tiffm.properties;
@@ -157,24 +158,7 @@ end
 close(tiffo)
 
 
-%%%%%%%%%%%%% OPTIONAL OUTPUT %%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% Summaries the useful properties, see the help above
-nprops.xs=props.origin_x;
-nprops.ys=props.origin_y;
-nprops.sp=sp;
-nprops.lo=lons(1:4);
-nprops.la=lats(1:4);
-nprops.nc=props.columns;
-nprops.nr=props.rows;
-
-% Reorder if you like, but then reorder the help above also
-varns={alldata,nprops,props,rgbdata,alfadat};
-varargout=varns(1:nargout);
-
-
 %%%%%%%%%% EXCESSIVE METADATA CHECKING%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 if xver>0
   % Convert the limit coordinates to UTM using a hack function which
   % gets N and S mixed up, sometimes... but the point is that it's unique
@@ -196,6 +180,7 @@ if xver>0
   diferm(linspace(ys(1)-sp/2,ys(3)+sp/2,props.rows)   -[ys(1)-sp/2:-sp:ys(3)])
   % Need to have a unique UTM zone
   diferm(sum(zs,1)/length(zs)-zs(1,:))
+  disp(sprintf('According to DEG2UTM, this is %s',zs(1,:)))
 
   % Sidedoor access to some of the auxiliary data; the "data" in the
   % geotiff are zero but the metadata are useful. Needs mapping toolbox.
@@ -226,8 +211,25 @@ if xver>0
     plot(xs,ys,'k+');
     hold off
   end
+else 
+  zs=NaN;
 end
 
+%%%%%%%%%%%%% OPTIONAL OUTPUT %%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Summaries the useful properties, see the help above
+nprops.xs=props.origin_x;
+nprops.ys=props.origin_y;
+nprops.sp=sp;
+nprops.lo=lons(1:4);
+nprops.la=lats(1:4);
+nprops.nc=props.columns;
+nprops.nr=props.rows;
+nprops.zs=zs(1,:);
+
+% Reorder if you like, but then reorder the help above also
+varns={alldata,nprops,props,rgbdata,alfadat};
+varargout=varns(1:nargout);
 %%%%%%%%%%%%% SOME PLOTTING ROUTINES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function letterit(lons,lats)
   
