@@ -15,6 +15,7 @@ function tinitaly(nprops,dirp,diro,xver)
 % EXAMPLE:
 %
 % [alldata,nprops]=rapideye('3357121_2018-09-11_RE3_3A','20180911_094536_3357121_RapidEye-3');
+% tinitaly(nprops)
 %
 % Last modified by fjsimons-at-alum.mit.edu, 04/29/2019
 
@@ -22,7 +23,7 @@ function tinitaly(nprops,dirp,diro,xver)
 defval('dirp','DATA')
 % Top-level directory name, where you keep the Tinitaly directory
 defval('diro','/u/fjsimons/IFILES/TOPOGRAPHY/ITALY/TINITALY')
-
+ 
 % I advocate checking grid parameters and file sizes for ever
 defval('xver',1)
 
@@ -38,6 +39,23 @@ end
 
 % We know how many header lines there are, this is fixed
 nhdr=6;
+% We know that the TINITALY data set is using 32 (or 33?)
+tzs='32N';
+
+% Tarquini 2007 writes:
+% The adopted coordinate systems for TINITALY/01 is Universal Transverse
+% Mercator/World Geodetic System 1984 (UTM-WGS84): the 32 zone (for
+% Western Italy) and the 33 zone (for Eastern Italy). Coordinate
+% transformation from other systems to the adopted one were performed
+% using the Traspunto software (Maseroli, 2002) based on the IGM95
+% Italian network, Europe ETRS89 Reference System (Surace, 1997). The
+% planimetric precision of this coordinate transformation is 20 cm on the
+% average, with a maximum error less than 0.85 m.
+% As a final step the 33 zone database, reprojected to 32 zone, was
+% merged with the resident 32 zone database obtaining the thorough
+% seamless TIN of Italy.
+
+% I guess EPSG:3064 http://epsg.io/3064
 
 %%%%%%%%%% METADATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % If you have the headers pre-prepared this will work
@@ -55,7 +73,7 @@ TN=H{1};
 TA=[TV{:}];
 
 if xver>0
-  % Plot the boxes thusly collected
+  % Plot the boxes thusly collected which are supposedly in zone 32
   % Compare to http://tinitaly.pi.ingv.it/immagini/Imm_TINITALY_DOWNLOAD_03.jpg
   clf
   [BX,BY]=deal(nan(length(hdr),2));
@@ -81,19 +99,60 @@ if xver>0
   yel=[min(BY(:,1)) max(BY(:,2))];
   xlim(xel+[-1 1]*range(xel)/20)
   ylim(yel+[-1 1]*range(yel)/20)
-  % UTM conversion?
-  warning off MATLAB:nargchk:deprecated
-  [yla,xlo] = utm2deg(double(xl),double(yl),'32 N')
-  warning on MATLAB:nargchk:deprecated
-  
-  % Check the box, which seems right
-  % plot(xlo,yla,'o')
-  % plot([nprops.lo nprops.lo(1)],[nprops.la nprops.la(1)])
-  keyboard
 end
 
+% TOPOGRAPHY DATA GRID, XT and YT in the same orientation as topodata
+xtopo=[xl(1)+sp/2:+sp:xl(1)+nc*sp-sp/2];
+ytopo=[yl(1)+nr*sp-sp/2:-sp:yl(1)+sp/2]';
+[XT,YT]=meshgrid(xtopo,ytopo);
+
+% Transform the UTM coordinates of this image to the RAPIDEYE zone 
+
+% Let's say that we have found the tile to be e43515, index=9
+index=10;
+fhdr=fullfile(diro,dirp,hdr{index});
+load(pref(fhdr));
+eval(sprintf('topodata=%s.topodata;',pref(hdr{index})))
 
 
+% The following three statements come out right, e.g. for e42510_s10
+% These examples work best in 2014 since I need to adapt ADDCB
+% imagesc(e43515_s10.topodata); caxx=[-2154.5 1601.4];
+% imagesc(XT(1,:),YT(:,1),e43515_s10.topodata); axis xy; colormap(sergeicol); caxis(caxx); colorbar
+% imagefnan([XT(1) YT(1)],[XT(end) YT(end)],e43515_s10.topodata,'sergeicol',caxx)
+% addcb('hor',caxx,caxx,'sergeicol',abs(caxx(1)))
 
+keyboard
 
+[alldata,nprops,props,rgbdata,alfadat]=rapideye;
 
+% RAPIDEYE DATA GRID from the top-left corner points
+xs=nprops.xs;
+ys=nprops.ys;
+sp=nprops.sp;
+nc=nprops.nc;
+nr=nprops.nr;
+xeye=[xs(1)+sp/2:+sp:xs(1)+nc*sp-sp/2];
+yeye=[ys(1)-sp/2:-sp:ys(1)-nr*sp+sp/2];
+[XE,YE]=meshgrid(xeye,yeye);
+
+% image(xeye,yeye,alfadat); axis xy
+
+% Maybe it's 33?
+
+% Convert TOPODATA to the RAPIDEYE coordinate system
+utmstruct=defaultm('utm'); 
+% What TOPODATA was
+utmstruct.zone=tzs;  % or 33
+utmstruct.geoid=wgs84Ellipsoid;
+utmstruct=defaultm(utmstruct);
+[LA,LO]=minvtran(utmstruct,double(XT),double(YT));
+
+utmstruct=defaultm('utm'); 
+% What TOPODATA will become
+utmstruct.zone='33N'
+utmstruct.geoid=wgs84Ellipsoid;
+utmstruct=defaultm(utmstruct);
+[XP,YP]=mfwdtran(utmstruct,LA,LO);
+
+% imagesc(XP(1,:),YP(:,1),e43515_s10.topodata); axis xy; colormap(sergeicol); caxis(caxx); colorbar
