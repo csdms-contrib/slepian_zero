@@ -21,7 +21,7 @@ function tinitalia(dirp,diro)
 % And in that, I am able to do, without any further inputs:
 % tinitalia;
 %
-% Last modified by fjsimons-at-alum.mit.edu, 04/29/2019
+% Last modified by fjsimons-at-alum.mit.edu, 04/30/2019
 
 % Bottom-level directory name, taken from the Tinitaly download
 defval('dirp','DATA')
@@ -67,15 +67,14 @@ for index=1:length(zpf)
     % Read the actual data into a structure variable
     reddit=textscan(fid,'%f');
 
-    % Make a data structure variable
-    eval(sprintf('%s.topodata=reshape(reddit{1},T{2}(1),T{2}(2));',...
+    % Make a data structure variable, verified orientation with the pictures
+    eval(sprintf('%s.topodata=[reshape(reddit{1}'',H{2}(1),H{2}(2))]'';',...
 		 fpref))
     fclose(fid);
     
     % Remove the uncompressed file
     system(sprintf('rm -rf %s',fname{1}));
 
-    
     % And then save it all as a matfile
     eval(sprintf('save %s %s',fmat,fpref))
     
@@ -91,5 +90,3 @@ for index=1:length(zpf)
     end
   end
 end
-
-
