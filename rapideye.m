@@ -110,7 +110,7 @@ catch
   tiffm=webread(file5);
 end
 
-% The limit coordinates in https://epsg.io/4326
+% The limit coordinates in https://epsg.io/4326 which is WGS84
 coords=tiffm.geometry.coordinates;
 % The corresponding reference system, http://epsg.io/32633 which is 33N
 coordr=tiffm.properties.epsg_code;
@@ -168,7 +168,7 @@ if xver>0
   % Need to round these
   xs=round(xs); ys=round(ys);
   
-  % If I get this right, this should hold mutely
+  % If I get this right, this should hold mutely, and it does
   diferm(props.origin_x-xs(1))
   diferm(props.origin_y-ys(1))
   % This is the most useful grid information for later understanding
@@ -180,7 +180,10 @@ if xver>0
   diferm(linspace(ys(1)-sp/2,ys(3)+sp/2,props.rows)   -[ys(1)-sp/2:-sp:ys(3)])
   % Need to have a unique UTM zone
   diferm(sum(zs,1)/length(zs)-zs(1,:))
+  % What would we want it to be in UTM, regardless of what RAPIDEYE says?
   disp(sprintf('According to DEG2UTM, this is %s',zs(1,:)))
+  disp(sprintf('According to UTMZONE, this is %s',...
+	       utmzone(nanmean(lats),nanmean(lons))))
 
   % Sidedoor access to some of the auxiliary data; the "data" in the
   % geotiff are zero but the metadata are useful. Needs mapping toolbox.
