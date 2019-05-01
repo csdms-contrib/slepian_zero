@@ -72,6 +72,8 @@ for index=1:length(zpf)
 		 fpref))
     fclose(fid);
     
+    % Now if you do image(topodata) the picture comes out in the right orientation
+        
     % Remove the uncompressed file
     system(sprintf('rm -rf %s',fname{1}));
 
@@ -81,7 +83,7 @@ for index=1:length(zpf)
     % And also write the hdr file; see also $UFILES/tinitalia
     if exist(fhdr)~=2
       % See also STRUCT2ASCI 
-      fidh=fopen('bla','w');
+      fidh=fopen(fhdr,'w');
       for index=1:nhdr
 	fiel=cell2mat(H{1}(index));
 	fprintf(fidh,'%-13s %d\n',fiel,eval(sprintf('%s.%s',fpref,fiel)));
