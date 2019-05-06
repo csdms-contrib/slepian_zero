@@ -10,6 +10,10 @@ git add tinitaly.m
 git commit -m "Reads TINITALY topography"
 git push origin master
 
+git add rinitaly.m
+git commit -m "Reads Italian river network database"
+git push origin master
+
 git add rapideye.m
 git commit -m "Reads RAPIDEYE imagery"
 git push origin master
