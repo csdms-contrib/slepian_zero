@@ -27,12 +27,12 @@ function varargout=rapideye(froot,dirp,diro,xver,urld)
 %            nprops.xs   The top left pixel edge in UTM easting
 %            nprops.ys   The top left pixel edge in UTM northing
 %            nprops.sp   The pixel resolution in m
-%            nprops.zs   The UTM zone according to DEG2UTM
-%            nprops.zz   The UTM zone according to UTMZONE
-%            nprops.lo   The four limit longitudes clockwise from NW
-%            nprops.la   The four limit latitudes clockwise from NW
 %            nprops.nc   The number of rows
 %            nprops.nr   The number of columns
+%            nprops.lo   The polygonal longitudes clockwise from NW
+%            nprops.la   The polygonal latitudes clockwise from NW
+%            nprops.zp   The polygonal UTM zone according to DEG2UTM
+%            nprops.yp   The polygonal UTM zone according to UTMZONE
 % props      The complete properties structure directly from the TIFF
 % rgbdata    Just the RGB data values, UINT8
 % alfadat    Just the alfa data values, UINT8
@@ -115,22 +115,21 @@ end
 props=tiffm.properties;
 
 % Specifically: pixel resolution in m
-sp=tiffm.properties.pixel_resolution;;
+sp=props.pixel_resolution;;
 % Specifically: corresponding reference system, see
 % http://epsg.io/32633 which is 33N
-cr=tiffm.properties.epsg_code;
+cr=props.epsg_code;
 % Specifically: number of rows and columnns
-nr=tiffm.properties.rows;
-nc=tiffm.properties.columns;
+nr=props.rows;
+nc=props.columns;
 % Specifically:  the y and x origins
 ys=props.origin_y;
 xs=props.origin_x;
 
 % The coordinates of a polygon which fits inside and contains good data
 % Longitudes and latitudes clockwise from NW with extra point to close box
-polyg=tiffm.geometry.coordinates;
-lonpg=polyg(:,:,1);
-latpg=polyg(:,:,2);
+lonpg=tiffm.geometry.coordinates(:,:,1);
+latpg=tiffm.geometry.coordinates(:,:,2);
 
 %%%%%%%%%% DATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -216,7 +215,8 @@ if xver>0
     % Save it for now, it takes extra time!
     % refxml=xml2struct(file3);
     
-    % If I get this right, this should hold mutely
+    % If I get this right, this should hold mutely, if there should ever
+    % be a difference we need to revisit this
     diferm(xs-bbox(1))
     diferm(ys-bbox(4))
     diferm(sp-refmat(2))
@@ -250,13 +250,13 @@ nprops.ys=ys;
 nprops.sp=sp;
 nprops.nc=nc;
 nprops.nr=nr;
-% Still not too sure what the polygon is useful for
+% The polygon that contains the actually useful data
 nprops.lo=lonpg;
 nprops.la=latpg;
 % What the UTM zone of this polygon was according to DEG2UTM
-nprops.zpg=zpg(1,:);
+nprops.zp=zpg(1,:);
 % What the UTM zone of this polygon was according to UTMZONE
-nprops.upg=upg;
+nprops.up=upg;
 
 % Reorder if you like, but then reorder the help above also
 varns={alldata,nprops,props,rgbdata,alfadat};
