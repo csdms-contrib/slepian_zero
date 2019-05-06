@@ -78,5 +78,4 @@ end
 
 % Optional output
 varns={SX,SY,AXL,S};
-ppvarargout=varns(1:nargout);
-
+varargout=varns(1:nargout);
