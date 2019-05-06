@@ -26,8 +26,9 @@ function varargout=rapideye(froot,dirp,diro,xver,urld)
 % nprops     A minimal properties structure with
 %            nprops.xs   The top left pixel edge in UTM easting
 %            nprops.ys   The top left pixel edge in UTM northing
-%            nprops.zs   The UTM zone according to DEG2UTM
 %            nprops.sp   The pixel resolution in m
+%            nprops.zs   The UTM zone according to DEG2UTM
+%            nprops.zz   The UTM zone according to UTMZONE
 %            nprops.lo   The four limit longitudes clockwise from NW
 %            nprops.la   The four limit latitudes clockwise from NW
 %            nprops.nc   The number of rows
@@ -38,7 +39,7 @@ function varargout=rapideye(froot,dirp,diro,xver,urld)
 %
 % EXAMPLE:
 %
-% Making the default inputs work, my directory
+% Making the default inputs work, my directory example
 % /u/fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE/20180911_094536_3357121_RapidEye-3
 % contains the four necessary files 
 %                 3357121_2018-09-11_RE3_3A_udm.tif
@@ -50,7 +51,7 @@ function varargout=rapideye(froot,dirp,diro,xver,urld)
 % Most often you will be in the directory one up from 'dirp' and
 % call it as follows, either of:
 % [alldata,nprops,props,rgbdata,alfadat]=rapideye('3357121_2018-09-11_RE3_3A','20180911_094536_3357121_RapidEye-3','.',1);
-% [alldata,nprops,props,rgbdata,alfadat]=rapideye('3357121_2018-09-11_RE3_3A','20180911_094536_3357121_RapidEye-3',pwd,1);
+% [alldata,nprops,props,rgbdata,alfadat]=rapideye('3357911_2019-03-31_RE3_3A','20190331_094550_3357911_RapidEye-3',pwd,1);
 %
 % SEE ALSO
 %
@@ -60,7 +61,7 @@ function varargout=rapideye(froot,dirp,diro,xver,urld)
 % Tested on 9.0.0.341360 (R2016a)
 % Tested on 9.6.0.1072779 (R2019a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 04/29/2019
+% Last modified by fjsimons-at-alum.mit.edu, 05/06/2019
 
 %%%%%%%%%% FILENAME AND DIRECTORY ORGANIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -110,20 +111,26 @@ catch
   tiffm=webread(file5);
 end
 
-% The limit coordinates in https://epsg.io/4326 which is WGS84
-coords=tiffm.geometry.coordinates;
-% The corresponding reference system, http://epsg.io/32633 which is 33N
-coordr=tiffm.properties.epsg_code;
-% All other properties including a bigger bounding box
+% All properties pertaining to the image
 props=tiffm.properties;
-  
+
+% Specifically: pixel resolution in m
+sp=tiffm.properties.pixel_resolution;;
+% Specifically: corresponding reference system, see
+% http://epsg.io/32633 which is 33N
+cr=tiffm.properties.epsg_code;
+% Specifically: number of rows and columnns
+nr=tiffm.properties.rows;
+nc=tiffm.properties.columns;
+% Specifically:  the y and x origins
+ys=props.origin_y
+xs=props.origin_x;
+
+% The coordinates of a polygon which fits inside, not sure what for
 % Longitudes and latitudes clockwise from NW with extra point to close box
-lons=coords(:,:,1);
-lats=coords(:,:,2);
-
-% Pixel resolution in m
-sp=props.pixel_resolution;
-
+polyg=tiffm.geometry.coordinates;
+lonpg=polyg(:,:,1);
+latph=polyg(:,:,2);
 
 %%%%%%%%%% DATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -135,21 +142,21 @@ warning on MATLAB:imagesci:tiffmexutils:libtiffWarning
 warning on        imageio:tiffmexutils:libtiffWarning
 
 % Again verify and show ways to address these properties
-diferm(props.columns-getTag(tiffo,'ImageWidth'))
-diferm(props.rows   -getTag(tiffo,'ImageLength'))
+diferm(nc-getTag(tiffo,'ImageWidth'))
+diferm(nr-getTag(tiffo,'ImageLength'))
 
 % Read it one way... note that IMREAD(file4) would do this too, but
 % it wouldn't of course give you any of the checkable metadata
 alldata=read(tiffo);
 % Five-dimensional
-diferm(size(alldata)-[props.rows props.columns 5])
+diferm(size(alldata)-[nr nc 5])
 
 % Read it another way...
 if nargout>3
   [rgbdata,alfadat]=readRGBAImage(tiffo);
   % Three-dimensional plus an extra one
-  diferm(size(rgbdata)-[props.rows props.columns 3])
-  diferm(size(alfadat)-[props.rows props.columns  ])
+  diferm(size(rgbdata)-[nr nc 3])
+  diferm(size(alfadat)-[nr nc  ])
 else
   [rgbdata,alfadat]=deal(NaN);
 end
@@ -160,85 +167,97 @@ close(tiffo)
 
 %%%%%%%%%% EXCESSIVE METADATA CHECKING%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if xver>0
-  % Convert the limit coordinates to UTM using a hack function which
-  % gets N and S mixed up, sometimes... but the point is that it's unique
-  warning off MATLAB:nargchk:deprecated
-  [xs,ys,zs]=deg2utm(lats,lons);
-  warning on MATLAB:nargchk:deprecated
-  % Need to round these
-  xs=round(xs); ys=round(ys);
-  
-  % If I get this right, this should hold mutely, and it does
-  diferm(props.origin_x-xs(1))
-  diferm(props.origin_y-ys(1))
-  % This is the most useful grid information for later understanding
-  diferm(props.columns-length(xs(1)+sp/2:+sp:xs(2)))
-  diferm(props.rows   -length(ys(1)-sp/2:-sp:ys(3)))
-  % Two alternatives to understand the pixel center grid, knowing
-  % that the colon opeator won't necessarily hit the end boundary...
-  diferm(linspace(xs(1)+sp/2,xs(2)-sp/2,props.columns)-[xs(1)+sp/2:+sp:xs(2)])
-  diferm(linspace(ys(1)-sp/2,ys(3)+sp/2,props.rows)   -[ys(1)-sp/2:-sp:ys(3)])
-  % Need to have a unique UTM zone
-  diferm(sum(zs,1)/length(zs)-zs(1,:))
-  % What would we want it to be in UTM, regardless of what RAPIDEYE says?
-  disp(sprintf('According to DEG2UTM, this is %s',zs(1,:)))
-  disp(sprintf('According to UTMZONE, this is %s',...
-	       utmzone(nanmean(lats),nanmean(lons))))
+  % The grid that's implied in these image coordinates
+  xeye1=xs(1)+sp/2:+sp:xs(2);
+  yeye1=ys(1)-sp/2:-sp:ys(3);
 
+  % This is the most useful grid information for later understanding
+  diferm(nc-length(xeye1))
+  diferm(nr-length(yeye1))
+  
+  %  The colon operator won't necessarily hit the end boundary...
+  xeye2=linspace(xs(1)+sp/2,xs(2)-sp/2,nc);
+  yeye2=linspace(ys(1)-sp/2,ys(3)+sp/2,nr);
+
+  % Two alternatives to understand the pixel center grid
+  diferm(xeye2-xeye1)
+  diferm(yeye2-yeye1)
+
+  % Convert the polygon to UTM using a hack function which
+  % gets mixed up, sometimes... but the point is that it's unique 
+  warning off MATLAB:nargchk:deprecated
+  [xpg,ypg,zpg]=deg2utm(latpg,lonpg);
+  warning on MATLAB:nargchk:deprecated
+  % Need to have a unique UTM zone
+  diferm(sum(zpg,1)/length(zpg)-zpg(1,:))
+  % What would we want it to be in UTM, regardless of what RAPIDEYE says?
+  disp(sprintf('According to DEG2UTM, this is %s',zpg(1,:)))
+  
   % Sidedoor access to some of the auxiliary data; the "data" in the
   % geotiff are zero but the metadata are useful. Needs mapping toolbox.
   if license('test', 'map_toolbox')
+    % Another way to guess the UTM zone
+    upg=utmzone(nanmean(latpg),nanmean(lonpg));
+    disp(sprintf('According to UTMZONE, this is %s',upg))
+
     % Pixel CENTERS are [xutm yutm] = [row col 1]*refmat
     [~,refmat,bbox]=geotiffread(file2);
-    
+
     % The XML file has the same information but we won't bother with
     % it now since it's a thicket of attributes and children
     refxml=xml2struct(file3);
-
+    
     % If I get this right, this should hold mutely
-    diferm(props.origin_x        -bbox(1))
-    diferm(props.origin_y        -bbox(4))
-    diferm(props.pixel_resolution-refmat(2))
-
+    diferm(xs-bbox(1))
+    diferm(ys-bbox(4))
+    diferm(sp-refmat(2))
+    
     if xver==2
-      % Clears the current figure; does not start a new one
-      clf
-      % If I get this all right, this should plot nicely 
-      plot(bbox([1 1 2 2 1],1),bbox([1 2 2 1 1],2),'b'); hold on
-    end
+       % Clears the current figure; does not start a new one
+       clf
+       % If I get this all right, this should plot nicely 
+       plot(bbox([1 1 2 2 1],1),bbox([1 2 2 1 1],2),'b'); hold on
+     end
+   else 
+     upg=NaN;
   end
 
   if xver==2
     % If I get this all right, this should plot nicely 
-    letterit(xs,ys); hold on
-    plot(xs,ys,'k+');
+    letterit(xpg,ypg); hold on
+    plot(xpg,ypg,'k+');
     hold off
   end
 else 
-  zs=NaN;
+  zpg=NaN;
 end
 
 %%%%%%%%%%%%% OPTIONAL OUTPUT %%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Summaries the useful properties, see the help above
-nprops.xs=props.origin_x;
-nprops.ys=props.origin_y;
+nprops.xs=xs;
+nprops.ys=ys;
 nprops.sp=sp;
-nprops.lo=lons(1:4);
-nprops.la=lats(1:4);
-nprops.nc=props.columns;
-nprops.nr=props.rows;
-nprops.zs=zs(1,:);
+nprops.nc=nc;
+nprops.nr=nr;
+% Still not too sure what the polygon is useful for
+nprops.lo=lonpg(1:4);
+nprops.la=latpg(1:4);
+% What the UTM zone of this polygon was according to DEG2UTM
+nprops.zpg=zpg(1,:);
+% What the UTM zone of this polygon was according to UTMZONE
+nprops.upg=upg;
 
 % Reorder if you like, but then reorder the help above also
 varns={alldata,nprops,props,rgbdata,alfadat};
 varargout=varns(1:nargout);
+
 %%%%%%%%%%%%% SOME PLOTTING ROUTINES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function letterit(lons,lats)
+function letterit(xx,yy)
   
-for in=1:length(lons)
-  plot(lons(in),lats(in),'.') 
+for in=1:length(xx)
+  plot(xx(in),yy(in),'.') 
   hold on
-  text(lons(in),lats(in),num2str(in)) 
+  text(xx(in),yy(in),num2str(in)) 
 end
 hold off
