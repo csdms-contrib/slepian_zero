@@ -1,5 +1,5 @@
-function [SX,SY,S]=rinitaly(froot,dirp,diro,xver)
-% [SX,SY,S]=RINITALY(froot,dirp,diro,xver)
+function varargout=rinitaly(froot,dirp,diro,xver)
+% [SX,SY,AXL,S]=RINITALY(froot,dirp,diro,xver)
 %
 %
 % INPUT:
@@ -12,6 +12,7 @@ function [SX,SY,S]=rinitaly(froot,dirp,diro,xver)
 %            2 Provides a graphical test [default]
 % 
 % SX, SY     All the X and Y coordinates of all the rivers, together
+% AXL        An appropriate bounding box
 % S          The proper structure, with names, etc.
 %
 % EXAMPLE:
@@ -48,8 +49,15 @@ end
 SX=[S(:).X];
 SY=[S(:).Y];
 
+% What's fit to show
+AXL=[minmax(SX) minmax(SY)];
+
 % Make a plot if you so desire
 if xver==2
   plot(SX,SY,'b')
 end
+
+% Optional output
+varns={SX,SY,AXL,S};
+ppvarargout=varns(1:nargout);
 
