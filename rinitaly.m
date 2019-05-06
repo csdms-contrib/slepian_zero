@@ -21,7 +21,7 @@ function varargout=rinitaly(nprops,froot,dirp,diro,xver)
 % EXAMPLE:
 %
 % [alldata,nprops]=rapideye('3357121_2018-09-11_RE3_3A','20180911_094536_3357121_RapidEye-3');
-% rinitaly([],[],pwd)
+% rinitaly(nprops,[],[],pwd)
 %
 % Last modified by fjsimons-at-alum.mit.edu, 05/06/2019
 
@@ -37,6 +37,9 @@ defval('xver',1)
 
 % The file name root including the path name
 fname=fullfile(diro,dirp,froot);
+% Some checks and balances
+disp(sprintf('Looking for %s I am finding',fullfile(diro,dirp,froot)))
+ls(fullfile(diro,dirp))
 
 % Read the shape files, one way or another
 if exist(sprintf('%s.mat',fname))==2
@@ -52,11 +55,21 @@ end
 SX=[S(:).X];
 SY=[S(:).Y];
 
+% How about we use the polygon to subselect the rivers within it
+in=inpolygon(SX,SY,nprops.lo,nprops.la);
+SX=SX(in);
+SY=SY(in);
+
+% One has to hope it comes up with the same zone as what we though
+warning off MATLAB:nargchk:deprecated
+[xSX,ySY,ZS]=deg2utm(SY,SX);
+warning on MATLAB:nargchk:deprecated
+
+% Insert NaNs for beauty
+[SX,SY]=penlift(xSX,ySY);
+
 % What's fit to show
 AXL=[minmax(SX) minmax(SY)];
-
-% Now subselect and project
-keyboard
 
 % Make a plot if you so desire
 if xver==2
