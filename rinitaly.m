@@ -1,5 +1,5 @@
-function rinitaly(froot,dirp,diro,xver)
-% RINITALY(froot,dirp,diro,xver)
+function [SX,SY,S]=rinitaly(froot,dirp,diro,xver)
+% [SX,SY,S]=RINITALY(froot,dirp,diro,xver)
 %
 %
 % INPUT:
@@ -10,6 +10,14 @@ function rinitaly(froot,dirp,diro,xver)
 % xver       1 Provides excessive verification 
 %            0 Does not provide excessive verification
 %            2 Provides a graphical test [default]
+% 
+% SX, SY     All the X and Y coordinates of all the rivers, together
+% S          The proper structure, with names, etc.
+%
+% EXAMPLE:
+%
+% You will be in the directory one up from 'dirp' and you do 
+% rinitaly([],[],pwd)
 %
 % Last modified by fjsimons-at-alum.mit.edu, 05/06/2019
 
@@ -36,4 +44,12 @@ else
   save(fname,'S')
 end
 
-keyboard
+% Turn out all of them at the same time
+SX=[S(:).X];
+SY=[S(:).Y];
+
+% Make a plot if you so desire
+if xver==2
+  plot(SX,SY,'b')
+end
+
