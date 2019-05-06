@@ -6,7 +6,7 @@ function rinitaly(froot,dirp,diro,xver)
 %
 % froot      Filename root [e.g. 'ITA_water_lines_dcw']
 % dirp       Directory [e.g. 'DIVA-GIS']
-% diro       Directory [e.g. '/home/fjsimonsIFILES/TOPOGRAPHY/ITALY/TINITALY']
+% diro       Directory [e.g. '/home/fjsimonsIFILES/TOPOGRAPHY/ITALY']
 % xver       1 Provides excessive verification 
 %            0 Does not provide excessive verification
 %            2 Provides a graphical test [default]
@@ -35,7 +35,5 @@ else
   S=shaperead(fname);
   save(fname,'S')
 end
-
-
 
 keyboard
