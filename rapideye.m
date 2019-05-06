@@ -123,14 +123,14 @@ cr=tiffm.properties.epsg_code;
 nr=tiffm.properties.rows;
 nc=tiffm.properties.columns;
 % Specifically:  the y and x origins
-ys=props.origin_y
+ys=props.origin_y;
 xs=props.origin_x;
 
 % The coordinates of a polygon which fits inside, not sure what for
 % Longitudes and latitudes clockwise from NW with extra point to close box
 polyg=tiffm.geometry.coordinates;
 lonpg=polyg(:,:,1);
-latph=polyg(:,:,2);
+latpg=polyg(:,:,2);
 
 %%%%%%%%%% DATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -167,32 +167,36 @@ close(tiffo)
 
 %%%%%%%%%% EXCESSIVE METADATA CHECKING%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if xver>0
-  % The grid that's implied in these image coordinates
-  xeye1=xs(1)+sp/2:+sp:xs(2);
-  yeye1=ys(1)-sp/2:-sp:ys(3);
-
-  % This is the most useful grid information for later understanding
-  diferm(nc-length(xeye1))
-  diferm(nr-length(yeye1))
-  
-  %  The colon operator won't necessarily hit the end boundary...
-  xeye2=linspace(xs(1)+sp/2,xs(2)-sp/2,nc);
-  yeye2=linspace(ys(1)-sp/2,ys(3)+sp/2,nr);
-
-  % Two alternatives to understand the pixel center grid
-  diferm(xeye2-xeye1)
-  diferm(yeye2-yeye1)
-
-  % Convert the polygon to UTM using a hack function which
+  % Convert the POLYGON to UTM using a hack function which
   % gets mixed up, sometimes... but the point is that it's unique 
   warning off MATLAB:nargchk:deprecated
-  [xpg,ypg,zpg]=deg2utm(latpg,lonpg);
+  [xpg,ypg,zpg]=deg2utm(latpg,lonpg); xpg=round(xpg); ypg=round(ypg);
   warning on MATLAB:nargchk:deprecated
   % Need to have a unique UTM zone
   diferm(sum(zpg,1)/length(zpg)-zpg(1,:))
   % What would we want it to be in UTM, regardless of what RAPIDEYE says?
   disp(sprintf('According to DEG2UTM, this is %s',zpg(1,:)))
-  
+
+  % Nobody sayd the polygon needs to be equal to the image grid, but if
+  % it is, then we have different ways of checking the grid for good measure
+  if xpg(1)==xs && ypg(1)==ys
+    % The grid that's implied in these image coordinates
+    xeye1=xpg(1)+sp/2:+sp:xpg(2);
+    yeye1=ypg(1)-sp/2:-sp:ypg(3);
+    
+    % This is the most useful grid information for later understanding
+    diferm(nc-length(xeye1))
+    diferm(nr-length(yeye1))
+    
+    %  The colon operator won't necessarily hit the end boundary...
+    xeye2=linspace(xpg(1)+sp/2,xpg(2)-sp/2,nc);
+    yeye2=linspace(ypg(1)-sp/2,ypg(3)+sp/2,nr);
+    
+    % Two alternatives to understand the pixel center grid
+    diferm(xeye2-xeye1)
+    diferm(yeye2-yeye1)
+  end
+    
   % Sidedoor access to some of the auxiliary data; the "data" in the
   % geotiff are zero but the metadata are useful. Needs mapping toolbox.
   if license('test', 'map_toolbox')
