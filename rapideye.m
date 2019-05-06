@@ -126,7 +126,7 @@ nc=tiffm.properties.columns;
 ys=props.origin_y;
 xs=props.origin_x;
 
-% The coordinates of a polygon which fits inside, not sure what for
+% The coordinates of a polygon which fits inside and contains good data
 % Longitudes and latitudes clockwise from NW with extra point to close box
 polyg=tiffm.geometry.coordinates;
 lonpg=polyg(:,:,1);
@@ -177,10 +177,14 @@ if xver>0
   % What would we want it to be in UTM, regardless of what RAPIDEYE says?
   disp(sprintf('According to DEG2UTM, this is %s',zpg(1,:)))
 
-  % Nobody sayd the polygon needs to be equal to the image grid, but if
+  % Nobody said the polygon needs to be equal to the image grid, but if
   % it is, then we have different ways of checking the grid for good measure
-  if xpg(1)==xs && ypg(1)==ys
-    % The grid that's implied in these image coordinates
+  if length(xpg)==5     && xpg(1)==xs && xpg(1)==xpg(4) && xpg(2)==xpg(3) && ...
+	length(ypg)==5	&& ypg(1)==ys && ypg(1)==ypg(2) && ypg(3)==ypg(4)
+    % Further examples might reveal counterexamples
+    disp('The polygon and the image most likely coincide')
+
+    % The grid that's implied in these image coordinates, just for illustration
     xeye1=xpg(1)+sp/2:+sp:xpg(2);
     yeye1=ypg(1)-sp/2:-sp:ypg(3);
     
@@ -192,7 +196,7 @@ if xver>0
     xeye2=linspace(xpg(1)+sp/2,xpg(2)-sp/2,nc);
     yeye2=linspace(ypg(1)-sp/2,ypg(3)+sp/2,nr);
     
-    % Two alternatives to understand the pixel center grid
+    % Two alternatives to understand the pixel center grid should coincide
     diferm(xeye2-xeye1)
     diferm(yeye2-yeye1)
   end
@@ -209,7 +213,8 @@ if xver>0
 
     % The XML file has the same information but we won't bother with
     % it now since it's a thicket of attributes and children
-    refxml=xml2struct(file3);
+    % Save it for now, it takes extra time!
+    % refxml=xml2struct(file3);
     
     % If I get this right, this should hold mutely
     diferm(xs-bbox(1))
