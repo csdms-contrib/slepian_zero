@@ -234,6 +234,7 @@ if xver>0
   end
 else 
   zpg=NaN;
+  upg=NaN;
 end
 
 %%%%%%%%%%%%% OPTIONAL OUTPUT %%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
