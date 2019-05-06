@@ -245,8 +245,8 @@ nprops.sp=sp;
 nprops.nc=nc;
 nprops.nr=nr;
 % Still not too sure what the polygon is useful for
-nprops.lo=lonpg(1:4);
-nprops.la=latpg(1:4);
+nprops.lo=lonpg;
+nprops.la=latpg;
 % What the UTM zone of this polygon was according to DEG2UTM
 nprops.zpg=zpg(1,:);
 % What the UTM zone of this polygon was according to UTMZONE
