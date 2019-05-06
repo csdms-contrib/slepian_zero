@@ -1,9 +1,12 @@
-function varargout=rinitaly(froot,dirp,diro,xver)
-% [SX,SY,AXL,S]=RINITALY(froot,dirp,diro,xver)
+function varargout=rinitaly(nprops,froot,dirp,diro,xver)
+% [SX,SY,AXL,S]=RINITALY(nrops,froot,dirp,diro,xver)
 %
+% This will become something that will give river coordinates as
+% pertaining to a specific panel only, and in the same UTM conventions
 %
 % INPUT:
 %
+% nprops     A minimal properties structure from RAPIDEYE
 % froot      Filename root [e.g. 'ITA_water_lines_dcw']
 % dirp       Directory [e.g. 'DIVA-GIS']
 % diro       Directory [e.g. '/home/fjsimonsIFILES/TOPOGRAPHY/ITALY']
@@ -17,7 +20,7 @@ function varargout=rinitaly(froot,dirp,diro,xver)
 %
 % EXAMPLE:
 %
-% You will be in the directory one up from 'dirp' and you do 
+% [alldata,nprops]=rapideye('3357121_2018-09-11_RE3_3A','20180911_094536_3357121_RapidEye-3');
 % rinitaly([],[],pwd)
 %
 % Last modified by fjsimons-at-alum.mit.edu, 05/06/2019
@@ -51,6 +54,9 @@ SY=[S(:).Y];
 
 % What's fit to show
 AXL=[minmax(SX) minmax(SY)];
+
+% Now subselect and project
+keyboard
 
 % Make a plot if you so desire
 if xver==2
