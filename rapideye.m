@@ -29,6 +29,7 @@ function varargout=rapideye(froot,dirp,diro,xver,urld)
 %            nprops.sp   The pixel resolution in m
 %            nprops.nc   The number of rows
 %            nprops.nr   The number of columns
+%            nprops.cr   The EPSG projection system code
 %            nprops.lo   The polygonal longitudes clockwise from NW
 %            nprops.la   The polygonal latitudes clockwise from NW
 %            nprops.zp   The polygonal UTM zone according to DEG2UTM
@@ -163,19 +164,20 @@ end
 % Close the TIFF for good measure
 close(tiffo)
 
+% Convert the POLYGON to UTM using a hack function which
+% gets mixed up, sometimes... but the point is that it's unique and it is
+% for us the easiest way to figure out the UTM zone unless we go by the
+% epsg code
+warning off MATLAB:nargchk:deprecated
+[xpg,ypg,zpg]=deg2utm(latpg,lonpg); xpg=round(xpg); ypg=round(ypg);
+warning on MATLAB:nargchk:deprecated
+% Need to have a unique UTM zone
+diferm(sum(zpg,1)/length(zpg)-zpg(1,:))
+% What would we want it to be in UTM, regardless of what RAPIDEYE says?
+disp(sprintf('According to DEG2UTM, this is %s',zpg(1,:)))
 
 %%%%%%%%%% EXCESSIVE METADATA CHECKING%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if xver>0
-  % Convert the POLYGON to UTM using a hack function which
-  % gets mixed up, sometimes... but the point is that it's unique 
-  warning off MATLAB:nargchk:deprecated
-  [xpg,ypg,zpg]=deg2utm(latpg,lonpg); xpg=round(xpg); ypg=round(ypg);
-  warning on MATLAB:nargchk:deprecated
-  % Need to have a unique UTM zone
-  diferm(sum(zpg,1)/length(zpg)-zpg(1,:))
-  % What would we want it to be in UTM, regardless of what RAPIDEYE says?
-  disp(sprintf('According to DEG2UTM, this is %s',zpg(1,:)))
-
   % Nobody said the polygon needs to be equal to the image grid, but if
   % it is, then we have different ways of checking the grid for good measure
   if length(xpg)==5     && xpg(1)==xs && xpg(1)==xpg(4) && xpg(2)==xpg(3) && ...
@@ -238,7 +240,6 @@ if xver>0
     hold off
   end
 else 
-  zpg=NaN;
   upg=NaN;
 end
 
@@ -250,6 +251,7 @@ nprops.ys=ys;
 nprops.sp=sp;
 nprops.nc=nc;
 nprops.nr=nr;
+nprops.cr=cr;
 % The polygon that contains the actually useful data
 nprops.lo=lonpg;
 nprops.la=latpg;
