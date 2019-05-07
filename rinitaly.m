@@ -1,5 +1,5 @@
-function varargout=rinitaly(nprops,froot,dirp,diro,xver)
-% [SX,SY,AXL,S]=RINITALY(nrops,froot,dirp,diro,xver)
+function varargout=rinitaly(nprops,froot,dirp,diro,buf,dlev,xver)
+% [SX,SY,S]=RINITALY(nrops,froot,dirp,diro,buf,dlev,xver)
 %
 % This will become something that will give river coordinates as
 % pertaining to a specific panel only, and in the same UTM conventions
@@ -10,18 +10,22 @@ function varargout=rinitaly(nprops,froot,dirp,diro,xver)
 % froot      Filename root [e.g. 'ITA_water_lines_dcw']
 % dirp       Directory [e.g. 'DIVA-GIS']
 % diro       Directory [e.g. '/home/fjsimonsIFILES/TOPOGRAPHY/ITALY']
+% buf        A buffer in degrees to aid the search for rivers within polygon
+% dlev       A PENLIFT parameter to disentangle rivers after they've been joined
 % xver       1 Provides excessive verification 
 %            0 Does not provide excessive verification
 %            2 Provides a graphical test [default]
 % 
 % SX, SY     All the X and Y coordinates of all the rivers, together
-% AXL        An appropriate bounding box
 % S          The proper structure, with names, etc.
 %
 % EXAMPLE:
 %
-% [alldata,nprops]=rapideye('3357121_2018-09-11_RE3_3A','20180911_094536_3357121_RapidEye-3');
-% rinitaly(nprops,[],[],pwd)
+% [alldata,nprops]=rapideye;
+% imagefnan(nprops.C11,nprops.CMN,double(alldata(:,:,1)),[],[1500 15000])
+% [SX,SY]=rinitaly(nprops); 
+% hold on; pr=plot(SX,SY,'k'); hold off; 
+% axis([nprops.C11(1) nprops.CMN(1) nprops.CMN(2) nprops.C11(2)])
 %
 % Last modified by fjsimons-at-alum.mit.edu, 05/06/2019
 
@@ -34,6 +38,10 @@ defval('diro','/u/fjsimons/IFILES/TOPOGRAPHY/ITALY')
  
 % I advocate checking grid parameters and file sizes for ever
 defval('xver',1)
+% You could rewrite the joining instead of unjoining
+defval('dlev',2)
+% A small buffer won't stop the rivers from flowing near the box edge
+defval('buf',0.025)
 
 % The file name root including the path name
 fname=fullfile(diro,dirp,froot);
@@ -51,12 +59,22 @@ else
   save(fname,'S')
 end
 
-% Turn out all of them at the same time
+% Turn out all of them at the same time... could insert NaNs
 SX=[S(:).X];
 SY=[S(:).Y];
 
 % How about we use the polygon to subselect the rivers within it
-in=inpolygon(SX,SY,nprops.lo,nprops.la);
+if buf>0
+  % Let us by liberal in extending the box a bit
+  [lab,lob]=bufferm(nprops.la,nprops.lo,buf);
+  % But you need to get rid of the interior domain and the extra NaN
+  lo=lob(length(nprops.lo)+2:end);
+  la=lab(length(nprops.la)+2:end);
+else
+  % No buffer, that's just the original
+  lo=nprops.lo; la=nprops.la;
+end
+in=inpolygon(SX,SY,lo,la);
 SX=SX(in);
 SY=SY(in);
 
@@ -66,10 +84,7 @@ warning off MATLAB:nargchk:deprecated
 warning on MATLAB:nargchk:deprecated
 
 % Insert NaNs for beauty
-[SX,SY]=penlift(xSX,ySY);
-
-% What's fit to show
-AXL=[minmax(SX) minmax(SY)];
+[SX,SY]=penlift(xSX,ySY,dlev);
 
 % Make a plot if you so desire
 if xver==2
@@ -77,5 +92,5 @@ if xver==2
 end
 
 % Optional output
-varns={SX,SY,AXL,S};
+varns={SX,SY,S};
 varargout=varns(1:nargout);
