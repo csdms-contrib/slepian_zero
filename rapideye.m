@@ -103,11 +103,12 @@ if ~strcmp(froot,'demo')
   % I advocate checking grid parameters and file sizes for ever
   defval('xver',1)
   
-  % Some checks and balances
-  disp(sprintf('Looking inside %s I am finding\n',fullfile(diro,dirp)))
-  ls(fullfile(diro,dirp))
-  disp('which I expect to contain two tif, one json and one xml file')
-  
+  if xver>0
+    % Some checks and balances
+    disp(sprintf('Looking inside %s I am finding\n',fullfile(diro,dirp)))
+    ls(fullfile(diro,dirp))
+    disp('which I expect to contain two tif, one json and one xml file')
+  end
   
   %%%%%%%%%% METADATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
@@ -221,7 +222,7 @@ if ~strcmp(froot,'demo')
       
       % Pixel CENTERS are [xutm yutm] = [row col 1]*refmat
       [~,refmat,bbox]=geotiffread(file2);
-      
+
       % The XML file has the same information but we won't bother with
       % it now since it's a thicket of attributes and children
       % Save it for now, it takes extra time!
@@ -280,28 +281,44 @@ else
   % The demo number was entered as the seond variable
   defval('dirp',1)
   N=dirp;
+
+  % Top-level directory name, where you keep the Rapideye directory
+  defval('diro','/u/fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE')
   % All the files we ever tried
-  froots={'3357121_2018-09-11_RE3_3A'         , '3357911_2019-03-31_RE3_3A'         };
-  dirps ={'20180911_094536_3357121_RapidEye-3', '20190331_094550_3357911_RapidEye-3'};
+  dirps=ls2cell(diro);
+  for index=1:length(dirps)
+    fname=cell2mat(pref(ls2cell(fullfile(dirps{index},'*udm.tif')),'udm'));
+    froots{index}=fname(1:length(fname)-1);
+  end
+
   % Now get a numbered file from the stack
-  [alldata,nprops,props,rgbdata,alfadat]=rapideye(froots{N},dirps{N});
+  [alldata,nprops,props,rgbdata,alfadat]=rapideye(froots{N},dirps{N},[],0);
   % Get the rivers to plot on top
-  [SX,SY]=rinitaly(nprops); 
+  [SX,SY]=rinitaly(nprops,[],[],[],[],[],0); 
+
   % And make a nice plot
   clf
   [ah,ha]=krijetem(subnum(2,2));
+  slo=1;
   for index=1:length(ah)
     axes(ah(index))
-    imagefnan(nprops.C11,nprops.CMN,double(alldata(:,:,index)),[],...
-	      [1500 15000])
+    if slo==1
+      imagefnan(nprops.C11,nprops.CMN,double(alldata(:,:,index)),[],[1500 15000])
+    else
+      imagesc([nprops.C11(1) nprops.CMN(1)],[nprops.C11(2) nprops.CMN(2)],...
+	      double(alldata(:,:,index))); kelicol
+      caxis([1500 15000]); axis image xy
+    end
   end
   for index=1:length(ah)
     axes(ah(index))
-    hold on; pr{index}=plot(SX,SY,'k'); hold off; 
+    hold on; pr{index}=plot(SX,SY,'k'); hold off
     axis([nprops.C11(1) nprops.CMN(1) nprops.CMN(2) nprops.C11(2)])
   end
-  % Put on colorbars, labels, axes, and so on
+  % UTMLABELS
 
+  % Put on colorbars, labels, axes, and so on
+  figdisp(dirps{N},[],[],2)
 end
 
 
