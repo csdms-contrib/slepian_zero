@@ -146,6 +146,7 @@ utmstruct=defaultm('utm');
 utmstruct.zone=tzs;  % or 33
 utmstruct.geoid=wgs84Ellipsoid;
 utmstruct=defaultm(utmstruct);
+% This is essentially UTM2DEG
 [LA,LO]=minvtran(utmstruct,double(XT),double(YT));
 
 utmstruct=defaultm('utm'); 
@@ -153,6 +154,7 @@ utmstruct=defaultm('utm');
 utmstruct.zone='33N'
 utmstruct.geoid=wgs84Ellipsoid;
 utmstruct=defaultm(utmstruct);
+% This is essentially DEG2UTM
 [XP,YP]=mfwdtran(utmstruct,LA,LO);
 
 % imagesc(XP(1,:),YP(:,1),e43515_s10.topodata); axis xy; colormap(sergeicol); caxis(caxx); colorbar
