@@ -45,9 +45,11 @@ defval('buf',0.025)
 
 % The file name root including the path name
 fname=fullfile(diro,dirp,froot);
-% Some checks and balances
-disp(sprintf('Looking for %s I am finding',fullfile(diro,dirp,froot)))
-ls(fullfile(diro,dirp))
+if xver>0
+  % Some checks and balances
+  disp(sprintf('Looking for %s I am finding',fullfile(diro,dirp,froot)))
+  ls(fullfile(diero,dirp))
+end
 
 % Read the shape files, one way or another
 if exist(sprintf('%s.mat',fname))==2
