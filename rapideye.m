@@ -299,15 +299,25 @@ else
   % And make a nice plot
   clf
   [ah,ha]=krijetem(subnum(2,2));
+  % Image selector
   slo=1;
+  % Maybe also should plot histograms etc
+  percs=[2 99];
+  
+  % We should be figuring out these appropriate things on the fly
   for index=1:length(ah)
+    toplot=double(alldata(:,:,index));
+    % Proper ranges
+    saxis=[1500 15000];
+    saxis=round(10.^prctile(log10(toplot(:)),percs));
     axes(ah(index))
     if slo==1
-      imagefnan(nprops.C11,nprops.CMN,double(alldata(:,:,index)),[],[1500 15000])
+      imagefnan(nprops.C11,nprops.CMN,...
+		toplot,[],saxis)
     else
       imagesc([nprops.C11(1) nprops.CMN(1)],[nprops.C11(2) nprops.CMN(2)],...
-	      double(alldata(:,:,index))); kelicol
-      caxis([1500 15000]); axis image xy
+	      toplot); kelicol
+      caxis(saxis); axis image xy
     end
   end
   for index=1:length(ah)
@@ -316,9 +326,8 @@ else
     axis([nprops.C11(1) nprops.CMN(1) nprops.CMN(2) nprops.C11(2)])
   end
   % UTMLABELS
-
   % Put on colorbars, labels, axes, and so on
-  figdisp(dirps{N},[],[],2)
+  figdisp(dirps{N},[],[],1,'png')
 end
 
 
