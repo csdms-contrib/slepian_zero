@@ -33,7 +33,7 @@ function varargout=rapideye(froot,dirp,diro,xver,urld)
 %            nprops.lo   The polygonal longitudes clockwise from NW
 %            nprops.la   The polygonal latitudes clockwise from NW
 %            nprops.zp   The polygonal UTM zone according to DEG2UTM
-%            nprops.yp   The polygonal UTM zone according to UTMZONE
+%            nprops.up   The polygonal UTM zone according to UTMZONE
 % props      The complete properties structure directly from the TIFF
 % rgbdata    Just the RGB data values, UINT8
 % alfadat    Just the alfa data values, UINT8
@@ -67,7 +67,7 @@ function varargout=rapideye(froot,dirp,diro,xver,urld)
 % Tested on 9.0.0.341360 (R2016a)
 % Tested on 9.6.0.1072779 (R2019a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 05/06/2019
+% Last modified by fjsimons-at-alum.mit.edu, 05/10/2019
 
 if ~strcmp(froot,'demo')
 
@@ -308,8 +308,12 @@ else
   for index=1:length(ah)
     toplot=double(alldata(:,:,index));
     % Proper ranges
-    saxis=[1500 15000];
     saxis=round(10.^prctile(log10(toplot(:)),percs));
+    
+    % Emily's recipe
+    % toplot=toplot/prctile(toplot(:),95);
+    % saxis=[0 1];
+    
     axes(ah(index))
     if slo==1
       imagefnan(nprops.C11,nprops.CMN,...
