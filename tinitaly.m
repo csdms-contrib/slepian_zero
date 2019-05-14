@@ -36,21 +36,20 @@ defval('xver',2)
 defval('alldata',[])
 
 %%%%%%%%%% METADATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Only if you have the headers pre-prepared this will work
-[hdr,TV]=tinitalh(dirp,diro,xver);
+% Only if you have the headers pre-prepared this will work, bypass box plots
+[hdr,TV]=tinitalh(dirp,diro,xver*0);
 
 %%%%% FIND APPROPRIATE TOPODATA FILES TO MATCH RAPIDEYE %%%%%%%%%%%%%%%%%%%
 % Let's say that we have found the tile index that matches nprops
 index=10; % And 7 and 8
+% See how I did it with GEBCO
 
 %%%%%%%%%% TOPODATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [XT,YT,ZT,topodata]=tinitalg(hdr,TV,index,dirp,diro,xver);
 
-% Check the overlap between tiles I thought they were seamless
-
-% Transform the UTM coordinates of this image to the RAPIDEYE zone 
-% I see a 90 m overlap in the box limites in my three examples, on all
-% sides, on all sides. Now check the data repetition for 10 7 8
+% Check the overlap between tiles I see a 90 m overlap in the box limits
+% in my three examples, on all sides, on all sides. Now check the data
+% repetition for 10 7 8, and I find
 % e43515_s10.hdr e43015_s10.hdr e43020_s10.hdr
 % topodata1(end-9:end,1:5)-topodata2(1:10,1:5)   
 % topodata2(1:11,end-9:end)-topodata3(1:11,1:10) 
@@ -59,8 +58,8 @@ index=10; % And 7 and 8
 %%%%%%%%%% VISUAL CHECK TOPODATA%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Make a plot of the topodata you have just identified
 if xver>1
-  disp('Hit ENTER to continue')
-  pause
+  % disp('Hit ENTER to continue'); pause
+  % disp('Type DBCONT to continue'); keyboard
   clf
   ah(1)=subplot(221);
   % Plot the TOPODATA
@@ -68,16 +67,14 @@ if xver>1
   plotit(XT,YT,topodata,caxx,2)
   % And attractive title, substituting the underscore with a dash
   title(nounder(pref(hdr{index})))
+  drawnow
 end
 
 %%%%%%%%%%%%%%% NOW THE RAPIDEYE GRID %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[XE,YE,ZE]=rapideyg(nprops);
+[XE,YE,ZE]=rapideyg(nprops,xver);
 
-keyboard
-
-% Will make this into a function called UTM2UTM
 % Convert TOPODATA to the RAPIDEYE coordinate system
-[XP,YP,ZP]=utm2utm(XT,YT,ZT,ZE);
+[XP,YP,ZP]=utm2utm(XT,YT,ZT,ZE,xver);
 % Those things are NOT equally spaced
 
 % Maybe should limit the inputs to those that are definitely inside the
@@ -97,6 +94,7 @@ if xver>1
   plot(XE([1 end end 1 1]),YE([1 1 end end 1]),'r-')
   plot(XP(in),YP(in),'y.')
   hold off
+  drawnow
 end
 
 % Now I need to INTERPOLATE the XP,YP of the TOPODATA onto the XE, YE of
@@ -104,12 +102,14 @@ end
 % This takes a while, so we take the output data already
 Fhash=hash([XP(in) ; YP(in) ; topodata(in)],'SHA-512');
 Ffile=fullfile(getenv('IFILES'),'HASHES',Fhash);
-if exist(Ffile)~=2
+if exist(sprintf('%s.mat',Ffile))~=2
+  disp(sprintf('%s making %s',upper(mfilename),'savefile'))
   F=scatteredInterpolant([XP(in) YP(in)],topodata(in));
   % Performs the interpolation
   topodataF=F(XE,YE);
   save(Ffile,'F','topodataF')
 else
+  disp(sprintf('%s loading %s',upper(mfilename),'savefile'))
   load(Ffile,'topodataF')
 end
 
@@ -133,9 +133,10 @@ if xver>1
   hold on; r1=plot(SX,SY,'k'); hold off
   axes(ah(4))
   hold on; r2=plot(SX,SY,'k'); hold off
+  drawnow
 end
 
-keyboard
+% Maybe should consider different rivers
 
 if xver>1
   disp('Hit ENTER to continue')
@@ -157,9 +158,7 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function plotit(XX,YY,data,sax,pmeth)
-
-% These examples work best in 2014 since I need to adapt ADDCB
-% The following three statements come out right, e.g. for e42510_s10
+% Simple plotting of data with complete grids and with color range defined
 
 defval('pmeth',2)
 
@@ -177,5 +176,6 @@ switch pmeth
  case 3
   % Slower and more flexible
   imagefnan([XX(1) YY(1)],[XX(end) YY(end)],data,'sergeicol',sax)
+  % Works best in 2014 since I need to adapt ADDCB
   addcb('hor',sax,sax,'sergeicol',abs(sax(1)))
 end
