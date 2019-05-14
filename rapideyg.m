@@ -1,11 +1,13 @@
-function [XE,YE,ZE]=rapideyg(nprops)
-% [XE,YE,ZE]=RAPIDEYG(nprops)
+function [XE,YE,ZE]=rapideyg(nprops,xver)
+% [XE,YE,ZE]=RAPIDEYG(nprops,xver)
 %
 % Returns a RAPIDEYE grid from a predetermined property structure
 %
 % INPUT:
 %
 % nprops     A minimal structure with properties from RAPIDEYE
+% xver       >0 Provides excessive verification 
+%            0  Does not provide excessive verification
 % 
 % OUTPUT:
 %
@@ -13,6 +15,9 @@ function [XE,YE,ZE]=rapideyg(nprops)
 % ZE         The string identifying the UTM system
 %
 % Last modified by fjsimons-at-alum.mit.edu, 05/13/2019
+
+% Default
+defval('xver',1)
 
 % RAPIDEYE DATA GRID from the top-left corner points wih XE and YE in the
 % same orientation as topodata which is NORTH up
