@@ -1,12 +1,14 @@
-function [XP,YP,ZP]=utm2utm(XT,YT,ZT,ZP)
-% [XP,YP,ZP]=utm2utm(XT,YT,ZT,ZP)
+function [XP,YP,ZP]=utm2utm(XT,YT,ZT,ZP,xver)
+% [XP,YP,ZP]=utm2utm(XT,YT,ZT,ZP,xver)
 %
 % INPUT:
 %
 % XT,YT    A grid in a certain old UTM system
 % ZT       The string identifying the old UTM system [default: '32N']
 % ZP       The string identifying the new UTM system [default: '33S']
-%
+% xver     1 Provides some on-screen diagnostics
+%          0 Does not provide any diagnostics
+
 % OUTPUT:
 %
 % XP, YP   The grid in the new system
@@ -26,6 +28,9 @@ utmstruct=defaultm(utmstruct);
 
 % This is essentially UTM2DEG
 [LAT,LOT]=minvtran(utmstruct,XT,YT);
+if xver>0
+  disp(sprintf('%s finished inverse transform',upper(mfilename)))
+end
 
 clear utmstruct
 utmstruct=defaultm('utm'); 
@@ -35,4 +40,9 @@ utmstruct=defaultm(utmstruct);
 
 % This is essentially DEG2UTM
 [XP,YP]=mfwdtran(utmstruct,LAT,LOT);
+
+if xver>0
+  disp(sprintf('%s finished forward transform',upper(mfilename)))
+end
+
 
