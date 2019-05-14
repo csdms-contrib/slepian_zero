@@ -10,8 +10,8 @@ function varargout=tinitalg(hdr,TV,index,dirp,diro,xver)
 % index      The running index for the file that you really want
 % dirp       Subdirectory [e.g. 'DATA'] of:
 % diro       Main directory [e.g. '/home/fjsimonsIFILES/TOPOGRAPHY/ITALY/TINITALY']
-% xver       1 Provides excessive verification 
-%            0 Does not provide excessive verification
+% xver       >0 Provides excessive verification 
+%            0  Does not provide excessive verification
 %
 % OUTPUT:
 %
@@ -42,7 +42,7 @@ ytopo=[yl(1)+nr*sp-sp/2:-sp:yl(1)+sp/2      ]';
 % A very complete grid!
 [XT,YT]=meshgrid(double(xtopo),double(ytopo));
 % Those things are equally spaced!
-if xver==1
+if xver>0
   diferm(diff(XT,[],1))
   diferm(diff(YT,[],2))
 end
