@@ -23,7 +23,7 @@ function tinitalia(dirp,diro)
 % tinitalia
 % which produces the outputs as *.MAT and *.hdr files
 %
-% Last modified by fjsimons-at-alum.mit.edu, 05/13/2019
+% Last modified by fjsimons-at-alum.mit.edu, 05/14/2019
 
 % Bottom-level directory name, taken from the Tinitaly download
 defval('dirp','DATA')
