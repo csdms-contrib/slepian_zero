@@ -263,7 +263,7 @@ if ~strcmp(froot,'demo')
   nprops.nc=nc;
   nprops.nr=nr;
   nprops.cr=cr;
-  % The C11 and CMN for IMAGE etc which are pixel-centered
+  % The C11 and CMN for IMAGE etc which are PIXEL-centered
   nprops.C11=[xs+sp/2           ys-sp/2         ];
   nprops.CMN=[xs(1)+nc*sp-sp/2  ys(1)-nr*sp+sp/2];
   % The polygon that contains the actually useful data
