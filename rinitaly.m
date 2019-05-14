@@ -1,8 +1,8 @@
 function varargout=rinitaly(nprops,froot,dirp,diro,buf,dlev,xver)
-% [SX,SY,S]=RINITALY(nrops,froot,dirp,diro,buf,dlev,xver)
+% [SX,SY,S]=RINITALY(nprops,froot,dirp,diro,buf,dlev,xver)
 %
-% This will become something that will give river coordinates as
-% pertaining to a specific panel only, and in the same UTM conventions
+% Returns Italian river coordinates as pertaining to a specific panel only,
+% and in the same UTM conventions, as a data structure from RAPIDEYE
 %
 % INPUT:
 %
@@ -27,7 +27,7 @@ function varargout=rinitaly(nprops,froot,dirp,diro,buf,dlev,xver)
 % hold on; pr=plot(SX,SY,'k'); hold off; 
 % axis([nprops.C11(1) nprops.CMN(1) nprops.CMN(2) nprops.C11(2)])
 %
-% Last modified by fjsimons-at-alum.mit.edu, 05/06/2019
+% Last modified by fjsimons-at-alum.mit.edu, 05/13/2019
 
 % Root of the filename the several files inside the directory
 defval('froot','ITA_water_lines_dcw')
@@ -47,8 +47,8 @@ defval('buf',0.025)
 fname=fullfile(diro,dirp,froot);
 if xver>0
   % Some checks and balances
-  disp(sprintf('Looking for %s I am finding',fullfile(diro,dirp,froot)))
-  ls(fullfile(diero,dirp))
+  disp(sprintf('Looking for %s I am finding\n',fullfile(diro,dirp,froot)))
+  ls(fullfile(diro,dirp))
 end
 
 % Read the shape files, one way or another
@@ -80,11 +80,21 @@ in=inpolygon(SX,SY,lo,la);
 SX=SX(in);
 SY=SY(in);
 
-% One has to hope it comes up with the same zone as what we though
+% One has to hope it comes up with the same zone as what we thought
 warning off MATLAB:nargchk:deprecated
 [xSX,ySY,ZS]=deg2utm(SY,SX);
 warning on MATLAB:nargchk:deprecated
 
+% Need to have a unique UTM zone
+diferm(sum(ZS,1)/length(ZS)-ZS(1,:))
+% What would we want it to be in UTM, regardless of what RAPIDEYE says?
+disp(sprintf('According to DEG2UTM, this is %s',ZS(1,:)))
+if license('test', 'map_toolbox')
+  % Another way to guess the UTM zone
+  upg=utmzone(nanmean(SY),nanmean(SX));
+  disp(sprintf('According to UTMZONE, this is %s',upg))
+end
+    
 % Insert NaNs for beauty
 [SX,SY]=penlift(xSX,ySY,dlev);
 
