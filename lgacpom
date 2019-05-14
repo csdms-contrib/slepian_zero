@@ -3,11 +3,19 @@
 # An in-repository local version of the alias gacpom with meaningful commit messages
 
 git add tinitalia.m
-git commit -m "Converts TINITALY topography"
+git commit -m "Converts TINITALY topography into *.mat and *hdr files "
 git push origin master
 
 git add tinitaly.m
-git commit -m "Reads TINITALY topography"
+git commit -m "Matches TINITALY topography to RAPIDEYE tiles"
+git push origin master
+
+git add tinitalh.m
+git commit -m "Reads TINITALY topography (headers only)"
+git push origin master
+
+git add tinitalg.m
+git commit -m "Reads TINITALY topography (grid and data)"
 git push origin master
 
 git add rinitaly.m
@@ -16,6 +24,10 @@ git push origin master
 
 git add rapideye.m
 git commit -m "Reads RAPIDEYE imagery"
+git push origin master
+
+git add rapideyg.m
+git commit -m "Returns RAPIDEYE grid"
 git push origin master
 
 git add pic2prof.m
@@ -52,6 +64,10 @@ git push
 
 git add utmlabels.m
 git commit -m "Plots good-looking UTM labels on the current axes"
+git push
+
+git add utm2utm.m
+git commit -m "Converts coordinates in one UTM zone to those in another"
 git push
 
 git add point2line.m
