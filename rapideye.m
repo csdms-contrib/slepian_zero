@@ -67,14 +67,15 @@ function varargout=rapideye(froot,dirp,diro,xver,urld)
 % Tested on 9.0.0.341360 (R2016a)
 % Tested on 9.6.0.1072779 (R2019a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 05/10/2019
+% Last modified by fjsimons-at-alum.mit.edu, 05/20/2019
+
+  % Root of the filename for three of the four files inside the directory
+  defval('froot','3357121_2018-09-11_RE3_3A')
 
 if ~strcmp(froot,'demo')
 
   %%%%%%%%%% FILENAME AND DIRECTORY ORGANIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%
   
-  % Root of the filename for three of the four files inside the directory
-  defval('froot','3357121_2018-09-11_RE3_3A')
   % Bottom-level directory name, taken from the Rapideye download
   defval('dirp','20180911_094536_3357121_RapidEye-3')
   % Top-level directory name, where you keep the Rapideye directory
