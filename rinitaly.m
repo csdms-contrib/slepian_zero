@@ -38,7 +38,7 @@ defstruct('nprops',{'la' 'lo' 'C11' 'CMN'},...
 
 if isstruct(nprops) || [~isstruct(nprops) && ~strcmp(nprops,'demo')]
   % Root of the filename the several files inside the directory
-  defval('froot','ITA_water_lines_dcw')
+  defval('froot','IT_SurfaceWaterBodyLine')
   % Bottom-level directory name
   defval('dirp','WISE')
   % Top-level directory name, where you keep the Tinitaly directory
