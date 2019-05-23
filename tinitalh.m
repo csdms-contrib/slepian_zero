@@ -17,7 +17,11 @@ function varargout=tinitalh(dirp,diro,xver)
 % TN         The header variable names, as a matrix
 % TA         All the the header variables, in a matrix
 %
-% Last modified by fjsimons-at-alum.mit.edu, 05/13/2019
+% EXAMPLE:
+%
+% tinitalh([],[],2) % will bring up the map with available tiles
+%
+% Last modified by fjsimons-at-alum.mit.edu, 05/23/2019
 
 % Bottom-level directory name, taken from the Tinitaly download
 defval('dirp','DATA')
@@ -76,7 +80,8 @@ if xver==2
     plot(bx,by); hold on
     text(double(bx(1)+[bx(3)-bx(1)]/2),...
 	 double(by(1)+[by(2)-by(1)]/2),...
-	 pref(pref(hdr{index}),'_'))
+	 sprintf('%i %s',index,...
+		 pref(pref(hdr{index}),'_')))
   end
   hold off
   axis image
