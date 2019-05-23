@@ -3,7 +3,15 @@
 # An in-repository local version of the alias gacpom with meaningful commit messages
 
 git add tinitalia.m
-git commit -m "Converts TINITALY topography into *.mat and *hdr files "
+git commit -m "Converts TINITALY topography into *.mat and *hdr files"
+git push origin master
+
+git add puzzle.m
+git commit -m "Identifies overlapping rims in a tile set"
+git push origin master
+
+git add rimcheck.m
+git commit -m "Checks overlapping rims in a tile set"
 git push origin master
 
 git add tinitaly.m
