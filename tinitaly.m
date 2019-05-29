@@ -1,5 +1,5 @@
 function varargout=tinitaly(nprops,dirp,diro,xver,alldata)
-% TD=TINITALY(nprops,dirp,diro,xver,alldata)
+% [TDF,F]=TINITALY(nprops,dirp,diro,xver,alldata)
 %
 % Matches a coordinate set from RAPIDEYE to a TINITALY data file
 %
@@ -13,9 +13,12 @@ function varargout=tinitaly(nprops,dirp,diro,xver,alldata)
 %            2 Provides a graphical test [default]
 % alldata    A data matrix from RAPIDEYE, so that xver=2 can do some plotting
 %
-% OUTPUTL
+% OUTPUT:
 %
-% TD   The topography data for the region corresponding to nprops
+% TDF        The topography data for the region corresponding to nprops
+% F          The interpolant used such that TDF=F(XE,YE), where [XE,YE]
+%            is the RAPIDEYE grid recovered from RAPIDEYG are the
+%            interpolation of the corresponding TINITALY data!
 %
 % EXAMPLE:
 %
@@ -23,7 +26,7 @@ function varargout=tinitaly(nprops,dirp,diro,xver,alldata)
 % [alldata,nprops]=rapideye('3357121_2018-09-11_RE3_3A','20180911_094536_3357121_RapidEye-3');
 % tinitaly(nprops,[],[],[],alldata)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 05/23/2019
+% Last modified by fjsimons-at-alum.mit.edu, 05/28/2019
 
 % Bottom-level directory name, taken from the Tinitaly download
 defval('dirp','DATA')
@@ -41,11 +44,55 @@ defval('alldata',[])
 
 %%%%%%%%%% METADATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Only if you have the headers pre-prepared this will work, bypass box plots
-[hdr,TV,~,TA]=tinitalh(dirp,diro,xver*0);
+[hdr,TV,~,TA,bx,by]=tinitalh(dirp,diro,xver*0);
+% Get the UTM zone real quick, better match TINITALG identically
+ZTT='32N';
 
 %%%%% FIND APPROPRIATE TOPODATA FILES TO MATCH RAPIDEYE %%%%%%%%%%%%%%%%%%%
-% Let's say that we have found the tile indices that matches nprops
-indices=[1:10];
+
+% Convert all the box corners to the target coordinates
+[bxp,byp,a]=utm2utm(bx,by,ZTT,ZE,xver);
+
+% Determine in which box the end points of the XE,YE fall
+for index=1:length(hdr)
+  inb(index)=any(inpolygon(XE([1 end end 1]),YE([1 1 end end]),bxp(index,:),byp(index,:)));
+end
+
+% That gives you the indices that match nprops
+indices=find(inb);
+
+%%%%%%%%%% VISUAL CHECK TILE MATCHING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Make a plot of all the metadata in your directory
+if xver==2
+  % Plot ALL the boxes of the header, they are supposedly all in zone 32
+  % Compare to http://tinitaly.pi.ingv.it/immagini/Imm_TINITALY_DOWNLOAD_03.jpg
+  clf
+  ah=gca;
+  plot(XE([1 end end 1 1]),YE([1 1 end end 1]),'r-')
+  hold on
+  for index=1:length(hdr)
+    plot(bxp(index,:),byp(index,:)); hold on
+    tt(index)=text(bxp(index,1)+[bxp(index,3)-bxp(index,1)]/2,...
+	 byp(index,1)+[byp(index,2)-byp(index,1)]/2,...
+	 sprintf('%i %s',index,...
+		 pref(pref(hdr{index}),'_')))
+    BX(index,:)=minmax(bxp(index,:));
+    BY(index,:)=minmax(byp(index,:));
+  end
+  hold off
+  axis image
+  xel=[min(BX(:,1)) max(BX(:,2))];
+  yel=[min(BY(:,1)) max(BY(:,2))];
+  xlim(xel+[-1 1]*range(xel)/20)
+  ylim(yel+[-1 1]*range(yel)/20)
+  % Annotate
+  shrink(ah,1.5,1.5)
+  t(1)=title(sprintf('From the headers inside\n %s',...
+		     fullfile(diro,dirp)));
+  movev(t(1),range(ylim)/10)
+  % Set the tile matches to bold
+  set(tt(indices),'FontWeight','bold')
+end
 
 %%%%%%%%%% TOPODATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -61,37 +108,62 @@ end
 rim=10;
 % Figure out all the pairwise rimmed relationships
 tp=nchoosek(indices,2); tp=[tp nan(size(tp,1),1)];
+
 for index=1:size(tp,1)
   disp(sprintf('Testing tiles %2.2i and %2.2i',tp(index,1),tp(index,2)))
+  % We need to also map the required tile back to the index set with which
+  % it was loaded...
+  frst=find(indices==tp(index,1));
+  scnd=find(indices==tp(index,2));
   % Feed row/column grid of the first with the second entry in every pair
-  tp(index,3)=puzzle(XT{tp(index,1)}(1,:),YT{tp(index,1)}(:,1),...
-		     XT{tp(index,2)}(1,:),YT{tp(index,2)}(:,1),rim);
+  tp(index,3)=puzzle(XT{frst}(1,:),YT{frst}(:,1),...
+		     XT{scnd}(1,:),YT{scnd}(:,1),rim);
 end
+
+% I THINK THAT SIMPLY COMBINING THESE LOOPS WILL PREVENT OVERTRIMMING
 
 % This is up to a slide, we just determine where the overlapping side is
 % We need to find the edge where ALL the entries are duplicates with any
-% of the other edges, and then trim those, removing redundancies
-
-keyboard
-
+% of the other edges, and then trim those, removing redundancies. So...
+% sometimes the tiles don't align in the other dimension that the one
+% in which the match was determined. If the left edges are aligned and
+% the tiles are stacked on top of one another, they will match
+% according to RIMCHECK. But if the left edges don't align and the
+% tiles are still on top of each other, the RIMCHECK would fail. We
+% need to know to issue such warnings in that case, even though we
+% should still trim the results, as a third tile will pick up the
+% remainder! So here we determine the schedule of testing.
 for index=1:size(tp,1)
   disp(sprintf('Testing tiles %2.2i and %2.2i',tp(index,1),tp(index,2)))
+  % in the end we never check the data match... but we could, and if we did
+  % and we knew how to read the warnings when they shouldn't match, or if we
+  % worked out how to just check the partial match, we'd be fine. For
+  % now, let's not overdo it in th testing since we know very well how it
+  % works, and that it works. No need to go into further granularity here
+  switch tp(index,3)
+   case {8,4}
+    % The match is in the horizontal so the vertical won't need to match
+    hm=1; vm=0; dm=0;
+   case {1,2}
+    % The match is in the vertical so the horizontal won't need to match
+    hm=0; vm=1; dm=0;
+   otherwise
+    % The match is in the horizontal and the vertical but the data won't need
+    hm=1; vm=1; dm=0;
+  end
 
-  % Check and trim and reassign... have tested extensively on ALL data
-  %[XT{tp(index,1)},XT{tp(index,2)}]=
-  rimcheck(XT{tp(index,1)},XT{tp(index,2)},rim,tp(index,3));
-  %[YT{tp(index,1)},YT{tp(index,2)}]=
-  rimcheck(YT{tp(index,1)},YT{tp(index,2)},rim,tp(index,3));
-  %[TD{tp(index,1)},TD{tp(index,2)}]=
-  rimcheck(TD{tp(index,1)},TD{tp(index,2)},rim,tp(index,3));
+  % Again... don't forget the mapping
+  frst=find(indices==tp(index,1));
+  scnd=find(indices==tp(index,2));
+
+  % Check and trim and reassign... 
+  [XT{frst},XT{scnd}]=...
+      rimcheck(XT{frst},XT{scnd},rim,tp(index,3),hm);
+  [YT{frst},YT{scnd}]=...
+      rimcheck(YT{frst},YT{scnd},rim,tp(index,3),vm);
+  [TD{frst},TD{scnd}]=...
+      rimcheck(TD{frst},TD{scnd},rim,tp(index,3),dm);
 end
-
-% Check the overlap between tiles I see a 90 m overlap in the box limits
-% in my three examples, on all sides, on all sides. Now check the data
-% repetition for [7 8 10], and I find
-% TD{3}(end-9:end,1:5)-TD{1}(1:10,1:5)   
-% TD{1}(1:11,end-9:end)-TD{2}(1:11,1:10) 
-% TD{3}(end-9:end,size(TD{1},2)-9:size(TD{1},2))-TD{2}(1:10,1:10)
 
 %%%%%%%%%% VISUAL CHECK TOPODATA%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Make a plot of the topodata you have just identified
@@ -113,6 +185,7 @@ if xver>1
   t=title(nounder(pref(hdr{index})));
   set(t,'FontWeight','normal')
   drawnow
+  axis tight
 end
 
 % Convert TOPODATA to the RAPIDEYE coordinate system
@@ -120,25 +193,34 @@ for index=1:length(indices)
   [XP{index},YP{index},ZP{index}]=utm2utm(XT{index},YT{index},ZT{index},ZE,xver);
 end 
 % Those things are NOT equally spaced
+% ZP should be a unique entry, one would check that here
 
-keyboard
+% NOW YOU NEED TO FLATTEN THESE THINGS ALL TOGETHER
+[XPP,YPP,TDD]=deal([]);
+for index=1:length(indices)
+  XPP=[XPP ; XP{index}(:)];
+  YPP=[YPP ; YP{index}(:)];
+  TDD=[TDD ; TD{index}(:)];
+end
 
 % Limit the inputs to those that are definitely inside the
 % region XE, YE, or else the interpolant takes a long time to calculate
-in=inpolygon(XP,YP,XE([1 end end 1]),YE([1 1 end end]));
+in=inpolygon(XPP,YPP,XE([1 end end 1]),YE([1 1 end end]));
+
+keyboard
 
 %%%%%%%%%% VISUAL CHECK RAPIDEYE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Make a plot of the alldata you have just entered
+% Make a plot of the grids you have just entered
 if xver>1
   % Replot the TOPODATA
   ah(2)=subplot(222);
-  % The XE,YE need to be a subportion of XP,YP
-  plot(XP(1:100:end,1:100:end),YP(1:100:end,1:100:end),'k.')
+  % The XE,YE need to be a proper subportion of XP,YP
+  plot(XPP(1:10000:end),YPP(1:10000:end),'k.')
   hold on
   plot(XE(1:200:end,1:200:end),YE(1:200:end,1:200:end),'b.')
   % The polygon of the available data
   plot(XE([1 end end 1 1]),YE([1 1 end end 1]),'r-')
-  plot(XP(in),YP(in),'y.')
+  plot(XPP(in),YPP(in),'y.')
   hold off
   drawnow
 end
@@ -146,21 +228,29 @@ end
 % Now I need to INTERPOLATE the XP,YP of the TOPODATA onto the XE, YE of
 % the RAPIDEYE to get them both to be equally spaced
 % This takes a while, so we take the output data already
-Fhash=hash([XP(in) ; YP(in) ; TD(in)],'SHA-512');
-Ffile=fullfile(getenv('IFILES'),'HASHES',Fhash);
-if exist(sprintf('%s.mat',Ffile))~=2
-  disp(sprintf('%s making %s',upper(mfilename),'savefile'))
-  F=scatteredInterpolant([XP(in) YP(in)],TD(in));
+Fhash=hash([XE([1 end end 1 1]) YE([1 1 end end 1])],'SHA-1');
+Ffile=sprintf('%s.mat',fullfile(getenv('IFILES'),'HASHES',Fhash));
+if exist(Ffile)~=2
+  disp(sprintf('%s making %s',upper(mfilename),Ffile))
+  % Crate the interpolant
+  tic
+  F=scatteredInterpolant([XPP(in) YPP(in)],TDD(in));
+  toc
   % Performs the interpolation
   TDF=F(XE,YE);
+  % Save the interpolant and the interpolated data
   save(Ffile,'F','TDF')
 else
-  disp(sprintf('%s loading %s',upper(mfilename),'savefile'))
+  disp(sprintf('%s loading %s',upper(mfilename),Ffile))
+  tic
   load(Ffile,'TDF')
+  toc
 end
 
+keyboard
+
 %%%%%%%%%% VISUAL CHECK RAPIDEYE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Make a plot of the alldata you have just entered
+% Make a plot of the RAPIDEYE data matrix and the interpolated TINITALY data
 if xver>1
   % Replot the TOPODATA
   ah(3)=subplot(223);
@@ -183,11 +273,12 @@ if xver>1
   drawnow
 end
 
+% You might want to plot some random rows and columns just for fun
 if xver>1
   disp('Hit ENTER to continue')
   pause
   clf
-  % More plotting verification
+  % Plotting verification of RAPIDEYE and TOPOGRAPHY!
   rij(1)=randi(size(XE,1));
   rij(2)=randi(size(XE,2));
   % A random row and a random column
@@ -200,6 +291,11 @@ if xver>1
   plot(   toplot(:,rij(2)),'b-'); hold off
   title(sprintf('column %i',rij(2)))
 end
+
+% Now we have what we want, namely: TDF, the interpolated TOPOGRAPHY DATA
+% on the same grid as the RAPIDEYE patch
+varns={TDF,F};
+varargout=varns(1:nargout);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function plotit(XX,YY,data,sax,pmeth)
