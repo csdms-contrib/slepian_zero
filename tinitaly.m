@@ -92,7 +92,7 @@ if xver==2
   movev(t(1),range(ylim)/10)
   % Set the tile matches to bold
   set(tt(indices),'FontWeight','bold')
-  pause
+  pause(1)
 end
 
 %%%%%%%%%% TOPODATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -135,7 +135,7 @@ end
 % should still trim the results, as a third tile will pick up the
 % remainder! So here we determine the schedule of testing.
 for index=1:size(tp,1)
-  disp(sprintf('Testing tiles %2.2i and %2.2i',tp(index,1),tp(index,2)))
+  disp(sprintf('Trimming tiles %2.2i and %2.2i',tp(index,1),tp(index,2)))
   % in the end we never check the data match... but we could, and if we did
   % and we knew how to read the warnings when they shouldn't match, or if we
   % worked out how to just check the partial match, we'd be fine. For
@@ -189,8 +189,6 @@ if xver>1
   axis tight
 end
 
-keyboard
-
 % Convert TOPODATA to the RAPIDEYE coordinate system
 for index=1:length(indices)
   [XP{index},YP{index},ZP{index}]=utm2utm(XT{index},YT{index},ZT{index},ZE,xver);
@@ -216,12 +214,12 @@ if xver>1
   % Replot the TOPODATA
   ah(2)=subplot(222);
   % The XE,YE need to be a proper subportion of XP,YP
-  plot(XPP(1:10000:end),YPP(1:10000:end),'k.')
+  plot(XPP(1:200:end),YPP(1:200:end),'k.')
   hold on
   plot(XE(1:200:end,1:200:end),YE(1:200:end,1:200:end),'b.')
   % The polygon of the available data
-  plot(XE([1 end end 1 1]),YE([1 1 end end 1]),'r-')
   plot(XPP(in),YPP(in),'y.')
+  plot(XE([1 end end 1 1]),YE([1 1 end end 1]),'r-')
   hold off
   drawnow
 end
@@ -244,9 +242,9 @@ if exist(Ffile)~=2
 else
   disp(sprintf('%s loading %s',upper(mfilename),Ffile))
   tic
-  if nargout==1
+  if nargout<2
     load(Ffile,'TDF')
-  elseif nargout==2
+  elseif
     load(Ffile,'F','TDF')
   end
   toc
