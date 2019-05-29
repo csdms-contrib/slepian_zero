@@ -67,7 +67,7 @@ ZT='32N';
 
 % May convert the structure with the XML inside Tinitaly and the EPSG files
 
-if nargout>4
+if nargout>3
   % Load its topography inside the array called topodata
   load(pref(fullfile(diro,dirp,hdr{index})))
   % Call the topodata generically "topodata"
