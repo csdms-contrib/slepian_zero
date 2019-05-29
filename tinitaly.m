@@ -75,7 +75,7 @@ if xver==2
     tt(index)=text(bxp(index,1)+[bxp(index,3)-bxp(index,1)]/2,...
 	 byp(index,1)+[byp(index,2)-byp(index,1)]/2,...
 	 sprintf('%i %s',index,...
-		 pref(pref(hdr{index}),'_')))
+		 pref(pref(hdr{index}),'_')));
     BX(index,:)=minmax(bxp(index,:));
     BY(index,:)=minmax(byp(index,:));
   end
@@ -92,6 +92,7 @@ if xver==2
   movev(t(1),range(ylim)/10)
   % Set the tile matches to bold
   set(tt(indices),'FontWeight','bold')
+  pause
 end
 
 %%%%%%%%%% TOPODATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -188,6 +189,8 @@ if xver>1
   axis tight
 end
 
+keyboard
+
 % Convert TOPODATA to the RAPIDEYE coordinate system
 for index=1:length(indices)
   [XP{index},YP{index},ZP{index}]=utm2utm(XT{index},YT{index},ZT{index},ZE,xver);
@@ -206,8 +209,6 @@ end
 % Limit the inputs to those that are definitely inside the
 % region XE, YE, or else the interpolant takes a long time to calculate
 in=inpolygon(XPP,YPP,XE([1 end end 1]),YE([1 1 end end]));
-
-keyboard
 
 %%%%%%%%%% VISUAL CHECK RAPIDEYE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Make a plot of the grids you have just entered
@@ -243,11 +244,13 @@ if exist(Ffile)~=2
 else
   disp(sprintf('%s loading %s',upper(mfilename),Ffile))
   tic
-  load(Ffile,'TDF')
+  if nargout==1
+    load(Ffile,'TDF')
+  elseif nargout==2
+    load(Ffile,'F','TDF')
+  end
   toc
 end
-
-keyboard
 
 %%%%%%%%%% VISUAL CHECK RAPIDEYE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Make a plot of the RAPIDEYE data matrix and the interpolated TINITALY data
