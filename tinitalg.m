@@ -19,7 +19,7 @@ function varargout=tinitalg(hdr,TV,index,dirp,diro,xver)
 % ZT         The string identifying the UTM system
 % topodata   The topography data that you requested
 %
-% Last modified by fjsimons-at-alum.mit.edu, 05/13/2019
+% Last modified by fjsimons-at-alum.mit.edu, 05/28/2019 
 
 % Bottom-level directory name, taken from the Tinitaly download
 defval('dirp','DATA')
@@ -67,7 +67,7 @@ ZT='32N';
 
 % May convert the structure with the XML inside Tinitaly and the EPSG files
 
-if nargout>3
+if nargout>4
   % Load its topography inside the array called topodata
   load(pref(fullfile(diro,dirp,hdr{index})))
   % Call the topodata generically "topodata"
