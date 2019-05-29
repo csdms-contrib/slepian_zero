@@ -1,5 +1,5 @@
 function varargout=tinitalh(dirp,diro,xver)
-% [hdr,TV,TN,TA]=TINITALH(dirp,diro,xver)
+% [hdr,TV,TN,TA,bx,by]=TINITALH(dirp,diro,xver)
 %
 % Gets and displays all headers inside a TINITALY directory
 %
@@ -16,12 +16,13 @@ function varargout=tinitalh(dirp,diro,xver)
 % TV         All the header variables, in a cell
 % TN         The header variable names, as a matrix
 % TA         All the the header variables, in a matrix
+% bx,by      All the box corners, if you like
 %
 % EXAMPLE:
 %
 % tinitalh([],[],2) % will bring up the map with available tiles
 %
-% Last modified by fjsimons-at-alum.mit.edu, 05/23/2019
+% Last modified by fjsimons-at-alum.mit.edu, 05/28/2019
 
 % Bottom-level directory name, taken from the Tinitaly download
 defval('dirp','DATA')
@@ -58,6 +59,22 @@ end
 TN=H{1};
 TA=[TV{:}];
 
+% If you want the box corners
+if nargout>5
+  for index=1:length(hdr)
+    nc=TV{index}(1);
+    nr=TV{index}(2);
+    xl=TV{index}(3);
+    yl=TV{index}(4);
+    sp=TV{index}(5);
+    % Plot the outer extent of the boxes, as I interpret it now
+    bx(index,:)=double([xl xl xl xl xl]+[0 0      nc*sp nc*sp 0]);
+    by(index,:)=double([yl yl yl yl yl]+[0 nr*sp  nr*sp 0     0]);
+  end
+else
+  [bx,by]=deal(NaN);
+end
+
 %%%%%%%%%% VISUAL CHECK %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Make a plot of all the metadata in your directory
 if xver==2
@@ -73,15 +90,15 @@ if xver==2
     yl=TV{index}(4);
     sp=TV{index}(5);
     % Plot the outer extent of the boxes, as I interpret it now
-    bx=[xl xl xl xl xl]+[0 0      nc*sp nc*sp 0];
-    by=[yl yl yl yl yl]+[0 nr*sp  nr*sp 0     0];
-    BX(index,:)=minmax(bx);
-    BY(index,:)=minmax(by);
+    bx=double([xl xl xl xl xl]+[0 0      nc*sp nc*sp 0]);
+    by=double([yl yl yl yl yl]+[0 nr*sp  nr*sp 0     0]);
     plot(bx,by); hold on
-    text(double(bx(1)+[bx(3)-bx(1)]/2),...
-	 double(by(1)+[by(2)-by(1)]/2),...
+    text(bx(1)+[bx(3)-bx(1)]/2,...
+	 by(1)+[by(2)-by(1)]/2,...
 	 sprintf('%i %s',index,...
 		 pref(pref(hdr{index}),'_')))
+    BX(index,:)=minmax(bx);
+    BY(index,:)=minmax(by);
   end
   hold off
   axis image
@@ -97,5 +114,5 @@ if xver==2
 end
 
 % All the outputs fit to print
-varns={hdr,TV,TN,TA};
+varns={hdr,TV,TN,TA,bx,by};
 varargout=varns(1:nargout);
