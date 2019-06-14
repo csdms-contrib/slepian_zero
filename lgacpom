@@ -2,6 +2,10 @@
 #
 # An in-repository local version of the alias gacpom with meaningful commit messages
 
+git add guyotphysics.m
+git commit -m "A simple earthquake seismogram plotting routine"
+git push
+
 git add tinitalia.m
 git commit -m "Converts TINITALY topography into *.mat and *hdr files"
 git push origin master
