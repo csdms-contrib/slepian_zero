@@ -14,7 +14,7 @@ function varargout=gebco(lon,lat,vers,npc,method,xver,jig)
 % npc      sqrt(number) of split pieces [default: 10]
 % method   'nearest' (default), 'linear', etc, for the interpolation
 % xver     Extra verification [1] or not [0]
-% jig      A rejigging factor to cover up for a bad request
+% jig      A rejigging factor to cover up for a bad request [default: none]
 %
 % OUTPUT:
 %
@@ -42,7 +42,7 @@ function varargout=gebco(lon,lat,vers,npc,method,xver,jig)
 %
 % 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 03/19/2019
+% Last modified by fjsimons-at-alum.mit.edu, 07/18/2019
 
 if ~isstr(lon)
   % Default lon and lat, for good measure, take those from the examples of 
@@ -179,9 +179,10 @@ if ~isstr(lon)
 	  wms.rqt,wms.ser,wms.crs,wms.ver,wms.iff,wms.lyr,wms.lyr,...
 	  num2str(latlim(1)),num2str(lonlim(1)),num2str(latlim(2)),num2str(lonlim(2)),...
 	  wms.pxx,wms.pxy,wms.pxw,wms.pxh);
+      
+      keyboard
 
-     
-      % Get the output, cannot use wmsread if it isn't a GetMap request...
+      % Get the output, cannot use WMSREAD if it isn't a GetMap request...
       % [wmsu,R,U]=wmsread(wmsr);
       % So, need to parse the output
       wms.out=parse(urlread(wms.req));
