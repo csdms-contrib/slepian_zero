@@ -1,19 +1,21 @@
-function varargout=rapideye(froot,dirp,diro,xver,urld)
-% [alldata,nprops,props,rgbdata,alfadat]=RAPIDEYE(froot,dirp,diro,xver,urld)
+function varargout=rapideye(froot,dirp,diro,xver,urld,clip)
+% [alldata,nprops,props,rgbdata,alfadat]=RAPIDEYE(froot,dirp,diro,xver,urld,clip)
 %
-% Loads an returns a RAPIDEYE satellite image and its properties.
+% Loads and returns a RAPIDEYE satellite image and its properties.
 %
 % INPUT:
 %
 % froot      Filename root             [e.g. '3357121_2018-09-11_RE3_3A']
 % dirp       Directory [e.g. '20180911_094536_3357121_RapidEye-3']
-% diro       Directory [e.g. '/u/fjsimonsIFILES/TOPOGRAPHY/ITALY/RAPIDEYE']
+% diro       Directory [e.g. '/u/fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE']
 % xver       1 Provides excessive verification [default]
 %            0 Does not provide excessive verification
 %            2 Provides a graphical test for the very beginning  
 % urld       A URL a directory with a copy of the JSON file for
 %            when a direct read and parsing using JSONDECODE fails
 %            [e.g. 'http://geoweb.princeton.edu/people/simons/JSON']
+% clip       '_clip' files come with the '_clip' extension [default]
+%            [] no further extension extension at all
 %
 % OUTPUT:
 %
@@ -69,8 +71,11 @@ function varargout=rapideye(froot,dirp,diro,xver,urld)
 %
 % Last modified by fjsimons-at-alum.mit.edu, 05/20/2019
 
-  % Root of the filename for three of the four files inside the directory
-  defval('froot','3357121_2018-09-11_RE3_3A')
+% Root of the filename for three of the four files inside the directory
+defval('froot','3357121_2018-09-11_RE3_3A')
+
+% Root of the filename for three of the four files inside the directory
+defval('clip','_clip')
 
 if ~strcmp(froot,'demo')
 
@@ -85,22 +90,22 @@ if ~strcmp(froot,'demo')
   % WEBREAD, noting that the JSON filename derives from DIRP, see
   % below, and note that JSONDECODE may work, in which case this is moot
   defval('urld','http://geoweb.princeton.edu/people/simons/JSON')
-  
+
   % The JSON metadata local file, if it exists
   file1=fullfile(diro,dirp,sprintf('%s_metadata.json'        ,dirp ));
 
   % The UDM metadata local file, which should exist
-  file2=fullfile(diro,dirp,sprintf('%s_udm.tif'              ,froot));
+  file2=fullfile(diro,dirp,sprintf('%s_udm%s.tif'              ,froot,clip));
 
-  % The XML metadata local file, which should exist
-  file3=fullfile(diro,dirp,sprintf('%s_Analytic_metadata.xml',froot));
+  % The XML metadata local file, which should exist (maybe clipped)
+  file3=fullfile(diro,dirp,sprintf('%s_Analytic_metadata%s.xml',froot,clip));
 
   % The ANALYTIC actual data local file, which should exist
-  file4=fullfile(diro,dirp,sprintf('%s_Analytic.tif'         ,froot));
+  file4=fullfile(diro,dirp,sprintf('%s_Analytic%s.tif'         ,froot,clip));
   
   % The JSON metadata webfile, may be a backup for the local file
   file5=fullfile(     urld,sprintf('%s_metadata.json'        ,dirp ));
-  
+
   % I advocate checking grid parameters and file sizes for ever
   defval('xver',1)
   
