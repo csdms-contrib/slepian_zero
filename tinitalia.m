@@ -19,11 +19,11 @@ function tinitalia(dirp,diro)
 % /u/fjsimons/IFILES/TOPOGRAPHY/ITALY/TINITALY/DATA
 % contains at least one necessary file
 %   e43010_s10.zip
-% And in that, I am able to do, without any further inputs:
+% And, in there, I am able to do, without any further inputs:
 % tinitalia
 % which produces the outputs as *.MAT and *.hdr files
 %
-% Last modified by fjsimons-at-alum.mit.edu, 05/14/2019
+% Last modified by fjsimons-at-alum.mit.edu, 08/29/2019
 
 % Bottom-level directory name, taken from the Tinitaly download
 defval('dirp','DATA')
