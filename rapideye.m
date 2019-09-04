@@ -14,8 +14,8 @@ function varargout=rapideye(froot,dirp,diro,xver,urld,clip)
 % urld       A URL a directory with a copy of the JSON file for
 %            when a direct read and parsing using JSONDECODE fails
 %            [e.g. 'http://geoweb.princeton.edu/people/simons/JSON']
-% clip       '_clip' files come with the '_clip' extension [default]
-%            [] no further extension extension at all
+% clip       '_clip' files come with the '_clip' extension 
+%            [] no further extension extension at all [default]
 %
 % OUTPUT:
 %
@@ -54,28 +54,33 @@ function varargout=rapideye(froot,dirp,diro,xver,urld,clip)
 % And in that case, I am able to do, without any further inputs:
 % [alldata,nprops,props,rgbdata,alfadat]=rapideye;
 % Most often you will be in the directory one up from 'dirp' and
-% call it as follows, either of:
+% call it as follows, either of (note: no trailing backslashes):
 % [alldata,nprops,props,rgbdata,alfadat]=rapideye('3357121_2018-09-11_RE3_3A','20180911_094536_3357121_RapidEye-3','.',1);
 % [alldata,nprops,props,rgbdata,alfadat]=rapideye('3357911_2019-03-31_RE3_3A','20190331_094550_3357911_RapidEye-3',pwd,1);
+%% Inside RAPIDEYE, an unclipped example:
+% [alldata,nprops,props,rgbdata,alfadat]=rapideye('3357121_2013-04-28_RE5_3A','20130428_105037_3357121_RapidEye-5');
+%% Inside RAPIDEYE/enotre, a clipped example:
+% [alldata,nprops,props,rgbdata,alfadat]=rapideye('3357121_2013-04-28_RE5_3A','enotre/20130428_105037_3357121_RapidEye-5',[],[],[],'_clip');
 % And then a proper picture can be obtained using, e.g., one of the various
-% imagesc([nprops.C11(1) nprops.CMN(1)],[nprops.C11(2) nprops.CMN(2)],double(alldata(:,:,1)))
+% imagesc([nprops.C11(1) nprops.CMN(1)],[nprops.C11(2) nprops.CMN(2)],double(alldata(:,:,1))); axis xy
 % imagefnan(nprops.C11,nprops.CMN,double(alldata(:,:,1)))
 %
 % SEE ALSO
 %
 % https://www.planet.com/products/planet-imagery/ 
 % https://developers.planet.com/docs/api/reorthotile/
+% $UFILES/directorize for some meaningful directory-name and variable identification
 %
 % Tested on 9.0.0.341360 (R2016a)
 % Tested on 9.6.0.1072779 (R2019a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 05/20/2019
+% Last modified by fjsimons-at-alum.mit.edu, 09/03/2019
 
 % Root of the filename for three of the four files inside the directory
 defval('froot','3357121_2018-09-11_RE3_3A')
 
 % Root of the filename for three of the four files inside the directory
-defval('clip','_clip')
+defval('clip',[])
 
 if ~strcmp(froot,'demo')
 
@@ -113,42 +118,68 @@ if ~strcmp(froot,'demo')
     % Some checks and balances
     disp(sprintf('Looking inside %s I am finding\n',fullfile(diro,dirp)))
     ls(fullfile(diro,dirp))
-    disp('which I expect to contain two tif, one json and one xml file')
+    disp(sprintf('which I expect to contain two tif, one json and one/two xml file(s) - with the extension %s',clip))
   end
-  
-  %%%%%%%%%% METADATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
-  % Read the JSON file with metadata
-  try
-    % Locally provided if you've got access to JSONDECODE
-    fid=fopen(file1);
-    tiffm=jsondecode(fscanf(fid,'%s'));
-    fclose(fid);
-  catch
-    % Remotely copied if you aren't there yet but you have WEBREAD
-    tiffm=webread(file5);
+
+  % The JSON file for the clipped data sets appear identical to the
+  % unclipped ones, so theire utility is nil in that case
+  if ~strcmp(clip,'_clip')
+    %%%%%%%%%% JSON METADATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    % Read the JSON file with metadata
+    try
+      % Locally provided if you've got access to JSONDECODE
+      fid=fopen(file1);
+      tiffm=jsondecode(fscanf(fid,'%s'));
+      fclose(fid);
+    catch
+      % Remotely copied if you aren't there yet but you have WEBREAD
+      tiffm=webread(file5);
+    end
+    
+    % All properties pertaining to the image
+    props=tiffm.properties;
+    
+    % Specifically: pixel resolution in m
+    sp=props.pixel_resolution;
+    % Specifically: corresponding reference system, see
+    % http://epsg.io/32633 which is 33N
+    cr=props.epsg_code;
+    % Specifically: number of rows and columnns
+    nr=props.rows;
+    nc=props.columns;
+    % Specifically: the y and x origins
+    ys=props.origin_y;
+    xs=props.origin_x;
+    
+    % The coordinates of a polygon which fits inside and contains good data
+    % Longitudes and latitudes clockwise from NW with extra point to close box
+    lonpg=tiffm.geometry.coordinates(:,:,1);
+    latpg=tiffm.geometry.coordinates(:,:,2);
+  else
+    %%%%%%%%%% TIFFINFO METADATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % All properties pertaining to the image
+    props=geotiffinfo(file2);
+
+    % See the explanatory comments in the previous block
+    sp=props.PixelScale(1);
+    
+    nr=props.Height;
+    nc=props.Width;
+    
+    ys=props.CornerCoords.Y(1);
+    xs=props.CornerCoords.X(1);
+
+    % In this case there is no information on usable data, just the
+    % corner points as we discovered by checking the equivalencies of
+    % these two blocks in case of a non-clipped image... never mind
+    lonpg=props.CornerCoords.Lon;
+    latpg=props.CornerCoords.Lat;
+    
+    % And also in this case there is no EPSG code, but never mind there either
+    cr=[];
   end
-  
-  % All properties pertaining to the image
-  props=tiffm.properties;
-  
-  % Specifically: pixel resolution in m
-  sp=props.pixel_resolution;;
-  % Specifically: corresponding reference system, see
-  % http://epsg.io/32633 which is 33N
-  cr=props.epsg_code;
-  % Specifically: number of rows and columnns
-  nr=props.rows;
-  nc=props.columns;
-  % Specifically:  the y and x origins
-  ys=props.origin_y;
-  xs=props.origin_x;
-  
-  % The coordinates of a polygon which fits inside and contains good data
-  % Longitudes and latitudes clockwise from NW with extra point to close box
-  lonpg=tiffm.geometry.coordinates(:,:,1);
-  latpg=tiffm.geometry.coordinates(:,:,2);
-  
+
   %%%%%%%%%% DATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
   % Create main TIFF object with the data we really want
@@ -157,7 +188,7 @@ if ~strcmp(froot,'demo')
   tiffo=Tiff(file4,'r');
   warning on MATLAB:imagesci:tiffmexutils:libtiffWarning 
   warning on        imageio:tiffmexutils:libtiffWarning
-  
+
   % Again verify and show ways to address these properties
   diferm(nc-getTag(tiffo,'ImageWidth'))
   diferm(nr-getTag(tiffo,'ImageLength'))
@@ -180,11 +211,10 @@ if ~strcmp(froot,'demo')
   
   % Close the TIFF for good measure
   close(tiffo)
-  
-  % Convert the POLYGON to UTM using a hack function which
-  % gets mixed up, sometimes... but the point is that it's unique and it is
-  % for us the easiest way to figure out the UTM zone unless we go by the
-  % epsg code
+
+  % Convert the POLYGON to UTM using a hack function which gets mixed up,
+  % sometimes... but the point is that it's unique and it is for us the
+  % easiest way to figure out the UTM zone unless we go by the EPSG code
   warning off MATLAB:nargchk:deprecated
   [xpg,ypg,zpg]=deg2utm(latpg,lonpg); xpg=round(xpg); ypg=round(ypg);
   warning on MATLAB:nargchk:deprecated
@@ -196,9 +226,10 @@ if ~strcmp(froot,'demo')
   %%%%%%%%%% EXCESSIVE METADATA CHECKING%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   if xver>0
     % Nobody said the polygon needs to be equal to the image grid, but if
-    % it is, then we have different ways of checking the grid for good measure
-    if length(xpg)==5     && xpg(1)==xs && xpg(1)==xpg(4) && xpg(2)==xpg(3) && ...
-	  length(ypg)==5  && ypg(1)==ys && ypg(1)==ypg(2) && ypg(3)==ypg(4)
+    % it is, then we have different ways of checking the grid for good
+    % measure. Corner points might be closed/repeated, so 4 or 5 is a rectangle
+    if length(xpg)<6     && xpg(1)==xs && xpg(1)==xpg(4) && xpg(2)==xpg(3) && ...
+	  length(ypg)<6  && ypg(1)==ys && ypg(1)==ypg(2) && ypg(3)==ypg(4)
       % Further examples might reveal counterexamples
       disp('The polygon and the image most likely coincide')
       
@@ -259,10 +290,10 @@ if ~strcmp(froot,'demo')
   else 
     upg=NaN;
   end
-  
+
   %%%%%%%%%%%%% OPTIONAL OUTPUT %%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
-  % Summaries the useful properties, see the help above
+  % Summarises the useful properties, see the help above
   nprops.xs=xs;
   nprops.ys=ys;
   nprops.sp=sp;
