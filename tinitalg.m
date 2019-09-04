@@ -1,5 +1,5 @@
 function varargout=tinitalg(hdr,TV,index,dirp,diro,xver)
-% [XT,YT,ZT,topodata]=TINITALG(hdr,TV,index,dirp,diro,xver)
+% [XT,YT,ZT,topodata,index]=TINITALG(hdr,TV,index,dirp,diro,xver)
 %
 % Gets and displays data and grid from a TINITALY directory
 %
@@ -18,10 +18,15 @@ function varargout=tinitalg(hdr,TV,index,dirp,diro,xver)
 % XT,YT      A complete and regular grid on which to plot the data
 % ZT         The string identifying the UTM system
 % topodata   The topography data that you requested
+% index      The index that you were using
 %
 % EXAMPLE:
 %
-% 
+% [hdr,TV,TN,TA,bx,by]=tinitalh;
+% [XT,YT,ZT,topodata,index]=tinitalg(hdr,TV,randi(length(hdr)),[],[],1);
+% sax=[-2154.5 1601.4];
+% imagefnan([XT(1),YT(1)],[XT(end) YT(end)],topodata,'sergeicol',sax)
+% title(nounder(hdr{index}))
 %
 % Last modified by fjsimons-at-alum.mit.edu, 09/03/2019 
 
@@ -68,6 +73,11 @@ ZT='32N';
 % average, with a maximum error less than 0.85 m. As a final step the 33
 % zone database, reprojected to 32 zone, was merged with the resident 32
 % zone database obtaining the thorough seamless TIN of Italy.
+% Original file format is "ESRI ASCII Raster". Data is in Universal Transverse
+% Mercator coordinate system (UTM), World Geodetic System WGS 84. Notice
+% that all the DEM is projected in zone 32N, even if eastern italian
+% regions are in zone 33N (in case you need to re-project portions of
+% the DEM). Couresy of Simone Tarquini.
 
 % May convert the structure with the XML inside Tinitaly and the EPSG files
 
@@ -81,5 +91,5 @@ else
 end
 
 % All the outputs fit to print
-varns={XT,YT,ZT,topodata};
+varns={XT,YT,ZT,topodata,index};
 varargout=varns(1:nargout);
