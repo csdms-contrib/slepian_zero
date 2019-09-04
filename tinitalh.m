@@ -6,7 +6,7 @@ function varargout=tinitalh(dirp,diro,xver)
 % INPUT:
 %
 % dirp       Subdirectory [e.g. 'DATA'] of:
-% diro       Main directory [e.g. '/home/fjsimonsIFILES/TOPOGRAPHY/ITALY/TINITALY']
+% diro       Main directory [e.g. '/u/fjsimonsIFILES/TOPOGRAPHY/ITALY/TINITALY']
 % xver       2 Provides a graphical test [default]
 %            0 Does not providea graphical test
 %
@@ -22,7 +22,7 @@ function varargout=tinitalh(dirp,diro,xver)
 %
 % tinitalh([],[],2) % will bring up the map with available tiles
 %
-% Last modified by fjsimons-at-alum.mit.edu, 05/28/2019
+% Last modified by fjsimons-at-alum.mit.edu, 09/03/2019
 
 % Bottom-level directory name, taken from the Tinitaly download
 defval('dirp','DATA')
