@@ -20,13 +20,24 @@ function varargout=tinitaly(nprops,dirp,diro,xver,alldata)
 %            is the RAPIDEYE grid recovered from RAPIDEYG are the
 %            interpolation of the corresponding TINITALY data!
 %
-% EXAMPLE:
+% EXAMPLE 1, for unclipped data, multiple images of the same "grid_cell"
 %
-% cd /u/fjsimons/IFILES/TOPOGRAPHY/ITALY/TINITALY
+% [alldata1,nprops1]=rapideye('3357121_2018-09-11_RE3_3A','20180911_094536_3357121_RapidEye-3');
+% [alldata2,nprops2]=rapideye('3357121_2018-11-09_RE1_3A','20181109_093150_3357121_RapidEye-1');
+% figure(1); clf; tinitaly(nprops1,[],[],[],alldata1)
+% figure(2); clf; tinitaly(nprops2,[],[],[],alldata2)
+% 
+% EXAMPLE 2, for a rather different cell
+%
+% [alldata,nprops]=rapideye('3357911_2019-03-31_RE3_3A','20190331_094550_3357911_RapidEye-3');
+% tinitaly(nprops,[],[],[],alldata)
+%
+% EXAMPLE 3, for a clipped cell
+%
 % [alldata,nprops]=rapideye('3357121_2018-09-11_RE3_3A','20180911_094536_3357121_RapidEye-3');
 % tinitaly(nprops,[],[],[],alldata)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 05/28/2019
+% Last modified by fjsimons-at-alum.mit.edu, 09/03/2019
 
 % Bottom-level directory name, taken from the Tinitaly download
 defval('dirp','DATA')
@@ -45,7 +56,9 @@ defval('alldata',[])
 %%%%%%%%%% METADATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Only if you have the headers pre-prepared this will work, bypass box plots
 [hdr,TV,~,TA,bx,by]=tinitalh(dirp,diro,xver*0);
-% Get the UTM zone real quick, better match TINITALG identically
+% Get the UTM zone real quick, better match TINITALG identically, where it
+% is also explicitly set to this same value, since we we know we need to
+% override the Italian data which somehow claim to be 33S
 ZTT='32N';
 
 %%%%% FIND APPROPRIATE TOPODATA FILES TO MATCH RAPIDEYE %%%%%%%%%%%%%%%%%%%
@@ -64,13 +77,16 @@ indices=find(inb);
 %%%%%%%%%% VISUAL CHECK TILE MATCHING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Make a plot of all the metadata in your directory
 if xver==2
-  % Plot ALL the boxes of the header, they are supposedly all in zone 32
+  % This shares portions with some xver stuff in TINITALH
+  % Plot ALL/SOME the boxes of the header, they are supposedly all in zone 32
   % Compare to http://tinitaly.pi.ingv.it/immagini/Imm_TINITALY_DOWNLOAD_03.jpg
   clf
   ah=gca;
-  plot(XE([1 end end 1 1]),YE([1 1 end end 1]),'r-')
+  pri=plot(XE([1 end end 1 1]),YE([1 1 end end 1]),'r-');
+  % This is vital to enable the switch between "some" and "all" below
+  [BX,BY]=deal(nan(max(length(indices),length(hdr)),2));
   hold on
-  for index=1:length(hdr)
+  for index=indices %1:length(hdr)
     plot(bxp(index,:),byp(index,:)); hold on
     tt(index)=text(bxp(index,1)+[bxp(index,3)-bxp(index,1)]/2,...
 	 byp(index,1)+[byp(index,2)-byp(index,1)]/2,...
@@ -80,6 +96,9 @@ if xver==2
     BY(index,:)=minmax(byp(index,:));
   end
   hold off
+  BX=BX(~isnan(BX(:,1)),:);
+  BY=BY(~isnan(BY(:,1)),:);
+
   axis image
   xel=[min(BX(:,1)) max(BX(:,2))];
   yel=[min(BY(:,1)) max(BY(:,2))];
@@ -105,65 +124,67 @@ for index=1:length(indices)
       tinitalg(hdr,TV,indices(index),dirp,diro,xver);
 end
 
-% We know to look for possibly rim rows or columns of tile overlap
-rim=10;
-% Figure out all the pairwise rimmed relationships
-tp=nchoosek(indices,2); tp=[tp nan(size(tp,1),1)];
-
-for index=1:size(tp,1)
-  disp(sprintf('Testing tiles %2.2i and %2.2i',tp(index,1),tp(index,2)))
-  % We need to also map the required tile back to the index set with which
-  % it was loaded...
-  frst=find(indices==tp(index,1));
-  scnd=find(indices==tp(index,2));
-  % Feed row/column grid of the first with the second entry in every pair
-  tp(index,3)=puzzle(XT{frst}(1,:),YT{frst}(:,1),...
-		     XT{scnd}(1,:),YT{scnd}(:,1),rim);
-end
-
-% I THINK THAT SIMPLY COMBINING THESE LOOPS WILL PREVENT OVERTRIMMING
-
-% This is up to a slide, we just determine where the overlapping side is
-% We need to find the edge where ALL the entries are duplicates with any
-% of the other edges, and then trim those, removing redundancies. So...
-% sometimes the tiles don't align in the other dimension that the one
-% in which the match was determined. If the left edges are aligned and
-% the tiles are stacked on top of one another, they will match
-% according to RIMCHECK. But if the left edges don't align and the
-% tiles are still on top of each other, the RIMCHECK would fail. We
-% need to know to issue such warnings in that case, even though we
-% should still trim the results, as a third tile will pick up the
-% remainder! So here we determine the schedule of testing.
-for index=1:size(tp,1)
-  disp(sprintf('Trimming tiles %2.2i and %2.2i',tp(index,1),tp(index,2)))
-  % in the end we never check the data match... but we could, and if we did
-  % and we knew how to read the warnings when they shouldn't match, or if we
-  % worked out how to just check the partial match, we'd be fine. For
-  % now, let's not overdo it in th testing since we know very well how it
-  % works, and that it works. No need to go into further granularity here
-  switch tp(index,3)
-   case {8,4}
-    % The match is in the horizontal so the vertical won't need to match
-    hm=1; vm=0; dm=0;
-   case {1,2}
-    % The match is in the vertical so the horizontal won't need to match
-    hm=0; vm=1; dm=0;
-   otherwise
-    % The match is in the horizontal and the vertical but the data won't need
-    hm=1; vm=1; dm=0;
+if length(indices)>1
+  % We know to look for possibly rim rows or columns of tile overlap
+  rim=10;
+  % Figure out all the pairwise rimmed relationships
+  tp=nchoosek(indices,2); tp=[tp nan(size(tp,1),1)];
+  
+  for index=1:size(tp,1)
+    disp(sprintf('Testing tiles %2.2i and %2.2i',tp(index,1),tp(index,2)))
+    % We need to also map the required tile back to the index set with which
+    % it was loaded...
+    frst=find(indices==tp(index,1));
+    scnd=find(indices==tp(index,2));
+    % Feed row/column grid of the first with the second entry in every pair
+    tp(index,3)=puzzle(XT{frst}(1,:),YT{frst}(:,1),...
+ 		     XT{scnd}(1,:),YT{scnd}(:,1),rim);
   end
 
-  % Again... don't forget the mapping
-  frst=find(indices==tp(index,1));
-  scnd=find(indices==tp(index,2));
+  % I THINK THAT SIMPLY COMBINING THESE LOOPS WILL PREVENT OVERTRIMMING
 
-  % Check and trim and reassign... 
-  [XT{frst},XT{scnd}]=...
-      rimcheck(XT{frst},XT{scnd},rim,tp(index,3),hm);
-  [YT{frst},YT{scnd}]=...
-      rimcheck(YT{frst},YT{scnd},rim,tp(index,3),vm);
-  [TD{frst},TD{scnd}]=...
-      rimcheck(TD{frst},TD{scnd},rim,tp(index,3),dm);
+  % This is up to a "slide", we just determine where the overlapping side is
+  % We need to find the edge where ALL the entries are duplicates with any
+  % of the other edges, and then trim those, removing redundancies. So...
+  % sometimes the tiles don't align in the other dimension that the one
+  % in which the match was determined. If the left edges are aligned and
+  % the tiles are stacked on top of one another, they will match
+  % according to RIMCHECK. But if the left edges don't align and the
+  % tiles are still on top of each other, the RIMCHECK would fail. We
+  % need to know to issue such warnings in that case, even though we
+  % should still trim the results, as a third tile will pick up the
+  % remainder! So here we determine the schedule of testing.
+  for index=1:size(tp,1)
+    disp(sprintf('Trimming tiles %2.2i and %2.2i',tp(index,1),tp(index,2)))
+    % in the end we never check the data match... but we could, and if we did
+    % and we knew how to read the warnings when they shouldn't match, or if we
+    % worked out how to just check the partial match, we'd be fine. For
+    % now, let's not overdo it in th testing since we know very well how it
+    % works, and that it works. No need to go into further granularity here
+    switch tp(index,3)
+     case {8,4}
+      % The match is in the horizontal so the vertical won't need to match
+      hm=1; vm=0; dm=0;
+     case {1,2}
+      % The match is in the vertical so the horizontal won't need to match
+      hm=0; vm=1; dm=0;
+     otherwise
+      % The match is in the horizontal and the vertical but the data won't need
+      hm=1; vm=1; dm=0;
+    end
+
+    % Again... don't forget the mapping
+    frst=find(indices==tp(index,1));
+    scnd=find(indices==tp(index,2));
+ 
+    % Check and trim and reassign... 
+    [XT{frst},XT{scnd}]=...
+        rimcheck(XT{frst},XT{scnd},rim,tp(index,3),hm);
+    [YT{frst},YT{scnd}]=...
+        rimcheck(YT{frst},YT{scnd},rim,tp(index,3),vm);
+    [TD{frst},TD{scnd}]=...
+        rimcheck(TD{frst},TD{scnd},rim,tp(index,3),dm);
+  end
 end
 
 %%%%%%%%%% VISUAL CHECK TOPODATA%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -204,6 +225,15 @@ for index=1:length(indices)
   TDD=[TDD ; TD{index}(:)];
 end
 
+% Its is here that I could save time and use the polygon with USABLE
+% data as opposed to the one that encompasses it all
+% I need access to nprops.lo nprops.la in UTM maybe from RAPIDEYG
+% Or let it go (for now)
+
+nprops.xp
+
+keyboard
+
 % Limit the inputs to those that are definitely inside the
 % region XE, YE, or else the interpolant takes a long time to calculate
 in=inpolygon(XPP,YPP,XE([1 end end 1]),YE([1 1 end end]));
@@ -227,27 +257,37 @@ end
 % Now I need to INTERPOLATE the XP,YP of the TOPODATA onto the XE, YE of
 % the RAPIDEYE to get them both to be equally spaced
 % This takes a while, so we take the output data already
-Fhash=hash([XE([1 end end 1 1]) YE([1 1 end end 1])],'SHA-1');
-Ffile=sprintf('%s.mat',fullfile(getenv('IFILES'),'HASHES',Fhash));
-if exist(Ffile)~=2
-  disp(sprintf('%s making %s',upper(mfilename),Ffile))
-  % Crate the interpolant
+Fhash=hash([XE([1 end end 1 1]) YE([1 1 end end 1]) ],'SHA-1');
+Ffile=sprintf('%s-F.mat',fullfile(getenv('IFILES'),'HASHES',sprintf('%s-%s',upper(mfilename),Fhash)));
+Tfile=sprintf('%s-T.mat',fullfile(getenv('IFILES'),'HASHES',sprintf('%s-%s',upper(mfilename),Fhash)));
+
+% The interpolated topography and/or the interpolant may already exist
+if exist(Tfile)==2
+  disp(sprintf('%s loading %s',upper(mfilename),Tfile))
   tic
-  F=scatteredInterpolant([XPP(in) YPP(in)],TDD(in));
+  load(Tfile,'TDF')
   toc
+  if nargout==2
+    % If the interpolation exists the interpolant should exist
+    load(Ffile,'F')
+  end
+else
+  % Need to still make either or both
+  if exist(Ffile)==2
+    load(Ffile,'F')
+  else
+    disp(sprintf('%s making %s',upper(mfilename),Ffile))
+    % Create the interpolant
+    tic
+    F=scatteredInterpolant([XPP(in) YPP(in)],TDD(in));
+    toc
+    % Save the interpolant
+    save(Ffile,'F')
+  end
+  disp(sprintf('%s making %s',upper(mfilename),Tfile))
   % Performs the interpolation
   TDF=F(XE,YE);
-  % Save the interpolant and the interpolated data
-  save(Ffile,'F','TDF')
-else
-  disp(sprintf('%s loading %s',upper(mfilename),Ffile))
-  tic
-  if nargout<2
-    load(Ffile,'TDF')
-  elseif
-    load(Ffile,'F','TDF')
-  end
-  toc
+  save(Tfile,'TDF')
 end
 
 %%%%%%%%%% VISUAL CHECK RAPIDEYE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
