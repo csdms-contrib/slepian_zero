@@ -8,7 +8,7 @@ function varargout=tinitalh(dirp,diro,xver)
 % dirp       Subdirectory [e.g. 'DATA'] of:
 % diro       Main directory [e.g. '/u/fjsimonsIFILES/TOPOGRAPHY/ITALY/TINITALY']
 % xver       2 Provides a graphical test [default]
-%            0 Does not providea graphical test
+%            0 Does not provide a graphical test
 %
 % OUTPUT:
 %
