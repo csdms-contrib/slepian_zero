@@ -50,7 +50,6 @@ for index=1:length(zpf)
   if exist(fmat)~=2
     
     %%%%%%%%%% METADATA AND DATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
     % Now load the data and save them in the structure also
     fname=unzip(fpref);
     
