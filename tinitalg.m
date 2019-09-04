@@ -9,7 +9,7 @@ function varargout=tinitalg(hdr,TV,index,dirp,diro,xver)
 % TV         All the header variables, in a cell
 % index      The running index for the file that you really want
 % dirp       Subdirectory [e.g. 'DATA'] of:
-% diro       Main directory [e.g. '/home/fjsimonsIFILES/TOPOGRAPHY/ITALY/TINITALY']
+% diro       Main directory [e.g. '/u/fjsimonsIFILES/TOPOGRAPHY/ITALY/TINITALY']
 % xver       >0 Provides excessive verification 
 %            0  Does not provide excessive verification
 %
@@ -19,7 +19,11 @@ function varargout=tinitalg(hdr,TV,index,dirp,diro,xver)
 % ZT         The string identifying the UTM system
 % topodata   The topography data that you requested
 %
-% Last modified by fjsimons-at-alum.mit.edu, 05/28/2019 
+% EXAMPLE:
+%
+% 
+%
+% Last modified by fjsimons-at-alum.mit.edu, 09/03/2019 
 
 % Bottom-level directory name, taken from the Tinitaly download
 defval('dirp','DATA')
