@@ -74,7 +74,7 @@ function varargout=rapideye(froot,dirp,diro,xver,urld,clip)
 % Tested on 9.0.0.341360 (R2016a)
 % Tested on 9.6.0.1072779 (R2019a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 09/03/2019
+% Last modified by fjsimons-at-alum.mit.edu, 09/04/2019
 
 % Root of the filename for three of the four files inside the directory
 defval('froot','3357121_2018-09-11_RE3_3A')
@@ -306,6 +306,9 @@ if ~strcmp(froot,'demo')
   % The polygon that contains the actually useful data
   nprops.lo=lonpg;
   nprops.la=latpg;
+  % The same values but after UTM conversion...
+  nprops.xp=xpg(:)';
+  nprops.yp=ypg(:)';
   % What the UTM zone of this polygon was according to DEG2UTM
   nprops.zp=zpg(1,:);
   % What the UTM zone of this polygon was according to UTMZONE
@@ -381,4 +384,3 @@ for in=1:length(xx)
   text(xx(in),yy(in),num2str(in)) 
 end
 hold off
-
