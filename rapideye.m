@@ -34,6 +34,8 @@ function varargout=rapideye(froot,dirp,diro,xver,urld,clip)
 %            nprops.cr   The EPSG projection system code
 %            nprops.lo   The polygonal longitudes clockwise from NW
 %            nprops.la   The polygonal latitudes clockwise from NW
+%            nprops.xp   The polygonal UTM eastings clockwise from NW
+%            nprops.yp   The polygonal UTM northings clockwise from NW
 %            nprops.zp   The polygonal UTM zone according to DEG2UTM
 %            nprops.up   The polygonal UTM zone according to UTMZONE
 % props      The complete properties structure directly from the TIFF
@@ -67,6 +69,7 @@ function varargout=rapideye(froot,dirp,diro,xver,urld,clip)
 %
 % SEE ALSO
 %
+% TINITALY, which interpolates TINITALY topography to the RAPIDEYE imagery
 % https://www.planet.com/products/planet-imagery/ 
 % https://developers.planet.com/docs/api/reorthotile/
 % $UFILES/directorize for some meaningful directory-name and variable identification
@@ -175,6 +178,9 @@ if ~strcmp(froot,'demo')
     % these two blocks in case of a non-clipped image... never mind
     lonpg=props.CornerCoords.Lon;
     latpg=props.CornerCoords.Lat;
+    % Need to close the box
+    lonpg=[lonpg lonpg(1)];
+    latpg=[latpg latpg(1)];
     
     % And also in this case there is no EPSG code, but never mind there either
     cr=[];
@@ -373,7 +379,6 @@ else
   % Put on colorbars, labels, axes, and so on
   figdisp(dirps{N},[],[],1,'png')
 end
-
 
 %%%%%%%%%%%%% SOME PLOTTING ROUTINES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function letterit(xx,yy)
