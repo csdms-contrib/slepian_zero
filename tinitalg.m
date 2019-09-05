@@ -80,7 +80,6 @@ ZT='32N';
 % the DEM). Couresy of Simone Tarquini.
 
 % May convert the structure with the XML inside Tinitaly and the EPSG files
-
 if nargout>3
   % Load its topography inside the array called topodata
   load(pref(fullfile(diro,dirp,hdr{index})))
