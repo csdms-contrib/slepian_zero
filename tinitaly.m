@@ -1,5 +1,5 @@
 function varargout=tinitaly(nprops,dirp,diro,xver,alldata)
-% [TDF,F]=TINITALY(nprops,dirp,diro,xver,alldata)
+% [TDF,F,SX,SY]=TINITALY(nprops,dirp,diro,xver,alldata)
 %
 % Matches a coordinate set from RAPIDEYE to a TINITALY data file
 %
@@ -11,6 +11,7 @@ function varargout=tinitaly(nprops,dirp,diro,xver,alldata)
 % xver       1 Provides excessive verification 
 %            0 Does not provide excessive verification
 %            2 Provides a graphical test [default]
+%            3 Terminates by drawing some random profiles for checking
 % alldata    A data matrix from RAPIDEYE, so that xver=2 can do some plotting
 %
 % OUTPUT:
@@ -19,6 +20,7 @@ function varargout=tinitaly(nprops,dirp,diro,xver,alldata)
 % F          The interpolant used such that TDF=F(XE,YE), where [XE,YE]
 %            is the RAPIDEYE grid recovered from RAPIDEYG are the
 %            interpolation of the corresponding TINITALY data!
+% SX,SY     Coordinates of rivers crossing the relevant tile
 %
 % EXAMPLE 1, for unclipped data, multiple images of the same "grid_cell"
 %
@@ -27,17 +29,22 @@ function varargout=tinitaly(nprops,dirp,diro,xver,alldata)
 % figure(1); clf; tinitaly(nprops1,[],[],[],alldata1)
 % figure(2); clf; tinitaly(nprops2,[],[],[],alldata2)
 % 
-% EXAMPLE 2, for a rather different cell
+% EXAMPLE 2, for a rather different cell, also unclipped
 %
 % [alldata,nprops]=rapideye('3357911_2019-03-31_RE3_3A','20190331_094550_3357911_RapidEye-3');
-% tinitaly(nprops,[],[],[],alldata)
+% figure(2); clf; tinitaly(nprops,[],[],[],alldata)
 %
-% EXAMPLE 3, for a clipped cell
+% EXAMPLE 3, for a clipped cell that is part of a tile that we have in its entirety also
 %
-% [alldata,nprops]=rapideye('3357121_2018-09-11_RE3_3A','20180911_094536_3357121_RapidEye-3');
-% tinitaly(nprops,[],[],[],alldata)
+% [alldata,nprops]=rapideye('3357121_2018-09-11_RE3_3A','enotre/20180911_094536_3357121_RapidEye-3',[],1,[],'_clip');
+% figure(2); clf; [TDF,F]=tinitaly(nprops,[],[],[],alldata);
 %
-% Last modified by fjsimons-at-alum.mit.edu, 09/03/2019
+% EXAMPLE 4, for a different clipped cell
+%
+% [alldata,nprops]=rapideye('3357121_2019-03-04_RE1_3A','enotre/20190304_094134_3357121_RapidEye-1',[],1,[],'_clip');
+% figure(3); clf; [TDF,F]=tinitaly(nprops,[],[],[],alldata);
+%
+% Last modified by fjsimons-at-alum.mit.edu, 09/04/2019
 
 % Bottom-level directory name, taken from the Tinitaly download
 defval('dirp','DATA')
@@ -111,6 +118,8 @@ if xver==2
   movev(t(1),range(ylim)/10)
   % Set the tile matches to bold
   set(tt(indices),'FontWeight','bold')
+  % Print a figure
+  figdisp([],[],[],2)
   pause(1)
 end
 
@@ -196,18 +205,19 @@ if xver>1
   ah(1)=subplot(221);
   % Plot the TOPODATA
   caxx=[-2154.5 1601.4];
+
   for index=1:length(indices)
     axes(ah(1))
     plotit(XT{index},YT{index},TD{index},caxx,2)
     hold on
+    drawnow
+    axis image
   end
   hold off
   % And attractive title, substituting the underscore with a dash
   % Only one title here, but clearly could be more tiles 
-  t=title(nounder(pref(hdr{index})));
+  t=title(sprintf(repmat('%i ',1,length(indices)),indices));
   set(t,'FontWeight','normal')
-  drawnow
-  axis tight
 end
 
 % Convert TOPODATA to the RAPIDEYE coordinate system
@@ -227,31 +237,36 @@ end
 
 % Its is here that I could save time and use the polygon with USABLE
 % data as opposed to the one that encompasses it all
-% I need access to nprops.lo nprops.la in UTM maybe from RAPIDEYG
-% Or let it go (for now)
-
-nprops.xp
-
-keyboard
-
+% on=inpolygon(XPP,YPP,nprops.xp,nprops.yp);
 % Limit the inputs to those that are definitely inside the
 % region XE, YE, or else the interpolant takes a long time to calculate
 in=inpolygon(XPP,YPP,XE([1 end end 1]),YE([1 1 end end]));
+% Even when the "polygon" is the same as the bounding box the equivalence
+% may not be perfect due to sampling-step offset? But he "on" is more
+% conservative, so this could be the one to prefer in the below.
+% On the other hand, taking "on" would make the interpolant
+% image-dependent, and that might offset any gains, so, no.
+% You'd have to make an "on"-dependent hash
 
 %%%%%%%%%% VISUAL CHECK RAPIDEYE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Make a plot of the grids you have just entered
 if xver>1
   % Replot the TOPODATA
   ah(2)=subplot(222);
-  % The XE,YE need to be a proper subportion of XP,YP
+  % The available topography data locations
   plot(XPP(1:200:end),YPP(1:200:end),'k.')
   hold on
+  % The RAPIDEYE data locations
   plot(XE(1:200:end,1:200:end),YE(1:200:end,1:200:end),'b.')
-  % The polygon of the available data
+  % The subset of the topography data within the RAPIDEYE domain
   plot(XPP(in),YPP(in),'y.')
+  % The subset of the topography data within the RAPIDEYE USABLE domain
+  % plot(XPP(on),YPP(on),'c.')
+  % A grid around as a visual
   plot(XE([1 end end 1 1]),YE([1 1 end end 1]),'r-')
   hold off
   drawnow
+  axis image
 end
 
 % Now I need to INTERPOLATE the XP,YP of the TOPODATA onto the XE, YE of
@@ -285,7 +300,7 @@ else
     save(Ffile,'F')
   end
   disp(sprintf('%s making %s',upper(mfilename),Tfile))
-  % Performs the interpolation
+  % Performs the interpolation of the TOPODATA to the requested RAPIDEYE locations
   TDF=F(XE,YE);
   save(Tfile,'TDF')
 end
@@ -297,13 +312,13 @@ if xver>1
   ah(3)=subplot(223);
   caxx=[-2154.5 1601.4];
   plotit(XE,YE,TDF,caxx,2)
-
+  axis image
   % Plot the RAPIDEYE data
   ah(4)=subplot(224);
   toplot=double(alldata(:,:,1));
   caxx=round(10.^prctile(log10(toplot(:)),[2 99]));
   plotit(XE,YE,toplot,caxx,2)
-  
+  axis image
   % Plot the rivers on top
   [SX,SY,S]=rinitaly(nprops);
   axes(ah(3))
@@ -313,10 +328,14 @@ if xver>1
   set(r2,'LineWidth',2)
   drawnow
 end
+if nargout>2
+  % Just get the rivers 
+  [SX,SY,S]=rinitaly(nprops);
+end
 
 % You might want to plot some random rows and columns just for fun
-if xver>1
-  disp('Hit ENTER to continue')
+if xver==3
+  disp('Hit ENTER to continue or CTRL-C to be done')
   pause
   clf
   % Plotting verification of RAPIDEYE and TOPOGRAPHY!
@@ -324,18 +343,18 @@ if xver>1
   rij(2)=randi(size(XE,2));
   % A random row and a random column
   subplot(211)
-  plot(TDF(rij(1),:),'k-'); hold on
-  plot(   toplot(rij(1),:),'b-'); hold off
+  plot(   TDF(rij(1),:),'k-'); hold on
+  plot(toplot(rij(1),:),'b-'); hold off
   title(sprintf('row %i',rij(1)))
   subplot(212)
-  plot(TDF(:,rij(2)),'k-'); hold on
-  plot(   toplot(:,rij(2)),'b-'); hold off
+  plot(   TDF(:,rij(2)),'k-'); hold on
+  plot(toplot(:,rij(2)),'b-'); hold off
   title(sprintf('column %i',rij(2)))
 end
 
 % Now we have what we want, namely: TDF, the interpolated TOPOGRAPHY DATA
-% on the same grid as the RAPIDEYE patch
-varns={TDF,F};
+% on the same grid as the RAPIDEYE patch... and the rivers, if you want them
+varns={TDF,F,SX,SY};
 varargout=varns(1:nargout);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -359,6 +378,8 @@ switch pmeth
  case 3
   % Slower and more flexible
   imagefnan([XX(1) YY(1)],[XX(end) YY(end)],data,'sergeicol',sax)
-  % Works best in 2014 since I need to adapt ADDCB
-  addcb('hor',sax,sax,'sergeicol',abs(sax(1)))
+  try
+    % Works best in 2014 since I need to adapt ADDCB
+    addcb('ver',sax,sax,'sergeicol',abs(sax(1)))
+  end
 end
