@@ -95,8 +95,11 @@ elseif rim==-1
   for index=1:length(M)
     M(index)=puzzle(X1,Y1,X2,Y2,index);
   end
-  % Return 
+
+  % Return what it really wants
   [M,rim]=find(M);
+  % Final match encoding
+  M=bcode(M,b);
 else 
   % Beware of the false prophet ~sum([]) which is logical one
   rim=abs(rim);
@@ -120,11 +123,6 @@ else
 
   % Final match encoding
   M=bcode(M,b);
-
-  % Error handling
-  if any(M)==12 || any(M)==3
-    error('Something went very wrong here!')
-  end
 end
 
 % Output
@@ -135,3 +133,8 @@ varargout=varns(1:nargout);
 function M=bcode(Z,b)
 % Encodes the logical digits in a matrix M as a base-b number 
 M=Z*b.^[size(Z,2)-1:-1:0]';
+
+% Error handling
+if any(M)==12 || any(M)==3
+  error('Something went very wrong here!')
+end
