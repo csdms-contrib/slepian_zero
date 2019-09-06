@@ -14,7 +14,7 @@ function varargout=puzzle(X1,Y1,X2,Y2,rim)
 % rim       The nonzero rim size of possible overlap being queried [default: 10]
 %            0 in this case, will shortcut to a match table
 %           -1 in this case, determines what if any rim will make a
-%              match, by callng itself recursively
+%              match, by calling itself recursively
 %
 % OUTPUT:
 %
@@ -31,13 +31,14 @@ function varargout=puzzle(X1,Y1,X2,Y2,rim)
 %            3 [Non-geometric: Edge Cases 3 & 4] Never going to happen
 %            7 [Non-existent encoding] Never going to happen... 
 %            14,13,11 would be for three matches, 15 for four... impossible!
-% rim       The rim used, or found as the case may be
+% rim       The rim used, or (multiple ones) found as the case may be
 %
 % NOTE:
 %
 % Changing the order of the inputs doesn't always give symmetric results,
 % as there is a directionality to the match size if the tiles are of
-% unequal dimensions.
+% unequal dimensions. Check the results thoroughly, not all cases have
+% come up in otherwise thorough testing.
 %
 % SEE ALSO:
 %
@@ -59,12 +60,12 @@ if rim==0
   e=2;
   % Possible answers to the question with UP to e matches, and with index of
   % where they match if the answer is nonzero. In other words, all possible
-  % answers to find(m) above, row by row, disregarding the zero. This now
+  % answers to find(M), row by row, disregarding the zero. This now
   % only works for e=2, let's not overdo it. We are including the zero
   % since it gives us the entries belonging to as if only on thing were
   % matched. If e>2 we'd have to loop over the e's to get the complete set.
   n=nchoosek(0:q,e);
-  % If there is only one match, find(m) gives the number of the edge, and
+  % If there is only one match, find(M) gives the number of the edge, and
   % we could use that as a code. But if there are two matches, we need a
   % new numbering scheme. 
   Z=zeros(size(n,1),q);
@@ -88,18 +89,16 @@ elseif rim==-1
   % the construction of M in the next block, which treats matches as
   % possible when they might not dimensionally exist. The way around it
   % would be to split the construction of M into separate X and Y blocks, or
-  % maybe max/min out the indices so they don't go negative, but the
-  % first trials were not encouraging so we'll define rim as up to the
-  % shortest of any of the dimensions to be safe.
+  % maybe max/min out the indices so they don't go negative, but the first
+  % trials were not of an encouraging simplicity so we'll define rim as up
+  % to the shortest of any of the dimensions to be safe.
   M=zeros(min([length(X1) length(Y1) length(X2) length(Y2)]),1);
   for index=1:length(M)
     M(index)=puzzle(X1,Y1,X2,Y2,index);
   end
 
-  % Return what it really wants
-  [M,rim]=find(M);
-  % Final match encoding
-  M=bcode(M,b);
+  % Return what it really wants, remeber FIND wants to give rows and columns
+  [rim,~,M]=find(M);
 else 
   % Beware of the false prophet ~sum([]) which is logical one
   rim=abs(rim);
