@@ -1,15 +1,20 @@
-function M=puzzle(X1,Y1,X2,Y2,rim)
-% M=PUZZLE(X1,Y1,X2,Y2,rim)
+function varargout=puzzle(X1,Y1,X2,Y2,rim)
+% [M,rim]=PUZZLE(X1,Y1,X2,Y2,rim)
 %
-% For non-equal-size tiles where one of them may share an overlapping rim
-% of a certain width with another one, identifies it
+% For non-equal-size tiles where one of them may share an overlapping rim of
+% a certain fixed width with another one with identical coordinates,
+% identifies it. If the rim is unknown, you can determine it first,
+% possibilities up the the smallest of any of the dimensions of the
+% images are considered (i.e. the shortest length of any of the four).
 %
 % INPUT:
 %
 % X1,Y1     The first data tile grid, X1 is a row, Y1 is a column
 % X2,Y2     The second data tile grid, X2 is a row, Y2 is a column
-% rim       The nonzero rim size of possible overlap being queried
-%           0 in this case, will short cut to a match table
+% rim       The nonzero rim size of possible overlap being queried [default: 10]
+%            0 in this case, will shortcut to a match table
+%           -1 in this case, determines what if any rim will make a
+%              match, by callng itself recursively
 %
 % OUTPUT:
 %
@@ -26,12 +31,19 @@ function M=puzzle(X1,Y1,X2,Y2,rim)
 %            3 [Non-geometric: Edge Cases 3 & 4] Never going to happen
 %            7 [Non-existent encoding] Never going to happen... 
 %            14,13,11 would be for three matches, 15 for four... impossible!
+% rim       The rim used, or found as the case may be
 %
 % NOTE:
 %
-% Check the obvious symmetries to changing the order of the inputs!
+% Changing the order of the inputs doesn't always give symmetric results,
+% as there is a directionality to the match size if the tiles are of
+% unequal dimensions.
 %
-% Last modified by fjsimons-at-alum.mit.edu, 05/24/2019
+% SEE ALSO:
+%
+% RIMCHECK
+%
+% Last modified by fjsimons-at-alum.mit.edu, 09/04/2019
 
 defval('rim',10)
 
@@ -64,13 +76,30 @@ if rim==0
     Z(index,nn)=1;
   end
   % This would be the unique code so that you can produce the match table
-  M=bocde(Z,b);
+  M=bcode(Z,b);
 
   % Output
   disp(sprintf('\nYou asked for the match table!\n'))
   disp(sprintf('\n%9s Logicals %4s  | Code |  Entries\n','',''))
-  M=[Z  M n]; 
+  M=[Z  M n];
+elseif rim==-1
+  % This is somewhat self-limiting, which is probably a good thing, and at
+  % least defines what we mean by "rim".... The self-limitation comes from
+  % the construction of M in the next block, which treats matches as
+  % possible when they might not dimensionally exist. The way around it
+  % would be to split the construction of M into separate X and Y blocks, or
+  % maybe max/min out the indices so they don't go negative, but the
+  % first trials were not encouraging so we'll define rim as up to the
+  % shortest of any of the dimensions to be safe.
+  M=zeros(min([length(X1) length(Y1) length(X2) length(Y2)]),1);
+  for index=1:length(M)
+    M(index)=puzzle(X1,Y1,X2,Y2,index);
+  end
+  % Return 
+  [M,rim]=find(M);
 else 
+  % Beware of the false prophet ~sum([]) which is logical one
+  rim=abs(rim);
   % The questions: do the grids match in any way, and report if they do,
   % are on the inside of the square brackets... and that's being encoded
   % Try all sides of the second one against the first, in this order:
@@ -82,8 +111,8 @@ else
      ~sum(X2(end-rim+1:end)-X1(1:rim)) ...
      ~sum(Y1(end-rim+1:end)-Y2(1:rim)) ...
      ~sum(Y2(end-rim+1:end)-Y1(1:rim))];
-  % But we should nullify matches if top/bottom and left/right don't also
-  % have the other pair in common in which case RIMCHECK will fail
+  % But we should nullify matches if top/bottom and left/right candidates
+  % don't also share at least a bit of an edge in the other dimension
   if [any(M([1 2])) && [min(Y2)>max(Y1) || max(Y2)<min(Y1)]] || ...
 	[any(M([3 4])) && [min(X2)>max(X1) || max(X2)<min(X1)]] 
     M=zeros(1,q);
@@ -97,6 +126,10 @@ else
     error('Something went very wrong here!')
   end
 end
+
+% Output
+varns={M,rim};
+varargout=varns(1:nargout);
 
 % Do the encoding
 function M=bcode(Z,b)
