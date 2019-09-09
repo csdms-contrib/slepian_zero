@@ -18,6 +18,10 @@ git add puzzle.m
 git commit -m "Identifies overlapping rims in a tile set"
 git push origin master
 
+git add mosaic.m
+git commit -m "Makes a composite image from partially overlapping tiles"
+git push origin master
+
 git add rimcheck.m
 git commit -m "Checks overlapping rims in a tile set"
 git push origin master
