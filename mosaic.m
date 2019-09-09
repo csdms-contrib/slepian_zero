@@ -132,33 +132,35 @@ for index=1:size(tp,1)
   % Trim the RAPIDEYE data (in all channels)
   keyboard
   for ondex=1:size(RD,3)
-    [RD{frst}(:,:,ondex),RD{scnd}(:,:,ondex)]=...
+    % Repeal
+    [A{frst}(:,:,ondex),B{scnd}(:,:,ondex)]=...
 	rimcheck(RD{frst}(:,:,ondex),RD{scnd}(:,:,ondex),tp(index,4),tp(index,3),dm);
   end
+  % Replace
+  RD{frst}=A{frst};
+  RD{scnd}=B{scnd};
+  
   % Trim the corresponding interpolated TOPO data
   [TDF{frst},TDF{scnd}]=...
       rimcheck(TDF{frst},TDF{scnd},tp(index,4),tp(index,3),dm);
 
   % Need to adapt the nprops now also...
-  nprops{index}.xs=
-  nprops{index}.ys=
-  nprops{index}.nc=
-  nprops{index}.nr=
-  % Shortcut 
-  xs=nprops{index}.xs;
-  ys=nprops{index}.ys;
-  sp=nprops{index}.sp;
-  nc=nprops{index}.nc;
-  nr=nprops{index}.nr;
-  nprops{index}.C11=[xs+sp/2           ys-sp/2         ];
-  nprops{index}.CMN=[xs(1)+nc*sp-sp/2  ys(1)-nr*sp+sp/2];
-  nprops{index}.lo=
-  nprops{index}.la=
-  nprops{index}.xp=
-  nprops{index}.yp= 
+  nprops{index}.xs=XE{index}(1)-nprops{index}.sp/2;
+  nprops{index}.ys=YE{index}(1)+nprops{index}.sp/2;
+  nprops{index}.nr=size(RD{index},1);
+  nprops{index}.nc=size(RD{index},2);
+  nprops{index}.C11=[XE{index}(1) YE{1}(1)];
+  nprops{index}.CMN=[XE{index}(end) YE{1}(end)];
+  % Don't adjust the original polygons perhaps?
+  %nprops{index}.lo=
+  %nprops{index}.la=
+  %nprops{index}.xp=
+  %nprops{index}.yp= 
 end
 
 % Now need to combine the images together into one
+
+% Including combining the nprops
 
 % And then rerun the plots
 
