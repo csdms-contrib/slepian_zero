@@ -13,8 +13,8 @@ function varargout=puzzle(X1,Y1,X2,Y2,rim)
 % X2,Y2     The second data tile grid, X2 is a row, Y2 is a column
 % rim       The nonzero rim size of possible overlap being queried [default: 10]
 %            0 in this case, will shortcut to a match table
-%           -1 in this case, determines what if any rim will make a
-%              match, by calling itself recursively
+%           -1 determines what if any rim will make a match, recursively
+%           -2 determines the match, but excludes likely corner matches
 %
 % OUTPUT:
 %
@@ -38,7 +38,9 @@ function varargout=puzzle(X1,Y1,X2,Y2,rim)
 % Changing the order of the inputs doesn't always give symmetric results,
 % as there is a directionality to the match size if the tiles are of
 % unequal dimensions. Check the results thoroughly, not all cases have
-% come up in otherwise thorough testing.
+% come up in otherwise thorough testing. Consider the difference between
+% a "top left" match (with the same rim) and a "top and left" match (with
+% different rims)... Consider what can happen with fliplr and flipdup....
 %
 % SEE ALSO:
 %
@@ -83,7 +85,7 @@ if rim==0
   disp(sprintf('\nYou asked for the match table!\n'))
   disp(sprintf('\n%9s Logicals %4s  | Code |  Entries\n','',''))
   M=[Z  M n];
-elseif rim==-1
+elseif rim<0
   % This is somewhat self-limiting, which is probably a good thing, and at
   % least defines what we mean by "rim".... The self-limitation comes from
   % the construction of M in the next block, which treats matches as
@@ -97,8 +99,28 @@ elseif rim==-1
     M(index)=puzzle(X1,Y1,X2,Y2,index);
   end
 
-  % Return what it really wants, remeber FIND wants to give rows and columns
+  % Hand off variable
+  if rim==-2; tocheck=1; else tocheck=0; end
+
+  % Return what it really wants, remember FIND wants to give rows and columns
   [rim,~,M]=find(M);
+
+  % Discard double matches which are likely corners in this scheme
+  if tocheck==1 && length(rim)==2
+    % Define the corner proportionally to the length and most likely
+    % non-corner match only keep it when it exceeds the 
+    prp=1/3;
+    % Cases require further checking
+    try; M(M==8)=M(M==8)*(rim(M==8)/length(X2)<prp); end
+    try; M(M==4)=M(M==4)*(rim(M==4)/length(X1)<prp); end
+    try; M(M==2)=M(M==2)*(rim(M==2)/length(Y2)<prp); end
+    try; M(M==1)=M(M==1)*(rim(M==1)/length(Y1)<prp); end
+    % Actual output
+    [Mi,~,M]=find(M); 
+    rim=rim(Mi);
+    if isempty(M); M=0; rim=0; end
+    if length(M)==2; M=0; rim=0; end
+  end
 else 
   % Beware of the false prophet ~sum([]) which is logical one
   rim=abs(rim);
