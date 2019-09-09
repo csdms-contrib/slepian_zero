@@ -17,9 +17,9 @@ function varargout=tinitaly(nprops,dirp,diro,xver,alldata)
 % OUTPUT:
 %
 % TDF        The topography data for the region corresponding to nprops
+%            i.e. the interpolation of the corresponding TINITALY data!
 % F          The interpolant used such that TDF=F(XE,YE), where [XE,YE]
-%            is the RAPIDEYE grid recovered from RAPIDEYG are the
-%            interpolation of the corresponding TINITALY data!
+%            is the RAPIDEYE grid recovered from RAPIDEYG
 % SX,SY     Coordinates of rivers crossing the relevant tile
 %
 % EXAMPLE 1, for unclipped data, multiple images of the same "grid_cell"
@@ -44,7 +44,7 @@ function varargout=tinitaly(nprops,dirp,diro,xver,alldata)
 % [alldata,nprops]=rapideye('3357121_2019-03-04_RE1_3A','enotre/20190304_094134_3357121_RapidEye-1',[],1,[],'_clip');
 % figure(3); clf; [TDF,F]=tinitaly(nprops,[],[],[],alldata);
 %
-% Last modified by fjsimons-at-alum.mit.edu, 09/04/2019
+% Last modified by fjsimons-at-alum.mit.edu, 09/08/2019
 
 % Bottom-level directory name, taken from the Tinitaly download
 defval('dirp','DATA')
@@ -138,7 +138,6 @@ if length(indices)>1
   rim=10;
   % Figure out all the pairwise rimmed relationships
   tp=nchoosek(indices,2); tp=[tp nan(size(tp,1),1)];
-  
   for index=1:size(tp,1)
     disp(sprintf('Testing tiles %2.2i and %2.2i',tp(index,1),tp(index,2)))
     % We need to also map the required tile back to the index set with which
@@ -147,38 +146,42 @@ if length(indices)>1
     scnd=find(indices==tp(index,2));
     % Feed row/column grid of the first with the second entry in every pair
     tp(index,3)=puzzle(XT{frst}(1,:),YT{frst}(:,1),...
- 		     XT{scnd}(1,:),YT{scnd}(:,1),rim);
+ 		       XT{scnd}(1,:),YT{scnd}(:,1),rim);
   end
 
-  % I THINK THAT SIMPLY COMBINING THESE LOOPS WILL PREVENT OVERTRIMMING
+  % I THINK THAT SIMPLY COMBINING THESE LOOPS WILL PREVENT OVERTRIMMING IN
+  % CASE THERE IS MORE THAN ONE PAIR MATCH. FOR TINITALY/RAPIDEYE, SO FAR,
+  % WE HAVE ONLY ENCOUNTERED PAIRS IN THE TOPOGRAPHY MATCH. MOSAICING
+  % RAPIDEYE IS THE FIRST INSTANCE OF QUARTETS... 
 
-  % This is up to a "slide", we just determine where the overlapping side is
-  % We need to find the edge where ALL the entries are duplicates with any
-  % of the other edges, and then trim those, removing redundancies. So...
-  % sometimes the tiles don't align in the other dimension that the one
-  % in which the match was determined. If the left edges are aligned and
-  % the tiles are stacked on top of one another, they will match
-  % according to RIMCHECK. But if the left edges don't align and the
-  % tiles are still on top of each other, the RIMCHECK would fail. We
-  % need to know to issue such warnings in that case, even though we
-  % should still trim the results, as a third tile will pick up the
-  % remainder! So here we determine the schedule of testing.
+  % The match is up to a "slide", we just determine where the overlapping
+  % side is. We need to find the edge where ALL the entries are duplicates
+  % with any of the other edges, and then trim those, removing
+  % redundancies. So...  sometimes the tiles don't align in the other
+  % dimension than the one in which the match was determined. If the left
+  % edges are aligned and the tiles are stacked on top of one another, they
+  % will match according to RIMCHECK. But if the left edges don't align and
+  % the tiles are still on top of each other, then RIMCHECK would fail. We
+  % need to know to issue such warnings in that case, even though we would
+  % still trim the results, as a third tile will pick up the remainder! So
+  % here we determine the schedule of testing.
   for index=1:size(tp,1)
     disp(sprintf('Trimming tiles %2.2i and %2.2i',tp(index,1),tp(index,2)))
-    % in the end we never check the data match... but we could, and if we did
-    % and we knew how to read the warnings when they shouldn't match, or if we
-    % worked out how to just check the partial match, we'd be fine. For
-    % now, let's not overdo it in th testing since we know very well how it
-    % works, and that it works. No need to go into further granularity here
+    % In the end we never check the data match... but we could, and if we
+    % did and we knew how to read the warnings when they shouldn't match, or
+    % if we worked out how to just check the partial match, we'd be
+    % fine. For now, let's not overdo it in the testing since we know very
+    % well how it works, and that it works. No need to go into further
+    % granularity but here is a suitable testing checklist.
     switch tp(index,3)
      case {8,4}
-      % The match is in the horizontal so the vertical won't need to match
+      % The match is in the horizontal so the Vertical won't need to match
       hm=1; vm=0; dm=0;
      case {1,2}
-      % The match is in the vertical so the horizontal won't need to match
+      % The match is in the vertical so the Horizontal won't need to match
       hm=0; vm=1; dm=0;
      otherwise
-      % The match is in the horizontal and the vertical but the data won't need
+      % The match is horizontal and vertical but the Data needn't match
       hm=1; vm=1; dm=0;
     end
 
@@ -281,6 +284,7 @@ if exist(Tfile)==2
   disp(sprintf('%s loading %s',upper(mfilename),Tfile))
   tic
   load(Tfile,'TDF')
+  F=NaN;
   toc
   if nargout==2
     % If the interpolation exists the interpolant should exist
@@ -328,9 +332,11 @@ if xver>1
   set(r2,'LineWidth',2)
   drawnow
 end
-if nargout>2
+if nargout>2 || xver==0
   % Just get the rivers 
   [SX,SY,S]=rinitaly(nprops);
+else
+  [SX,SY,S]=deal(NaN);
 end
 
 % You might want to plot some random rows and columns just for fun
