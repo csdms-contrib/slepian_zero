@@ -104,11 +104,11 @@ elseif rim<0
 
   % Return what it really wants, remember FIND wants to give rows and columns
   [rim,~,M]=find(M);
-
   % Discard double matches which are likely corners in this scheme
   if tocheck==1 && length(rim)==2
     % Define the corner proportionally to the length and most likely
-    % non-corner match only keep it when it exceeds the 
+    % non-corner match only keep it when it is less than the ratio
+    % or you would have to trim too much...
     prp=1/3;
     % Cases require further checking
     try; M(M==8)=M(M==8)*(rim(M==8)/length(X2)<prp); end
@@ -121,6 +121,7 @@ elseif rim<0
     if isempty(M); M=0; rim=0; end
     if length(M)==2; M=0; rim=0; end
   end
+  if isempty(M); M=0; rim=0; end
 else 
   % Beware of the false prophet ~sum([]) which is logical one
   rim=abs(rim);
