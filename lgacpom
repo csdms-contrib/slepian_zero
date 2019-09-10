@@ -82,6 +82,11 @@ git add blockmean.m
 git commit -m "Calculates means of submatrices within a matrix"
 git push
 
+git add kmz2utm.m
+git commit -m "Conversion of KMZ file to UTM coordinates "
+git push
+
+git add croputm.m
 git add croputm.m
 git commit -m "Limit view and transform WGS84 geocentric degrees to UTM coordinates"
 git push
