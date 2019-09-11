@@ -1,7 +1,7 @@
 function love3
 % Plots layer-over-a-halfspace Love-wave eigenmodes
 %
-% Last modified by fjsimons-at-alum.mit.edu, 04/11/2017
+% Last modified by fjsimons-at-alum.mit.edu, 04/12/2017
 
 % Default values for input to LOVEWAVE
 % Shear-wave speed in the layer [m/s]
