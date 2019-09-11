@@ -1,5 +1,5 @@
-function ziro=lovewave(cLT,beta1,beta2,h,rho1,rho2,n)
-% ziro=LOVEWAVE(cLT,beta1,beta2,h,rho1,rho2,n)
+function ziro=lovewave(cL,T,beta1,beta2,h,rho1,rho2,n)
+% ziro=LOVEWAVE(cL,T,beta1,beta2,h,rho1,rho2,n)
 %
 % For a layer-over-a-halfspace model expresses the phase-speed relation
 % of the Love wave in function of the period T. If the phase speed of the
@@ -8,7 +8,7 @@ function ziro=lovewave(cLT,beta1,beta2,h,rho1,rho2,n)
 % 
 % INPUT:
 %
-% c      Love-wave phase velocity [m/s]
+% cL     Love-wave phase velocity [m/s]
 % T      Love-wave period [s]
 % beta1  Shear-wave speed in the layer
 % beta2  Shear-wave speed in the halfspace
@@ -19,7 +19,7 @@ function ziro=lovewave(cLT,beta1,beta2,h,rho1,rho2,n)
 %
 % See LOVE1 and LOVE2
 %
-% Last modified by fjsimons-at-alum.mit.edu, 04/11/2017
+% Last modified by fjsimons-at-alum.mit.edu, 09/11/2019
 
 % The "period equation"
 mu1=beta1^2*rho1;
