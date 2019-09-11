@@ -3,7 +3,7 @@ function love1
 %
 % Makes dispersion diagrams for layer-over-a-halfspace Love waves.
 %
-% Last modified by fjsimons-at-alum.mit.edu, 04/11/2017
+% Last modified by fjsimons-at-alum.mit.edu, 04/12/2017
 
 % Default values for input to LOVEWAVE
 defval('beta1',3800)
