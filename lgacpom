@@ -2,10 +2,6 @@
 #
 # An in-repository local version of the alias gacpom with meaningful commit messages
 
-git add PDF/guyotweather_255_2019_3_4.pdf
-git commit -m "An example output from GUYOTWEATHER"
-git push
-
 git add guyotphysics.m
 git commit -m "A simple earthquake seismogram plotting routine"
 git push
