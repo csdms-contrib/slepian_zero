@@ -2,7 +2,7 @@ function rapideym(diro)
 % RAPIDEYM(diro)
 %
 % For a data directory containing multiple *_*_*_RapidEye-* directories
-% with one *_Analytic_*.tif each, builds and saves an organized *.mat structure.
+% with ONE *_Analytic_*.tif each, builds and saves an organized *.mat structure.
 %
 % INPUT:
 %
@@ -14,7 +14,7 @@ function rapideym(diro)
 % YYYYMMDD_HHMMSS_GGGGGGG_RapidEye-N where GGGGGGGG is grid cell and N
 % the satellite id and YYYYMMDD_HHMMSS the date acquired
 %
-% Last modified by Last modified by fjsimons-at-alum.mit.edu, 09/24/2019
+% Last modified by Last modified by fjsimons-at-alum.mit.edu, 09/29/2019
 
 % Default
 defval('diro',fullfile(getenv('ITALY'),'RAPIDEYE','enotre'))
@@ -28,6 +28,8 @@ fname=fullfile(diro,sprintf('ri_%s.mat',suf(diro,'/')));
 % Get contents of this directory, both short and long forms
 dirp=ls2cell(fullfile(diro,'*_*_*_RapidEye-*'),0);
 dirf=ls2cell(fullfile(diro,'*_*_*_RapidEye-*'),1);
+
+keyboard
 
 % Begin the saved file - default will be 'enotre'
 sname=sprintf('%s',suf(diro,'/'));
@@ -68,21 +70,32 @@ spitout(sname,'tox',tox)
 % Now add the topography and rivers for the same region
 % Again don't bother with setting xver=2 after a while
 [TDF,~,SX,SY]=tinitaly(nprops,[],[],1,alldata);
-
+ 
 % Complete the data cube
 spitout(sname,'topodata',TDF)
+C11=nprops.C11;
+spitout(sname,'C11',C11)
+CMN=nprops.CMN;
+spitout(sname,'CMN',CMN)
+% Make a snug axis
+snug=[nprops.xp(1) nprops.xp(2) nprops.yp(3) nprops.yp(1)];
+spitout(sname,'snug',snug)
 spitout(sname,'riverx',SX)
 spitout(sname,'rivery',SY)
 
+% We should put the essential props here also
+
 % Read the orchard coordinates
 [xe,ye,ze]=kmz2utm(sprintf('oc_%s',sname));
+
+% Should convert to the same UTM zone as we had in the RAPIDEYE files
 
 % I used to have, slightly more opaquely perhaps
 % eval(sprintf('%s.orchardx=xe;',sname)), 
 % eval(sprintf('%s.orchardx=xe;',sname)), and so on
 spitout(sname,'orchardx',xe)
 spitout(sname,'orchardy',ye)
-ze=unique(ze);
+ze=unique(ze,'rows');
 spitout(sname,'orchardz',ze)
 
 % Finalize table of contents
