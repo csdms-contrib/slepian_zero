@@ -77,7 +77,7 @@ function varargout=rapideye(froot,dirp,diro,xver,urld,clip)
 % Tested on 9.0.0.341360 (R2016a)
 % Tested on 9.6.0.1072779 (R2019a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 09/04/2019
+% Last modified by fjsimons-at-alum.mit.edu, 09/29/2019
 
 % Root of the filename for three of the four files inside the directory
 defval('froot','3357121_2018-09-11_RE3_3A')
@@ -124,11 +124,12 @@ if ~strcmp(froot,'demo')
     disp(sprintf('which I expect to contain two tif, one json and one/two xml file(s) - with the extension %s',clip))
   end
 
-  % The JSON file for the clipped data sets appear identical to the
-  % unclipped ones, so theire utility is nil in that case
+  % The grid JSON file for the clipped data sets appear identical to the
+  % unclipped ones, so their utility is questionable in that case,
+  % although one might later go back and add OTHER properties back in,
+  % like view-angle etc
   if ~strcmp(clip,'_clip')
-    %%%%%%%%%% JSON METADATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+    %%%%%%%%%% UNCLIPPED JSON METADATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Read the JSON file with metadata
     try
       % Locally provided if you've got access to JSONDECODE
@@ -160,7 +161,7 @@ if ~strcmp(froot,'demo')
     lonpg=tiffm.geometry.coordinates(:,:,1);
     latpg=tiffm.geometry.coordinates(:,:,2);
   else
-    %%%%%%%%%% TIFFINFO METADATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%% CLIPPED DATA TIFFINFO METADATA READ%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % All properties pertaining to the image
     props=geotiffinfo(file2);
 
@@ -228,7 +229,7 @@ if ~strcmp(froot,'demo')
   diferm(sum(zpg,1)/length(zpg)-zpg(1,:))
   % What would we want it to be in UTM, regardless of what RAPIDEYE says?
   disp(sprintf('According to DEG2UTM, this is %s',zpg(1,:)))
-  
+
   %%%%%%%%%% EXCESSIVE METADATA CHECKING%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   if xver>0
     % Nobody said the polygon needs to be equal to the image grid, but if
@@ -276,7 +277,7 @@ if ~strcmp(froot,'demo')
       diferm(xs-bbox(1))
       diferm(ys-bbox(4))
       diferm(sp-refmat(2))
-      
+
       if xver==2
 	% Clears the current figure; does not start a new one
 	clf
