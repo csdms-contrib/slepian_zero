@@ -16,7 +16,7 @@ function [TC,FC,perx]=rapideya(alldata)
 %
 % TC       An adjusted  TRUE COLOR image for plotting with IMAGESC, also uint16
 % FC       An adjusted FALSE COLOR image for plotting with IMAGESC, also uint16
-% perx     The channel percentiles corresponding to the chosen percentages
+% perx     The channel percentiles corresponding to the chosen percentages, double
 %
 % SEE ALSO: RAPIDEYE, IMADJUST, TRIMIT, SCALE
 %
@@ -35,10 +35,9 @@ percs=[6.3 98.3
        6.3 98.3];
 
 % Initialize to the same class!
-if ~strcmp(class(alldata),'uint16')
-  error('We are expecting uint16 but getting %s',class(alldata))
-end
-tfcdata=zeros(size(alldata),'uint16');
+
+% NaNs are not a good choice for non-doubles
+tfcdata=zeros(size(alldata),class(alldata));
 
 % Clip and stretch each channel
 for index=1:length(channels)
@@ -55,13 +54,17 @@ FC=tfcdata(:,:,[5 3 3]);
 % Subfunction to clip and stretch an individual channel
 function [data,perx]=clipit(data,percs)
 % Convert to double internally
+wasclass=class(data);
 data=double(data);
 % Determine the percentiles, be sure to sort them
 perx=sort(10.^prctile(log10(data(:)),percs));
 % Saturate, clip, winsorize, by any other name
 data(data<perx(1))=perx(1);
 data(data>perx(2))=perx(2);
-% Now scale it to the full range for IMAGESC
-data=uint16([data-perx(1)]./[perx(2)-perx(1)]*double(intmax('uint16')));
+% Now scale it to the full range for IMAGESC and return to same class
+% Write out the operation as a string for maximum clarity
+operation='[data-perx(1)]./[perx(2)-perx(1)]';
+% Write and execute the string that will stay within class
+eval(sprintf('data=%s(%s*double(intmax(wasclass)));',operation,wasclass));
 % Report the percentages as rounded numbers
 perx=round(perx);
