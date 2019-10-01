@@ -5,7 +5,7 @@ function [TC,FC,perx]=rapideya(alldata)
 %
 % INPUT:
 %
-% alldata  A five-channel RAPIDEYE uint16 image with (refer to the documentation)
+% alldata  A five-channel RAPIDEYE image with (refer to the documentation)
 %          channel 1 BLUE
 %          channel 2 GREEN
 %          channel 3 RED
@@ -14,8 +14,8 @@ function [TC,FC,perx]=rapideya(alldata)
 %
 % OUTPUT:
 %
-% TC       An adjusted  TRUE COLOR image for plotting with IMAGESC, also uint16
-% FC       An adjusted FALSE COLOR image for plotting with IMAGESC, also uint16
+% TC       An adjusted  TRUE COLOR image for plotting with IMAGESC, same class
+% FC       An adjusted FALSE COLOR image for plotting with IMAGESC, same class
 % perx     The channel percentiles corresponding to the chosen percentages, double
 %
 % SEE ALSO: RAPIDEYE, IMADJUST, TRIMIT, SCALE
@@ -34,7 +34,7 @@ percs=[6.3 98.3
        6.3 98.3
        6.3 98.3];
 
-% Initialize to the same class!
+% Initialize to the same integer class!
 
 % NaNs are not a good choice for non-doubles
 tfcdata=zeros(size(alldata),class(alldata));
@@ -65,6 +65,8 @@ data(data>perx(2))=perx(2);
 % Write out the operation as a string for maximum clarity
 operation='[data-perx(1)]./[perx(2)-perx(1)]';
 % Write and execute the string that will stay within class
-eval(sprintf('data=%s(%s*double(intmax(wasclass)));',operation,wasclass));
+% Had this been a double then we should have used realmax... but we are
+% assuming that as an image, it's an integer class...
+eval(sprintf('data=%s(%s*double(intmax(wasclass)));',wasclass,operation));
 % Report the percentages as rounded numbers
 perx=round(perx);
