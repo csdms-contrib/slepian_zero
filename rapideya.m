@@ -48,8 +48,8 @@ end
 % Reconstruct TRUE and FALSE color images
 % So that is RED GRN BLU as "RGB" channels
 TC=tfcdata(:,:,[3 2 1]);
-% And this is NIR RED RED as "RGB" channels
-FC=tfcdata(:,:,[5 3 3]);
+% And this is NIR RED GREEN as "RGB" channels
+FC=tfcdata(:,:,[5 3 2]);
 
 % Subfunction to clip and stretch an individual channel
 function [data,perx]=clipit(data,percs)
