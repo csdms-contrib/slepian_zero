@@ -14,7 +14,7 @@ function rapideym(diro)
 % YYYYMMDD_HHMMSS_GGGGGGG_RapidEye-N where GGGGGGGG is grid cell and N
 % the satellite id and YYYYMMDD_HHMMSS the date acquired
 %
-% Last modified by Last modified by fjsimons-at-alum.mit.edu, 09/29/2019
+% Last modified by Last modified by fjsimons-at-alum.mit.edu, 09/30/2019
 
 % Default
 defval('diro',fullfile(getenv('ITALY'),'RAPIDEYE','enotre'))
@@ -23,16 +23,22 @@ defval('clip',[])
 defval('tox',[])
 
 % Make the save file
-fname=fullfile(diro,sprintf('ri_%s.mat',suf(diro,'/')));
+if isempty(suf(diro,'/'))
+  fname=fullfile(diro,sprintf('ri_%s.mat',diro));
+else
+  fname=fullfile(diro,sprintf('ri_%s.mat',suf(diro,'/')));
+end
 
 % Get contents of this directory, both short and long forms
 dirp=ls2cell(fullfile(diro,'*_*_*_RapidEye-*'),0);
 dirf=ls2cell(fullfile(diro,'*_*_*_RapidEye-*'),1);
 
-keyboard
-
 % Begin the saved file - default will be 'enotre'
 sname=sprintf('%s',suf(diro,'/'));
+if isempty(sname)
+  sname=diro;
+end
+
 % See below at 'orchard' for old syntax instead of the subfunction
 spitout(sname,'tox',tox); clear tox
 % Save the variable named sname into the file named fname to initialize
@@ -70,13 +76,27 @@ spitout(sname,'tox',tox)
 % Now add the topography and rivers for the same region
 % Again don't bother with setting xver=2 after a while
 [TDF,~,SX,SY]=tinitaly(nprops,[],[],1,alldata);
- 
+% Get the whole grid out, always verify equal spacing
+[~,~,~,xeye,yeye]=rapideyg(nprops,1);
+% This is going to be a ROW vector
+xeye=xeye(:)';
+% This is going to be a COLUMN vector
+yeye=yeye(:);
+
 % Complete the data cube
 spitout(sname,'topodata',TDF)
-C11=nprops.C11;
+% The following is as I like it for IMAGEFNAN
+C11=nprops.C11; 
 spitout(sname,'C11',C11)
-CMN=nprops.CMN;
+CMN=nprops.CMN; 
 spitout(sname,'CMN',CMN)
+% The following is more intuitive with IMAGESC
+xx=xeye([1 end]);
+yy=yeye([1 end]);
+spitout(sname,'xx',xx)
+spitout(sname,'yy',yy)
+spitout(sname,'xeye',xeye)
+spitout(sname,'yeye',yeye)
 % Make a snug axis
 snug=[nprops.xp(1) nprops.xp(2) nprops.yp(3) nprops.yp(1)];
 spitout(sname,'snug',snug)
@@ -86,7 +106,12 @@ spitout(sname,'rivery',SY)
 % We should put the essential props here also
 
 % Read the orchard coordinates
-[xe,ye,ze]=kmz2utm(sprintf('oc_%s',sname));
+[xe,ye,ze]=kmz2utm(fullfile(diro,sprintf('oc_%s',sname)));
+
+% Make a snugger axis
+inflet=30;
+snugger=[[min(xe) max(xe)]+[-1 1]*range(xe)*inflet/100 [min(ye) max(ye)]+[-1 1]*range(ye)*inflet/100];
+spitout(sname,'snugger',snugger)
 
 % Should convert to the same UTM zone as we had in the RAPIDEYE files
 
@@ -104,7 +129,8 @@ fn=[repmat([sname '.'],size(fn,1),1) fn repmat(' ',size(fn,1),size(tox,2)-size(f
 tox=[[sname repmat(' ',1,size(tox,2)-length(sname))] ; fn ; tox];
 spitout(sname,'tox',tox)
 
-% Add that information to the saved file
+% Add all that information to the saved file
+savito('tox')
 savito(sname)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -116,5 +142,6 @@ evalin('caller',sprintf('%s.%s=%s;',sname,vname,inputname(3)))
 % Make a subfunction for the save commands if fname exists in caller
 function savit(shame)
 evalin('caller',sprintf('save(fname,''%s'')',shame))
+% Make a subfunction for the save commands if fname exists in caller - append
 function savito(shame)
 evalin('caller',sprintf('save(fname,''%s'',''-append'')',shame))
