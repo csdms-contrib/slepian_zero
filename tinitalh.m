@@ -22,7 +22,7 @@ function varargout=tinitalh(dirp,diro,xver)
 %
 % tinitalh([],[],2) % will bring up the map with available tiles
 %
-% Last modified by fjsimons-at-alum.mit.edu, 09/03/2019
+% Last modified by fjsimons-at-alum.mit.edu, 10/03/2019
 
 % Bottom-level directory name, taken from the Tinitaly download
 defval('dirp','DATA')
@@ -50,9 +50,12 @@ for index=1:length(hdr)
   % The HDR filename
   fhdr=fullfile(diro,dirp,hdr{index});
   % Read it in
-  H=textscan(fopen(fhdr),'%s %d',nhdr);
+  fid=fopen(fhdr);
+  H=textscan(fid,'%s %d',nhdr);
   % Shove the values inside a growing cell array
   TV{index}=H{2};
+  % Be sure to close the files
+  fclose(fid);
 end
 
 % Collate all the header information in TA and keep the names in TN
