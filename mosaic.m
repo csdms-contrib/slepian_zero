@@ -1,9 +1,10 @@
 function varargout=mosaic(froot,dirp,diro,xver,urld,clip)
-% [RDC,TDC,nprops]=MOSAIC(froot,dirp,diro,xver,urld,clip)
+% [RDC,nprops,props,TDC]=MOSAIC(froot,dirp,diro,xver,urld,clip)
 %
 % Loads and mosaics RAPIDEYE satellite images together by clipping, not
-% merging, regions of identified geographical overlap. Choices are made
-% that might make merging rather than clipping preferable...
+% merging, regions of identified geographical overlap and with identifcal
+% projections. Choices are made that might make merging rather than clipping
+% preferable...
 %
 % INPUT:
 %
@@ -28,8 +29,9 @@ function varargout=mosaic(froot,dirp,diro,xver,urld,clip)
 % OUTPUT:
 %
 % RDC        The RAPIDEYE data post-merger
-% TDC        The TINITALY data that correspond with them
-% nprops     A minimal properties structure with metadata
+% nprops     A minimal properties structure with metadata for the mosaicked image
+% props      A cell with the original complete properties structure
+% TDC        The TINITALY data that correspond with them (if you want them)
 %
 % EXAMPLE:
 %
@@ -44,7 +46,7 @@ function varargout=mosaic(froot,dirp,diro,xver,urld,clip)
 %
 % Tested on 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 10/01/2019
+% Last modified by fjsimons-at-alum.mit.edu, 10/07/2019
 
 % Root of the filename for three of the four files inside the directory
 defval('froot',{'3260220_2019-07-01_RE1_3A' '3260221_2019-07-01_RE1_3A' ...
@@ -71,39 +73,23 @@ defval('clip','_clip')
 for index=1:length(froot)
   % Don't want the graphic test from RAPIDEYE 
   [RD{index},nprops{index},props{index}]=rapideye(froot{index},dirp{index},[],min(xver,1),[],clip);
-
-  % Don't worry about making the picture from TINITALY
-  TDF{index}=tinitaly(nprops{index},[],[],min(xver,1),RD{index});
-
-  % Make the initial grids
-  [XE{index},YE{index},ZE{index}]=rapideyg(nprops{index});
-
-  % How about we remove rinds from here - zero rows, that'll do it
-  emptycols{index}=sum(sum(RD{index},3)==0,1)==size(RD{index},1);
-  emptyrows{index}=sum(sum(RD{index},3)==0,2)==size(RD{index},2);
-
-  % Assuming that they are AT the edges (no interior removal; not sure if
-  % when THAT would be caught down the line)
-  if sum(emptycols{index}) || sum(emptyrows{index})
-    disp(sprintf('Empty-border trimming'))
-    XE{index}=XE{index}(~emptyrows{index},~emptycols{index});
-    YE{index}=YE{index}(~emptyrows{index},~emptycols{index});
-    RD{index}=RD{index}(~emptyrows{index},~emptycols{index},:);
-    % Do it for topo so the grids match, even though topo has no zeroes
-    TDF{index}=TDF{index}(~emptyrows{index},~emptycols{index},:);
-    disp(sprintf('Adjusting the essential properties in ''nprops'''))
-    % Check against RAPIDEYE and RAPIDEYG but don't reset the original
-    % image properties, only the essential propagated properties, and see below
-    nprops{index}.nr=size(RD{index},1);
-    nprops{index}.nc=size(RD{index},2);
-    % Steal this stuff from RAPIDEYE and RAPIDEYG, and see above and below
-    nprops{index}.xs=XE{index}(1)-nprops{index}.sp/2;
-    nprops{index}.ys=YE{index}(1)+nprops{index}.sp/2;
-    nprops{index}.C11=[XE{index}(1)   YE{index}(1)];
-    nprops{index}.CMN=[XE{index}(end) YE{index}(end)];
-    % No need to convert the polygonal information as well (lo,la,xp,yp)
-    % which remains an outer bounding box for usable data.     
+  if nargout>3
+    % Don't worry about making the picture from TINITALY
+    TDF{index}=tinitaly(nprops{index},[],[],min(xver,1),RD{index});
+  else
+    TDF{index}=NaN;
   end
+
+  % Trim the all-zero edges to get no interior seams
+  % Don't reset the original image properties, only the essential propagated
+  % properties, i.e. nprops and not props, and see below
+  if nargout>3
+    [RD{index},nprops{index},TDF{index}]=trimimage(RD{index},nprops{index},1,TDF{index});
+  else
+    [RD{index},nprops{index}]=trimimage(RD{index},nprops{index},1);
+  end
+  % Make the final grids
+  [XE{index},YE{index},ZE{index}]=rapideyg(nprops{index});
 end
 
 % Do the rivers at the end
@@ -125,20 +111,23 @@ if xver==2
     imagesc([nprops{index}.C11(1) nprops{index}.CMN(1)],...
 	    [nprops{index}.C11(2) nprops{index}.CMN(2)],...
 	    rapideya(RD{index})); axis xy image
+    longticks(ah)
   end
   delete(ah(index+1:end)); ah=ah(1:index);
 
-  % Plot the interpolated TOPOGRAPHY data panels
+  % Plot the interpolated TOPOGRAPHY data panels (if you have them)
   figure(3); clf
-  ah=krijetem(subnum(2,2));
-  for index=1:length(froot)
-    axes(ah(index))
-    imagesc([nprops{index}.C11(1) nprops{index}.CMN(1)],...
-	    [nprops{index}.C11(2) nprops{index}.CMN(2)],...
-	    TDF{index}); axis xy image
+  if ~isnan(TDF{1})
+    ah=krijetem(subnum(2,2));
+    for index=1:length(froot)
+      axes(ah(index))
+      imagesc([nprops{index}.C11(1) nprops{index}.CMN(1)],...
+              [nprops{index}.C11(2) nprops{index}.CMN(2)],...
+              TDF{index}); axis xy image
+    end
+    delete(ah(index+1:end)); ah=ah(1:index);
+    seemax(ah,3)
   end
-  delete(ah(index+1:end)); ah=ah(1:index);
-  seemax(ah,3)
 end
 
 % Figure out all the pairwise rimmed relationships excluding corners
@@ -149,27 +138,44 @@ for index=1:size(tp,1)
   frst=tp(index,1);
   scnd=tp(index,2);
   % Feed row/column grid of the first with the second entry in every pair
-  [tp(index,3),tp(index,4)]=puzzle(XE{frst}(1,:),YE{frst}(:,1),XE{scnd}(1,:),YE{scnd}(:,1),-2);
+  [tp(index,3),tp(index,4)]=puzzle(XE{frst}(1,:),YE{frst}(:,1),...
+                                   XE{scnd}(1,:),YE{scnd}(:,1),-2);
 end
 
 % Halt and inspect 
+if xver==2
+  disp(sprintf('Inside %s',upper(mfilename)))
+  keyboard
+end
 
+% Work out the rules behind the corrections later
 % Do not trim the same border twice in the same way...
 % The RIMCHECK warnings are diagnostic for this case. Not really.
 % Ad hoc taking away here until further testing reveals systematics
-if strcmp(hash(tp,'SHA-1'),'38aa438da01361704a7147555050148697b3bacc')
-  keyboard
-  % Write down what image this is...
-  tp=tp([1 2 5 6],:)
-elseif strcmp(hash(tp,'SHA-1'),'3472894bd65dbf59359263f692899644df37d0cb')
-  keyboard
-  % Write down what image this is...
+% Definitely take out the ones that have zero rims
+% Maybe ALL of the tps have 200 overlap?
+ifs=pref(dirp{1},'/');
+if strcmp(ifs,'trecolonne')
   tp=tp([1 3 4 6],:)
+elseif strcmp(ifs,'titone')
+  tp=tp([1 2 5 6],:);
+elseif strcmp(ifs,'frantoiocornoleda')
+  % These are slivers that got reduced to nothing
+  tp=tp(4,:);
+elseif strcmp(ifs,'frantoioacri') || strcmp(ifs,'frantoioacri3') ...
+      || strcmp(ifs,'frantoiodecarlo4')
+  % These are slivers that got reduced to nothing
+  tp=tp(end,:);
+elseif strcmp(ifs,'darioratta') || strcmp(ifs,'frantoiohermes') ...
+      || strcmp(ifs,'oliointini3') || strcmp(ifs,'frantoiocornoleda3') ...
+      || strcmp(ifs,'sorellegarzo3') || strcmp(ifs,'darioratta3')
+  tp=tp(1,:);
 end
 
-% For four panels, maybe just should avoid having the same code three times?
+% Trimming the tiles two by two
 for index=1:size(tp,1)
-  disp(sprintf('Trimming tiles %2.2i and %2.2i',tp(index,1),tp(index,2)))
+  disp(sprintf('%s trimming tiles %2.2i and %2.2i by %3.3i',upper(mfilename),...
+               tp(index,1),tp(index,2),tp(index,4)))
   switch tp(index,3)
    case {8,4}
     % The match is in the horizontal so the Vertical won't need to match
@@ -196,7 +202,8 @@ for index=1:size(tp,1)
     [YE{frst},YE{scnd}]=...
 	rimcheck(YE{frst},YE{scnd},tp(index,4),tp(index,3),vm);
   catch
-    return
+    disp('Grids do not properly align')
+    keyboard
   end
       
   % Trim the RAPIDEYE data (in all channels)
@@ -211,34 +218,49 @@ for index=1:size(tp,1)
   RD{frst}=A;
   RD{scnd}=B;
   
-  % Trim the corresponding interpolated TOPO data
-  [TDF{frst},TDF{scnd}]=...
-      rimcheck(TDF{frst},TDF{scnd},tp(index,4),tp(index,3),dm);
+  if nargout>3
+    % Trim the corresponding interpolated TOPO data
+    [TDF{frst},TDF{scnd}]=...
+        rimcheck(TDF{frst},TDF{scnd},tp(index,4),tp(index,3),dm);
+  end
 
   % Need to adapt the nprops now also...
-  % Don't adjust the original polygons perhaps?
   nprops{frst}.nr=size(RD{frst},1);
   nprops{frst}.nc=size(RD{frst},2);
-  % If any of them turn out to be trimmed down to zero size, would need
-  % to remove the root file!
+  nprops{scnd}.nr=size(RD{scnd},1);
+  nprops{scnd}.nc=size(RD{scnd},2);
+
+  % If any of them turn out to be trimmed down to zero size, would have
+  % needed to remove the root file!
   if any(nprops{frst}.nr)==0 || nprops{frst}.nc==0
     error(sprintf('Remove %s from consideration',dirp{frst}))
   end
   % Steal this stuff from RAPIDEYE and RAPIDEYG, and above
-  nprops{frst}.xs=XE{frst}(1)-nprops{frst}.sp/2;
-  nprops{frst}.ys=YE{frst}(1)+nprops{frst}.sp/2;
-  nprops{frst}.C11=[XE{frst}(1) YE{frst}(1)];
+  nprops{frst}.xs =XE{frst}(1)-nprops{frst}.sp/2;
+  nprops{frst}.ys =YE{frst}(1)+nprops{frst}.sp/2;
+  nprops{frst}.C11=[XE{frst}(1)   YE{frst}(1)];
   nprops{frst}.CMN=[XE{frst}(end) YE{frst}(end)];
 
-  nprops{scnd}.nr=size(RD{scnd},1);
-  nprops{scnd}.nc=size(RD{scnd},2);
   if any(nprops{scnd}.nr)==0 || nprops{scnd}.nc==0
     error(sprintf('Remove %s from consideration',dirp{scnd}))
   end
-  nprops{scnd}.xs=XE{scnd}(1)-nprops{scnd}.sp/2;
-  nprops{scnd}.ys=YE{scnd}(1)+nprops{scnd}.sp/2;
-  nprops{scnd}.C11=[XE{scnd}(1) YE{scnd}(1)];
+  nprops{scnd}.xs =XE{scnd}(1)-nprops{scnd}.sp/2;
+  nprops{scnd}.ys =YE{scnd}(1)+nprops{scnd}.sp/2;
+  nprops{scnd}.C11=[XE{scnd}(1)   YE{scnd}(1)];
   nprops{scnd}.CMN=[XE{scnd}(end) YE{scnd}(end)];
+end
+
+% Only two tiles mattered
+if size(tp,1)==1
+  % These are slivers that got reduced to nothing
+  % So not only do they not get trimmed, we also will them away later
+  froot=froot([tp(1) tp(2)]);
+  nprops=nprops([tp(1) tp(2)]);
+  props=props([tp(1) tp(2)]);
+  RD=RD([tp(1) tp(2)]);
+  XE=XE([tp(1) tp(2)]);
+  YE=YE([tp(1) tp(2)]);
+  ZE=ZE([tp(1) tp(2)]);
 end
 
 if xver==2
@@ -251,11 +273,6 @@ if xver==2
     diferm(YEP{index},YE{index})
     diferm(ZEP{index},ZE{index})
   end
-  % Do the contiguous check by hand at this early stage
-  % diferm(XE{1}(1,end)+nprops{1}.sp,XE{2}(1,1))
-  % diferm(XE{3}(1,end)+nprops{4}.sp,XE{2}(1,1))
-  % diferm(YE{3}(end,1)-nprops{1}.sp,YE{1}(1,1))
-  % diferm(YE{4}(end,1)-nprops{1}.sp,YE{2}(1,1))
 end
 
 % And then rerun the plots perhaps, under xver
@@ -263,15 +280,21 @@ end
 % Get all the metadata required to tile
 XS=getfields(nprops,'xs');
 YS=getfields(nprops,'ys');
+% These aren't adjusted yet here
+%XX=getfields(nprops,'xx');
+%YY=getfields(nprops,'yy');
 SP=getfields(nprops,'sp');
 C11=getfields(nprops,'C11');
 CMN=getfields(nprops,'CMN');
 NC=getfields(nprops,'nc');
 NR=getfields(nprops,'nr');
 
-% Find the largest possible set 
+% Find the largest possible set from the adjusted data
 npropsC.xs=min(XS);
-npropsC.ys=min(YS);
+npropsC.ys=max(YS);
+% These aren't adjusted yet here
+%npropsC.xx=min(XX);
+%npropsC.yy=min(YY);
 npropsC.C11=[min(C11(:,1)) max(C11(:,2))];
 npropsC.CMN=[max(CMN(:,1)) min(CMN(:,2))];
 npropsC.sp=unique(SP);
@@ -285,39 +308,62 @@ yeye=[npropsC.C11(1,2):-npropsC.sp:npropsC.CMN(1,2)];
 % FJS should make an interpolant and reload it as a hash...
 clear A B
 for index=1:length(froot)
-  for ondex=1:size(RD{frst},3)
+  for ondex=1:size(RD{1},3)
     % Interpolate RAPIDEYE, keep the type
-    R{index}(:,:,ondex)=uint16(interp2(XE{index},YE{index},double(RD{index}(:,:,ondex)),xeye(:)',yeye(:)));
+    R{index}(:,:,ondex)=uint16(interp2(XE{index},YE{index},...
+                               double(RD{index}(:,:,ondex)),xeye(:)',yeye(:)));
   end
-  % Interpolate TOPOGRAPHY
-  T{index}=interp2(XE{index},YE{index},TDF{index},xeye(:)',yeye(:));
+  if nargout>3
+    % Interpolate TOPOGRAPHY
+    T{index}=interp2(XE{index},YE{index},TDF{index},xeye(:)',yeye(:));
+  end
 end
 
 % And then decide what to do with it - which we would do the same way if
 % we had duplicates. My guess is the topography doesn't duplicate if I
 % did it right. I checked the sparsity and seams of this using SPY
-Rdupl=sum(reshape(~cell2mat(cellfun(@isnan,R,'un',0)),[size(R{1}(:,:,1)) size(R{1},3)*length(froot)]),3);
-if length(minmax(Rdupl))~=2 && minmax(Rdupl)~=[0 size(R{1},3)]
-  error('There was an inexcusable overlap in the tiling of RAPIDEYE')
+% Images are ZERO when empty
+Rdupl=sum(reshape(~cell2mat(cellfun(@iszero,R,'un',0)),...
+                  [size(R{1}(:,:,1)) size(R{1},3)*length(froot)]),3);
+if length(minmax(Rdupl))~=2 ||  sum(minmax(Rdupl)~=[0 size(R{1},3)])
+  display('There was an inexcusable overlap in the tiling of RAPIDEYE')
 else
   % No duplicates so we just flatten the images
   Rup=cat(3,R{:});
-  for ondex=1:size(RD{frst},3)
+  for ondex=1:size(RD{1},3)
     % The second argument to TINDEKS is skipping by the number of channels
     RDC(:,:,ondex)=uint16(sum(double(tindeks(Rup,ondex:size(R{1},3):size(Rup,3))),3));
   end
 end
-Tdupl=sum(reshape(~cell2mat(cellfun(@isnan,T,'un',0)),[size(T{1}) length(froot)]),3);
-if length(minmax(Tdupl))~=2 && minmax(Tdupl)~=[0 size(T{1},3)]
-  error('There was an inexcusable overlap in the tiling of TINITALY')
+
+% Other types of data are NAN when empty
+if nargout>3
+  Tdupl=sum(reshape(~cell2mat(cellfun(@isnan,T,'un',0)),...
+                    [size(T{1}) length(froot)]),3);
+  if length(minmax(Tdupl))~=2 && minmax(Tdupl)~=[0 size(T{1},3)]
+    error('There was an inexcusable overlap in the tiling of TINITALY')
+  else
+    % We just flatten the images
+    TDC=nansum(cat(3,T{:}),3);
+  end
 else
-  % We just flatten the images
-  TDC=nansum(cat(3,T{:}),3);
+  TDC=NaN;
 end
 
+% Some more metadata now, we didn't yet check there's no change
+npropsC.zp=nprops{1}.zp;
+npropsC.up=nprops{1}.up;
+npropsC.nc=size(RDC,2);
+npropsC.nr=size(RDC,1);
+
+% SO HERE WE NEED TO ALSO RETRIM THE ANY-BORDERS, DON'T WE, AND
+% SUPPLEMENT THE NPROPS
+if nargout>3
+  [RDC,npropsC,TDC]=trimimage(RDC,npropsC,2,TDC);
+else
+  [RDC,npropsC]=trimimage(RDC,npropsC,2);
+end
 % Output
-varns={RDC,TDC,npropsC};
+varns={RDC,npropsC,props,TDC};
 varargout=varns(1:nargout);
-
-
 
