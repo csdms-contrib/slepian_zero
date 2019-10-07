@@ -1,5 +1,5 @@
-function rapideys(diro)
-% RAPIDEYS(diro)
+function rapideys(diro,dupli,xver)
+% RAPIDEYS(diro,dupli,xver)
 %
 % For a data directory containing multiple *_*_*_RapidEye-* directories
 % with ONE *_Analytic_*.tif each, builds and saves an organized *.mat
@@ -9,6 +9,8 @@ function rapideys(diro)
 % INPUT:
 %
 % diro     Data directory [default: $ITALY/RAPIDEYE/ceraudo]
+% duplic   Duplicity (how many tiles to consider in a mosaic)
+% xver     2 Halts for verification
 %
 % SEE ALSO:
 %
@@ -16,11 +18,17 @@ function rapideys(diro)
 %
 % Last modified by Last modified by fjsimons-at-alum.mit.edu, 10/03/2019
 
-% Default
+% Do a first loop to get unique days, then figure out multiplicity frmo
+% another ls2cell then adjust the main loop
+
+% Defaults
 defval('diro',fullfile(getenv('ITALY'),'RAPIDEYE','ceraudo'))
 defval('clip',[])
+defval('xver',1)
 % Initialize
 defval('tox',[])
+% Duplicity
+defval('dupli',4)
 
 % Make the save file
 if isempty(suf(diro,'/'))
@@ -44,7 +52,12 @@ spitout(sname,'tox',tox); clear tox
 
 % AT THIS POINT YOU ARE STARTING A NEW FILE!! 
 % Save the variable named sname into the file named fname to initialize
-savit(sname)
+if xver~=2
+  % Ask for input
+  disp('File will be overwritten')
+  % Don't begin the overwrite in verification mode!
+  savit(sname)
+end
 
 % Collect all the filenames and corresponding directories
 for index=1:length(dirf)
@@ -54,23 +67,48 @@ end
 
 % Here need the wherewithall to step through the dirf structure
 
-% For now only set up for pairs, triplets, etc at a time, need
-% parentheses! Keep in xver=2 for the moment
+if xver==2
+  % Quick rundown of what's about to happen
+  % Need parentheses and not curly braces
+  more off
+  for index=1:dupli:length(dirp)
+    disp(sprintf(repmat('%s\n',1,dupli),dirf{index:index+dupli-1}))
+    disp(' ')
+  end
+end
 
-duplicity=2;
+% Main loop
+for index=1:dupli:length(dirp)
+  % Get the images and MOSAIC them together, never request the topography
+  [alldata,nprops,props]=mosaic(froot(index:index+dupli-1),...
+                                dirf(index:index+dupli-1),[],xver);
 
-for index=1:2:length(dirp)
-  disp(sprintf('MOSAICing\n%s and\n%s',dirf{index:index+duplicity-1}))
-  
-  % Get the images and MOSAIC them together, always get the topography
-  % also again set xver=1 so that no additional plotting output is generated
-  [alldata,nprops,props,TDC]=mosaic(froot(index:index+duplicity-1),...
-                                     dirf(index:index+duplicity-1),[],1);
-  
+  % You'll want to verify the picture
+  if xver==2
+    figure(4); clf
+    % Two next lines are equivalent
+    % imagesc(nprops.xx,nprops.yy,rapideya(alldata)); axis xy
+    imagesc([nprops.C11(1) nprops.CMN(1)],[nprops.C11(2) nprops.CMN(2)],rapideya(alldata)); axis xy
+    j=axis;
+    hold on
+    try % If we have it
+      [xe,ye,ze]=kmz2utm(fullfile(diro,sprintf('oc_%s.kmz',sname))); plot(xe,ye,'y','LineWidth',2)
+    end
+    hold off
+    % To play with
+    ah=get(2,'children');
+    for ondex=1:length(ah)
+      ah(ondex).XLim=j([1:2]);
+      ah(ondex).YLim=j([3:4]);
+    end
+    keyboard
+  end
+    
   % Append acquisition day YYYYMMDD to sname to make vname
   acquiday=dirp{index}(1:8);
   vname=sprintf('%s_%s',sname,acquiday);
-  % Update the table of contents
+  % Update the table of contents... only every other one! So you will
+  % have blank spaces in there
   tox(index,:)=sprintf('%s_%s',sname,acquiday);
 
   % The precision of these variables remains what they were
@@ -91,10 +129,15 @@ spitout(sname,'tox',tox)
 % Now add the topography and rivers for the same region
 % Again don't bother with setting xver=2 after a while
 % Don't bother with the rivers for now, they needed lon and lat
-% Also, we'll just take the LAST TDC like we did before
+% Also, we'll just take the FIRST TDC like we did before (that was last then...)
 %[TDF,~,SX,SY]=tinitaly(nprops,[],[],1,alldata);
-TDF=TDC;
+TDF=tinitaly(nprops,[],[],1,alldata);
 [SX,SY]=deal(NaN);
+
+if xver==2
+  figure(5); clf; 
+  imagesc([nprops.C11(1) nprops.CMN(1)],[nprops.C11(2) nprops.CMN(2)],TDC); axis xy
+end
 
 % Get the whole grid out, always verify equal spacing
 [~,~,~,xeye,yeye]=rapideyg(nprops,1);
@@ -143,7 +186,8 @@ spitout(sname,'orchardy',ye)
 ze=unique(ze,'rows');
 spitout(sname,'orchardz',ze)
 
-% Should convert to the same UTM zone as we had in the RAPIDEYE files
+% Should convert to the same UTM zone as we had in the RAPIDEYE files if
+% they weren't
 
 % Finalize table of contents
 fn=str2mat(eval(sprintf('fieldnames(%s)',sname)));
