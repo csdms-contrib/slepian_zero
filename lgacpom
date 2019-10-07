@@ -66,6 +66,22 @@ git add rapideye.m
 git commit -m "Reads RAPIDEYE imagery"
 git push origin master
 
+git add rapideya.m
+git commit -m "Converts RAPIDEY imagery into true and false color images"
+git push
+
+git add rapideym.m
+git commit -m "Combines multiple RAPIDEYE images into a single MAT file"
+git push origin master
+
+git add rapideys.m
+git commit -m "Combines multiple mosaicked RAPIDEYE images into a single MAT file"
+git push origin master
+
+git add trimimage.m
+git commit -m "Removes zero rims from an image and trims inside to a rectangle"
+git push origin master
+
 git add rapideyg.m
 git commit -m "Returns RAPIDEYE grid"
 git push origin master
