@@ -110,7 +110,7 @@ elseif rim<0
     % non-corner match only keep it when it is less than the ratio
     % or you would have to trim too much...
     prp=1/3;
-    % Cases require further checking
+    % Cases require further checking but are holding up so far
     try; M(M==8)=M(M==8)*(rim(M==8)/length(X2)<prp); end
     try; M(M==4)=M(M==4)*(rim(M==4)/length(X1)<prp); end
     try; M(M==2)=M(M==2)*(rim(M==2)/length(Y2)<prp); end
