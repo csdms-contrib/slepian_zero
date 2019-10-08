@@ -66,6 +66,10 @@ git add rapideye.m
 git commit -m "Reads RAPIDEYE imagery"
 git push origin master
 
+git add rapideyc.m
+git commit -m "Makes a diagnostic plot of RAPIDEYE imagery MAT files"
+git push origin master
+
 git add rapideya.m
 git commit -m "Converts RAPIDEY imagery into true and false color images"
 git push
