@@ -77,7 +77,7 @@ function varargout=rapideye(froot,dirp,diro,xver,urld,clip)
 % Tested on 9.0.0.341360 (R2016a)
 % Tested on 9.6.0.1072779 (R2019a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 09/29/2019
+% Last modified by fjsimons-at-alum.mit.edu, 10/07/2019
 
 % Root of the filename for three of the four files inside the directory
 defval('froot','3357121_2018-09-11_RE3_3A')
@@ -117,7 +117,7 @@ if ~strcmp(froot,'demo')
   % I advocate checking grid parameters and file sizes for ever
   defval('xver',1)
   
-  if xver>0
+  if xver>1
     % Some checks and balances
     disp(sprintf('Looking inside %s I am finding\n',fullfile(diro,dirp)))
     ls(fullfile(diro,dirp))
@@ -228,7 +228,10 @@ if ~strcmp(froot,'demo')
   % Need to have a unique UTM zone
   diferm(sum(zpg,1)/length(zpg)-zpg(1,:))
   % What would we want it to be in UTM, regardless of what RAPIDEYE says?
-  disp(sprintf('According to DEG2UTM, this is %s',zpg(1,:)))
+  if xver>0
+    % Some checks and balances
+    disp(sprintf('According to DEG2UTM, this is %s',zpg(1,:)))
+  end
 
   %%%%%%%%%% EXCESSIVE METADATA CHECKING%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   if xver>0
@@ -262,7 +265,10 @@ if ~strcmp(froot,'demo')
     if license('test', 'map_toolbox')
       % Another way to guess the UTM zone
       upg=utmzone(nanmean(latpg),nanmean(lonpg));
-      disp(sprintf('According to UTMZONE, this is %s',upg))
+      if xver>0
+        % Some checks and balances
+        disp(sprintf('According to UTMZONE, this is %s',upg))
+      end
       
       % Pixel CENTERS are [xutm yutm] = [row col 1]*refmat
       [~,refmat,bbox]=geotiffread(file2);
@@ -300,7 +306,7 @@ if ~strcmp(froot,'demo')
 
   %%%%%%%%%%%%% OPTIONAL OUTPUT %%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   
-  % Summarises the useful properties, see the help above
+  % Summarizes the useful properties, see the help above
   nprops.xs=xs;
   nprops.ys=ys;
   nprops.sp=sp;
@@ -358,6 +364,7 @@ else
     saxis=round(10.^prctile(log10(toplot(:)),percs));
     
     % Emily's recipe
+    % Now RAPIDEYA
     % toplot=toplot/prctile(toplot(:),95);
     % saxis=[0 1];
     
