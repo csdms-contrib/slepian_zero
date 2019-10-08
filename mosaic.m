@@ -46,7 +46,7 @@ function varargout=mosaic(froot,dirp,diro,xver,urld,clip)
 %
 % Tested on 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 10/07/2019
+% Last modified by fjsimons-at-alum.mit.edu, 10/08/2019
 
 % Root of the filename for three of the four files inside the directory
 defval('froot',{'3260220_2019-07-01_RE1_3A' '3260221_2019-07-01_RE1_3A' ...
@@ -72,7 +72,9 @@ defval('clip','_clip')
 % Load the images, should perhaps make a hash with these as well
 for index=1:length(froot)
   % Don't want the graphic test from RAPIDEYE 
-  [RD{index},nprops{index},props{index}]=rapideye(froot{index},dirp{index},[],min(xver,1),[],clip);
+  % Don't set xver to 0 since it needs that to provide an nprops. We can
+  % fix later. 
+  [RD{index},nprops{index},props{index}]=rapideye(froot{index},dirp{index},diro,min(xver,1),[],clip);
   if nargout>3
     % Don't worry about making the picture from TINITALY
     TDF{index}=tinitaly(nprops{index},[],[],min(xver,1),RD{index});
@@ -154,20 +156,25 @@ end
 % Ad hoc taking away here until further testing reveals systematics
 % Definitely take out the ones that have zero rims
 % Maybe ALL of the tps have 200 overlap?
-ifs=pref(dirp{1},'/');
-if strcmp(ifs,'trecolonne')
-  tp=tp([1 3 4 6],:)
-elseif strcmp(ifs,'titone')
-  tp=tp([1 2 5 6],:);
-elseif strcmp(ifs,'frantoiocornoleda')
+% Only allow overlap codes 8 4 2 1 tried out should probably apply to
+% all?
+
+% I should go through what gets picked and figure out the single (?)
+% condition that makes this work
+ifs=pref(dirp{1},'/'); tp
+if strcmp(ifs,'trecolonne') || strcmp(ifs,'titone')
+  pikit=[tp(:,3)==8 | tp(:,3)==4 | tp(:,3)==2 | tp(:,3)==1]
+  tp=tp(pikit,:)
+elseif strcmp(ifs,'frantoiocornoleda') || strcmp(ifs,'frantoiocornoleda3')
   % These are slivers that got reduced to nothing
-  tp=tp(4,:);
+  pikit=[tp(:,4)==200];
+  tp=tp(pikit,:);
 elseif strcmp(ifs,'frantoioacri') || strcmp(ifs,'frantoioacri3') ...
       || strcmp(ifs,'frantoiodecarlo4')
   % These are slivers that got reduced to nothing
   tp=tp(end,:);
 elseif strcmp(ifs,'darioratta') || strcmp(ifs,'frantoiohermes') ...
-      || strcmp(ifs,'oliointini3') || strcmp(ifs,'frantoiocornoleda3') ...
+      || strcmp(ifs,'oliointini3')  ...
       || strcmp(ifs,'sorellegarzo3') || strcmp(ifs,'darioratta3')
   tp=tp(1,:);
 end
