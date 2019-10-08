@@ -10,13 +10,13 @@ function rapideys(diro,dupli,xver)
 %
 % diro     Data directory [default: $ITALY/RAPIDEYE/ceraudo]
 % duplic   Duplicity (how many tiles to consider in a mosaic)
-% xver     2 Halts for verification
+% xver     2 halts for verification
 %
 % SEE ALSO:
 %
 % RAPIDEYM
 %
-% Last modified by Last modified by fjsimons-at-alum.mit.edu, 10/03/2019
+% Last modified by fjsimons-at-alum.mit.edu, 10/07/2019
 
 % Do a first loop to get unique days, then figure out multiplicity frmo
 % another ls2cell then adjust the main loop
@@ -54,7 +54,8 @@ spitout(sname,'tox',tox); clear tox
 % Save the variable named sname into the file named fname to initialize
 if xver~=2
   % Ask for input
-  disp('File will be overwritten')
+  disp('File will be overwritten. Type dbcont to continue')
+  keyboard
   % Don't begin the overwrite in verification mode!
   savit(sname)
 end
@@ -79,6 +80,8 @@ end
 
 % Main loop
 for index=1:dupli:length(dirp)
+  % Feed it the right directories
+  disp(reshape(cell2mat(dirp(index:index+dupli-1)),[],dupli)')
   % Get the images and MOSAIC them together, never request the topography
   [alldata,nprops,props]=mosaic(froot(index:index+dupli-1),...
                                 dirf(index:index+dupli-1),[],xver);
