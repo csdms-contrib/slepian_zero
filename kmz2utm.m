@@ -1,4 +1,4 @@
-function [xe,ye,ze]=kmz2utm(fname)
+function varargout=kmz2utm(fname)
 % [xe,ye,ze]=KMZ2UTM(fname)
 %
 % Reads a KMZ file and returns a structure with the variables in UTM
@@ -13,7 +13,25 @@ function [xe,ye,ze]=kmz2utm(fname)
 %
 % [xe,ye,ze]     UTM coordinates of the (so far, single) trace
 %
-% Last modified by fjsimons-at-alum.mit.edu, 09/29/2019
+% EXAMPLE:
+%
+% clear all; cd(fullfile(getenv('ITALY'),'RAPIDEYE'))
+%
+%% FROM A SATELLITE IMAGE IN A DIRECTORIZED STRUCTURE:
+%
+% figure(1); clf
+% [alldata,nprops]=rapideye('3357121_2019-03-04_RE1_3A','20190304_094134_3357121_RapidEye-1','enotre',[],[],'_clip');
+% imagesc([nprops.C11(1) nprops.CMN(1)],[nprops.C11(2) nprops.CMN(2)],rapideya(alldata)); hold on
+% [xe,ye,ze]=kmz2utm('enotre/SouthEnotreUrbanMesoraca.mat'); p(1)=plot(xe,ye,'y','LineWidth',1); hold off
+%
+%% FROM A PRESAVED SATELLITE IMAGE STACK:
+% 
+% figure(2); clf
+% load('enotre/ri_enotre.mat','enotre_20190304094134')
+% imagesc(enotre_20190304094134.nprops.xx,enotre_20190304094134.nprops.yy,rapideya(enotre_20190304094134.alldata)); hold on
+% [xe,ye,ze]=kmz2utm('enotre/SouthEnotreUrbanMesoraca.mat'); p(1)=plot(xe,ye,'y','LineWidth',1); hold off
+%
+% Last modified by fjsimons-at-alum.mit.edu, 10/09/2019
 
 % You need to be local for this
 if exist(sprintf('%s.mat',pref(fname)))~=2
@@ -37,6 +55,6 @@ else
   load(sprintf('%s.mat',pref(fname)))
 end
 
-
-
-
+% Only do output if you want it
+varns={xe,ye,ze};
+varargout=varns(1:nargout);
