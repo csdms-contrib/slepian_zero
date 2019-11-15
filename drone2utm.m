@@ -7,7 +7,7 @@ function drone2utm(nroot,ndir,pixi,froot,diro,clip)
 %
 % INPUT:
 %
-% nroot                    A file root name [default: 'enotre']
+% nroot                    A file root name [default: 'enotrehr']
 % ndir                     The directory where, e.g. enotre-dem.tif and enotre-ortho.tif exist
 % pixi                     1 If you want to take a visual look at it
 %                          0 If you just want to rewrite the image in a MAT stack
@@ -17,20 +17,20 @@ function drone2utm(nroot,ndir,pixi,froot,diro,clip)
 %
 % RAPIDEYE, RAPIDEYS, RAPIDEYM
 %
-% Last modified by fjsimons-at-alum.mit.edu, 11/12/2019
+% Last modified by fjsimons-at-alum.mit.edu, 11/14/2019
 
 % Where is the drone stuff?
-defval('nroot','enotre')
+defval('nroot','enotrehr')
 defval('ndir',fullfile(getenv('ITALY'),'DRONE',nroot))
-defval('pixi',0)
+defval('pixi',1)
 
-if strcmp(nroot,'enotre') || strcmp(nroot,'major')
+if strcmp(nroot(1:6),'enotre') || strcmp(nroot,'major')
   % For the corresponding embedding RAPIDEYE image
   defval('froot','3357121_2019-04-20_RE4_3A')
   defval('dirp','20190420_093020_3357121_RapidEye-4')
   defval('diro','/u/fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE/enotre')
   defval('clip','_clip')
-elseif strcmp(nroot,'amato')
+elseif strcmp(nroot(1:5),'amato')
   % For a corresponding embedding RAPIDEYE image
   defval('froot','3356717_2014-08-26_RE5_3A')
   defval('dirp','20140826_103229_3356717_RapidEye-5')
@@ -54,8 +54,12 @@ else
   ofile=fullfile(ndir,sprintf('%s-ortho.tif',nroot));
 
   % Create main TIFF objects with the data we really want
+  warning off MATLAB:imagesci:tiffmexutils:libtiffWarning 
+  warning off        imageio:tiffmexutils:libtiffWarning
   dtiffo=Tiff(dfile,'r');
   otiffo=Tiff(ofile,'r');
+  warning on MATLAB:imagesci:tiffmexutils:libtiffWarning 
+  warning on        imageio:tiffmexutils:libtiffWarning
 
   % All other properties pertaining to the image
   dprops=geotiffinfo(dfile);
@@ -92,8 +96,6 @@ else
   save(sname,sprintf('%s_drone',nroot),'rprops','-v7.3')
 end
 
-keyboard
-
 if pixi==1
   % If it was preloaded get this out here
   eval(sprintf('dXX=%s_drone.dem.XX;',nroot))
@@ -106,7 +108,7 @@ if pixi==1
   % Need to do this by hand for now
   % Load an enotre image file to check the overlay... it's why this
   % stretch is by hand, since we load it from our presaved stack
-  if strcmp(nroot,'enotre') || strcmp(nroot,'major')
+  if strcmp(nroot(1:6),'enotre') || strcmp(nroot,'major')
     load('/u/fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE/enotre/ri_enotre.mat','enotre_20190420093020')
     load('/u/fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE/enotre/ri_enotre.mat','enotre')
     rdata=enotre_20190420093020;
@@ -114,6 +116,8 @@ if pixi==1
     % What color axis/scale?
     if strcmp(nroot,'enotre')
       clis=[500 630];
+    elseif strcmp(nroot,'enotrehr')
+      clis=[500 715];
     elseif strcmp(nroot,'major')
       clis=[210 377];
     end
@@ -205,6 +209,7 @@ xeye=xpg(1)+spx/2:+spx:xpg(2);
 yeye=ypg(1)-spy/2:-spy:ypg(3);
 diferm(nc-length(xeye))
 diferm(nr-length(yeye))
+
 % This is the complete pairwise grid of the drone, equally spaced in lon/lat
 [XE,YE]=meshgrid(xeye,yeye);
 
@@ -215,6 +220,19 @@ tic
 [XX,YY]=projfwd(props,YE,XE);
 disp(sprintf('Running PROJFWD took %4.2f s on %ix%i grid',toc,size(XE,1),size(XE,2)))
 % You might now make the drone UTM grid regular, but leave it for now
+
+% If these were all NaN they didn't need the projection! And thus could
+% have kept the original. But notice it's 33S not 33N.
+if [sum(~isnan(XX(:))) + sum(~isnan(YY(:)))]==0
+  % Only indication that it was in UTM to begin with
+
+  % Isn't this somehow backward... see also TINITALY etc.... UTM2UTM
+  % didn't work for some strange reason...
+  [LAT,LON]=projinv(dprops,XE,YE);
+  [XX,YY]=projfwd(props,LAT,LON);
+  % In which case we also shouldn't save the whole file but rather only
+  % the axes... to be done later.
+end
 
 % Would need to make the data an input as well
 
