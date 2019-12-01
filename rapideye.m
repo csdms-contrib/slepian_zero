@@ -64,8 +64,8 @@ function varargout=rapideye(froot,dirp,diro,xver,urld,clip)
 %% Inside RAPIDEYE/enotre, a clipped example:
 % [alldata,nprops,props,rgbdata,alfadat]=rapideye('3357121_2013-04-28_RE5_3A','enotre/20130428_105037_3357121_RapidEye-5',[],[],[],'_clip');
 % And then a proper picture can be obtained using, e.g., one of the various
-% imagesc([nprops.C11(1) nprops.CMN(1)],[nprops.C11(2) nprops.CMN(2)],double(alldata(:,:,1))); axis xy
-% imagefnan(nprops.C11,nprops.CMN,double(alldata(:,:,1)))
+% imagesc([nprops.C11(1) nprops.CMN(1)],[nprops.C11(2) nprops.CMN(2)],rapideya(alldata)); axis xy
+% imagefnan(nprops.C11,nprops.CMN,rapideya(alldata))
 %
 % SEE ALSO
 %
@@ -77,7 +77,7 @@ function varargout=rapideye(froot,dirp,diro,xver,urld,clip)
 % Tested on 9.0.0.341360 (R2016a)
 % Tested on 9.6.0.1072779 (R2019a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 10/07/2019
+% Last modified by fjsimons-at-alum.mit.edu, 12/01/2019
 
 % Root of the filename for three of the four files inside the directory
 defval('froot','3357121_2018-09-11_RE3_3A')
@@ -90,9 +90,9 @@ if ~strcmp(froot,'demo')
   %%%%%%%%%% FILENAME AND DIRECTORY ORGANIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%
   
   % Bottom-level directory name, taken from the Rapideye download
-  defval('dirp','20180911_094536_3357121_RapidEye-3')
+  defval('dirp','20190809_092354_3357121_RapidEye-1')
   % Top-level directory name, where you keep the Rapideye directory
-  defval('diro','/u/fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE')
+  defval('diro','/u/fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE/enotre')
   
   % Remote directory where I copied the JSON file from DIRP so as to use
   % WEBREAD, noting that the JSON filename derives from DIRP, see
@@ -104,13 +104,17 @@ if ~strcmp(froot,'demo')
 
   % The UDM metadata local file, which should exist
   file2=fullfile(diro,dirp,sprintf('%s_udm%s.tif'              ,froot,clip));
+  % An alternative, non-RAPIDEYE format
+  file2a=fullfile(diro,dirp,sprintf('%s_AnalyticMS_DN_udm%s.tif'              ,froot,clip));
 
   % The XML metadata local file, which should exist (maybe clipped)
   file3=fullfile(diro,dirp,sprintf('%s_Analytic_metadata%s.xml',froot,clip));
 
   % The ANALYTIC actual data local file, which should exist
   file4=fullfile(diro,dirp,sprintf('%s_Analytic%s.tif'         ,froot,clip));
-  
+  % An alternative, non-RAPIDEYE format
+  file4a=fullfile(diro,dirp,sprintf('%s_AnalyticMS%s.tif'         ,froot,clip));
+
   % The JSON metadata webfile, may be a backup for the local file
   file5=fullfile(     urld,sprintf('%s_metadata.json'        ,dirp ));
 
@@ -192,26 +196,41 @@ if ~strcmp(froot,'demo')
   % Create main TIFF object with the data we really want
   warning off MATLAB:imagesci:tiffmexutils:libtiffWarning 
   warning off        imageio:tiffmexutils:libtiffWarning
-  tiffo=Tiff(file4,'r');
+  try
+    tiffo=Tiff(file4,'r');
+    flag=1;
+  catch
+    tiffo=Tiff(file4a,'r');
+    flag=0;
+  end
   warning on MATLAB:imagesci:tiffmexutils:libtiffWarning 
   warning on        imageio:tiffmexutils:libtiffWarning
 
-  % Again verify and show ways to address these properties
-  diferm(nc-getTag(tiffo,'ImageWidth'))
-  diferm(nr-getTag(tiffo,'ImageLength'))
+  if flag==1
+    % Again verify and show ways to address these properties
+    diferm(nc-getTag(tiffo,'ImageWidth'))
+    diferm(nr-getTag(tiffo,'ImageLength'))
+  else
+    nc=getTag(tiffo,'ImageWidth');
+    nr=getTag(tiffo,'ImageLength');
+  end
   
   % Read it one way... note that IMREAD(file4) would do this too, but
   % it wouldn't of course give you any of the checkable metadata
   alldata=read(tiffo);
-  % Five-dimensional
-  diferm(size(alldata)-[nr nc 5])
+  if flag==1
+    % Five-dimensional
+    diferm(size(alldata)-[nr nc 5])
+  end
   
   % Read it another way...
   if nargout>3
     [rgbdata,alfadat]=readRGBAImage(tiffo);
     % Three-dimensional plus an extra one
-    diferm(size(rgbdata)-[nr nc 3])
-    diferm(size(alfadat)-[nr nc  ])
+    if flag==1
+      diferm(size(rgbdata)-[nr nc 3])
+      diferm(size(alfadat)-[nr nc  ])
+    end
   else
     [rgbdata,alfadat]=deal(NaN);
   end
@@ -271,7 +290,11 @@ if ~strcmp(froot,'demo')
       end
       
       % Pixel CENTERS are [xutm yutm] = [row col 1]*refmat
-      [~,refmat,bbox]=geotiffread(file2);
+      try
+	[~,refmat,bbox]=geotiffread(file2);
+      catch
+	[~,refmat,bbox]=geotiffread(file2a);
+      end	
 
       % The XML file has the same information but we won't bother with
       % it now since it's a thicket of attributes and children
@@ -280,9 +303,11 @@ if ~strcmp(froot,'demo')
       
       % If I get this right, this should hold mutely, if there should ever
       % be a difference we need to revisit this
-      diferm(xs-bbox(1))
-      diferm(ys-bbox(4))
-      diferm(sp-refmat(2))
+      if flag==1
+	diferm(xs-bbox(1))
+	diferm(ys-bbox(4))
+	diferm(sp-refmat(2))
+      end
 
       if xver==2
 	% Clears the current figure; does not start a new one
