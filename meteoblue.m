@@ -10,7 +10,7 @@ function meteoblue(diro,xver)
 % xver      1 Makes a plot of a variable
 %           0 Just does the conversion [default]
 %
-% Last modified by fjsimons-at-alum.mit.edu, 09/11/2019
+% Last modified by fjsimons-at-alum.mit.edu, 12/16/2019
 
 % Defaults
 defval('xver',0)
@@ -18,6 +18,8 @@ defval('diro',fullfile(getenv('ITALY'),'METEOBLUE','csv'))
 
 % Look inside, find them all
 fnames=ls2cell(fullfile(diro,'*.csv'));
+
+keyboard
 
 % The apparent format - twenty-five total
 N=25;
@@ -78,7 +80,7 @@ for index=1:length(fnames)
     sname=pref(fnames{index});
     % Assign structure
     msg=sprintf('Created by fjsimons@alum.mit.edu using %s on %s',upper(mfilename),date);
-    % The below is a way, but really no way to do this
+    % The below is a way, but really no way to do this, see also RAPIDEYM 
     % eval(sprintf('%s.%s=%s;',sname,'toc','toc'))
     fields={'lon' 'lat' 'asl' 'toc' 'dt' 'data' 'msg'};
     values={LON LAT ASL toc dt data msg};
@@ -91,7 +93,7 @@ for index=1:length(fnames)
     ith=1;
     figure(gcf)
     clf
-    ah=krijetem(subplot(2,1);
+    ah=krijetem(subnum(2,1));
     % The whole data set in UTC
     axes(ah(1))
     p(1)=plot(dt,data(:,5+ith));
