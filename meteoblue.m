@@ -19,8 +19,6 @@ defval('diro',fullfile(getenv('ITALY'),'METEOBLUE','csv'))
 % Look inside, find them all
 fnames=ls2cell(fullfile(diro,'*.csv'));
 
-keyboard
-
 % The apparent format - twenty-five total
 N=25;
 % General data format
@@ -60,34 +58,47 @@ for index=1:length(fnames)
 
   % Plot it or save it
   if xver==0
-    % Save the data as a MAT file
-    var1=parse(NAME(10:end),';');
-    var2=parse(UNIT(10:end),';');
-    var3=parse(HEADER(1:end),';');
-    % Vertical spacers
-    hspc=size(var3,1)-size(var1,1);
-    vsp1=str2mat(repmat(32,hspc,size(var1,2)));
-    vsp2=str2mat(repmat(32,hspc,size(var2,2)));
-    var1=[vsp1 ; var1];
-    var2=[vsp2 ; var2];
-    % Horizontal spacers
-    spc1=repmat(' ',size(var1,1),2);
-    % Table of contents
-    toc=number([var3 spc1 var1 spc1 var2]);
+    % Change directory name
+    [a,b]=fileparts(diro);
+    if strcmp(b,'csv')
+      diro2=fullfile(a,'mat');
+    end
+
     % Save name for file variable
     sname=pref(suf(fnames{index},'_'));
     % On second thought, leave the mb_
     sname=pref(fnames{index});
-    % Assign structure
-    msg=sprintf('Created by fjsimons@alum.mit.edu using %s on %s',upper(mfilename),date);
-    % The below is a way, but really no way to do this, see also RAPIDEYM 
-    % eval(sprintf('%s.%s=%s;',sname,'toc','toc'))
-    fields={'lon' 'lat' 'asl' 'toc' 'dt' 'data' 'msg'};
-    values={LON LAT ASL toc dt data msg};
-    % Use my homegrown powerhouse
-    defstruct(sname,fields,values)
-    % Save it
-    eval(sprintf('save(''%s'',''%s'')',fullfile(diro,sname),sname))
+    cname=fullfile(diro2,sprintf('%s.mat',sname));
+
+    if exist(cname)~=2
+       % Save the data as a MAT file
+       var1=parse(NAME(10:end),';');
+       var2=parse(UNIT(10:end),';');
+       var3=parse(HEADER(1:end),';');
+       % Vertical spacers
+       hspc=size(var3,1)-size(var1,1);
+       vsp1=str2mat(repmat(32,hspc,size(var1,2)));
+       vsp2=str2mat(repmat(32,hspc,size(var2,2)));
+       var1=[vsp1 ; var1];
+       var2=[vsp2 ; var2];
+       % Horizontal spacers
+       spc1=repmat(' ',size(var1,1),2);
+       % Table of contents
+       toc=number([var3 spc1 var1 spc1 var2]);
+       % Assign structure
+       msg=sprintf('Created by fjsimons@alum.mit.edu using %s on %s',upper(mfilename),date);
+       
+       % The below is a way, but really no way to do this, see also RAPIDEYM 
+       % eval(sprintf('%s.%s=%s;',sname,'toc','toc'))
+       fields={'lon' 'lat' 'asl' 'toc' 'dt' 'data' 'msg'};
+       values={LON LAT ASL toc dt data msg};
+       % Use my homegrown powerhouse
+       defstruct(sname,fields,values)
+       % Save it
+       eval(sprintf('save(''%s'',''%s'')',cname,sname))
+    else
+      warning(sprintf('%s already existed!',cname))
+    end
   else
     % Make a plot of the ith variable
     ith=1;
@@ -98,7 +109,7 @@ for index=1:length(fnames)
     axes(ah(1))
     p(1)=plot(dt,data(:,5+ith));
     datetick('x')
-    title('Whole range')
+    title(sprintf('Whole range %s',nounder(fnames{index})))
 
     % The last day in LOCAL TIME
     dt.TimeZone='Europe/Rome';
