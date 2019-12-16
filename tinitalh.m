@@ -22,7 +22,7 @@ function varargout=tinitalh(dirp,diro,xver)
 %
 % tinitalh([],[],2) % will bring up the map with available tiles
 %
-% Last modified by fjsimons-at-alum.mit.edu, 10/03/2019
+% Last modified by fjsimons-at-alum.mit.edu, 12/16/2019
 
 % Bottom-level directory name, taken from the Tinitaly download
 defval('dirp','DATA')
@@ -63,7 +63,7 @@ TN=H{1};
 TA=[TV{:}];
 
 % If you want the box corners
-if nargout>5
+if nargout>4
   for index=1:length(hdr)
     nc=TV{index}(1);
     nr=TV{index}(2);
@@ -93,15 +93,15 @@ if xver==2
     yl=TV{index}(4);
     sp=TV{index}(5);
     % Plot the outer extent of the boxes, as I interpret it now
-    bx=double([xl xl xl xl xl]+[0 0      nc*sp nc*sp 0]);
-    by=double([yl yl yl yl yl]+[0 nr*sp  nr*sp 0     0]);
-    plot(bx,by); hold on
-    text(bx(1)+[bx(3)-bx(1)]/2,...
-	 by(1)+[by(2)-by(1)]/2,...
+    bbx=double([xl xl xl xl xl]+[0 0      nc*sp nc*sp 0]);
+    bby=double([yl yl yl yl yl]+[0 nr*sp  nr*sp 0     0]);
+    plot(bbx,bby); hold on
+    text(bbx(1)+[bbx(3)-bbx(1)]/2,...
+	 bby(1)+[bby(2)-bby(1)]/2,...
 	 sprintf('%i %s',index,...
 		 pref(pref(hdr{index}),'_')))
-    BX(index,:)=minmax(bx);
-    BY(index,:)=minmax(by);
+    BX(index,:)=minmax(bbx);
+    BY(index,:)=minmax(bby);
   end
   hold off
   axis image
