@@ -159,24 +159,30 @@ end
 % Only allow overlap codes 8 4 2 1 tried out should probably apply to
 % all?
 
+% The RAPIDEYE gridcells should be a clue, but depending on the time
+% stamps, they all get loaded in random order...
 % I should go through what gets picked and figure out the single (?)
-% condition that makes this work
+% condition that makes this work. Special conditions!
 ifs=pref(dirp{1},'/'); tp
 if strcmp(ifs,'trecolonne') || strcmp(ifs,'titone')
-  pikit=[tp(:,3)==8 | tp(:,3)==4 | tp(:,3)==2 | tp(:,3)==1]
+  pikit=[tp(:,3)==8 | tp(:,3)==4 | tp(:,3)==2 | tp(:,3)==1];
   tp=tp(pikit,:)
 elseif strcmp(ifs,'frantoiocornoleda') || strcmp(ifs,'frantoiocornoleda3')
   % These are slivers that got reduced to nothing
   pikit=[tp(:,4)==200];
   tp=tp(pikit,:);
 elseif strcmp(ifs,'frantoioacri') || strcmp(ifs,'frantoioacri3') ...
-      || strcmp(ifs,'frantoiodecarlo4')
+      || strcmp(ifs,'frantoioacri4')
   % These are slivers that got reduced to nothing
   tp=tp(end,:);
 elseif strcmp(ifs,'darioratta') || strcmp(ifs,'frantoiohermes') ...
       || strcmp(ifs,'oliointini3')  ...
       || strcmp(ifs,'sorellegarzo3') || strcmp(ifs,'darioratta3')
   tp=tp(1,:);
+elseif strcmp(ifs,'frantoicutrera3')
+  % This one had annoying file combinations
+  pikit=tp(:,3)==2;
+  tp=tp(pikit,:)
 end
 
 % Trimming the tiles two by two
@@ -198,7 +204,7 @@ for index=1:size(tp,1)
   % The appropriate index
   frst=tp(index,1);
   scnd=tp(index,2);
-  
+
   % Check and trim and reassign... this is NOT a blending
   % Do the hard check first and failsafe out of it to avoid duplicate
   % checking; in other words if either of them fails don't proceed 
