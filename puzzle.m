@@ -4,8 +4,8 @@ function varargout=puzzle(X1,Y1,X2,Y2,rim)
 % For non-equal-size tiles where one of them may share an overlapping rim of
 % a certain fixed width with another one with identical coordinates,
 % identifies it. If the rim is unknown, you can determine it first,
-% possibilities up the the smallest of any of the dimensions of the
-% images are considered (i.e. the shortest length of any of the four).
+% possibilities up the smallest of any of the dimensions of the images are
+% considered (i.e. the shortest length of any of the four).
 %
 % INPUT:
 %
