@@ -5,7 +5,8 @@ function varargout=tinitaly(nprops,dirp,diro,xver,alldata)
 %
 % INPUT:
 %
-% nprops     A minimal structure with properties from RAPIDEYE
+% nprops     A minimal structure with properties from RAPIDEYE, OR:
+%            {XE YE ZE} the way it would come out of RAPIDEYG
 % dirp       Subdirectory [e.g. 'DATA'] of:
 % diro       Main directory [e.g. '/home/fjsimonsIFILES/TOPOGRAPHY/ITALY/TINITALY']
 % xver       1 Provides excessive verification 
@@ -20,12 +21,12 @@ function varargout=tinitaly(nprops,dirp,diro,xver,alldata)
 %            i.e. the interpolation of the corresponding TINITALY data!
 % F          The interpolant used such that TDF=F(XE,YE), where [XE,YE]
 %            is the RAPIDEYE grid recovered from RAPIDEYG
-% SX,SY     Coordinates of rivers crossing the relevant tile
+% SX,SY      Coordinates of rivers crossing the relevant tile
 %
 % EXAMPLE 1, for unclipped data, multiple images of the same "grid_cell"
 %
-% [alldata1,nprops1]=rapideye('3357121_2018-09-11_RE3_3A','20180911_094536_3357121_RapidEye-3');
-% [alldata2,nprops2]=rapideye('3357121_2018-11-09_RE1_3A','20181109_093150_3357121_RapidEye-1');
+% [alldata1,nprops1]=rapideye('3357121_2018-09-11_RE3_3A','20180911_094536_3357121_RapidEye-3',[],[],[],'_clip');
+% [alldata2,nprops2]=rapideye('3357121_2018-11-09_RE1_3A','20181109_093150_3357121_RapidEye-1',[],[],[],'_clip');
 % figure(1); clf; tinitaly(nprops1,[],[],[],alldata1)
 % figure(2); clf; tinitaly(nprops2,[],[],[],alldata2)
 % 
@@ -44,7 +45,19 @@ function varargout=tinitaly(nprops,dirp,diro,xver,alldata)
 % [alldata,nprops]=rapideye('3357121_2019-03-04_RE1_3A','enotre/20190304_094134_3357121_RapidEye-1',[],1,[],'_clip');
 % figure(3); clf; [TDF,F]=tinitaly(nprops,[],[],[],alldata);
 %
-% Last modified by fjsimons-at-alum.mit.edu, 09/08/2019
+% EXAMPLE 5, for an input that isn't a struct but rather a cell
+%
+% load(fullfile(getenv('ITALY'),'METEOBLUE','mat','mb_pisa.mat'))
+% warning off MATLAB:nargchk:deprecated
+% [xe,ye,ZE]=deg2utm(mb_pisa.lat,mb_pisa.lon);
+%  warning on MATLAB:nargchk:deprecated
+% ZE=ZE(abs(ZE)~=32); kspan=20000; csize=10;
+% XXE=xe-kspan+csize/2: csize:xe+kspan-csize/2;
+% YYE=ye+kspan-csize/2:-csize:ye-kspan+csize/2;
+% [XE,YE]=meshgrid(XXE,YYE);
+% [TDF,F,SX,SY]=tinitaly({XE YE ZE},[],[],2);
+%
+% Last modified by fjsimons-at-alum.mit.edu, 12/16/2019
 
 % Bottom-level directory name, taken from the Tinitaly download
 defval('dirp','DATA')
@@ -57,8 +70,17 @@ defval('xver',2)
 % No default data file, but provide one if you want it checked
 defval('alldata',[])
 
-%%%%%%%%%%%%%%% FIRST THE RAPIDEYE GRID %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[XE,YE,ZE]=rapideyg(nprops,xver);
+if isstruct(nprops)
+  %%%%%%%%%%%%%%% FIRST THE RAPIDEYE GRID %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  [XE,YE,ZE]=rapideyg(nprops,xver);
+else
+  % Let's say you get corner points and a resolution in a UTM grid and I
+  % can make a new XE, YE, ZE instead.
+  XE=nprops{1};
+  YE=nprops{2};
+  ZE=nprops{3};
+  alldata=[];
+end
 
 %%%%%%%%%% METADATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Only if you have the headers pre-prepared this will work, bypass box plots
@@ -70,8 +92,9 @@ ZTT='32N';
 
 %%%%% FIND APPROPRIATE TOPODATA FILES TO MATCH RAPIDEYE %%%%%%%%%%%%%%%%%%%
 
-% Convert all the box corners to the target coordinates
-[bxp,byp,a]=utm2utm(bx,by,ZTT,ZE,xver);
+% Convert all the box corners to the target coordinates, no notifications
+[bxp,byp,a]=utm2utm(bx,by,ZTT,ZE,0);
+% Check if theres is any change?
 
 % Determine in which box the end points of the XE,YE fall
 for index=1:length(hdr)
@@ -139,7 +162,7 @@ if length(indices)>1
   % Figure out all the pairwise rimmed relationships
   tp=nchoosek(indices,2); tp=[tp nan(size(tp,1),1)];
   for index=1:size(tp,1)
-    disp(sprintf('Testing tiles %2.2i and %2.2i',tp(index,1),tp(index,2)))
+    disp(sprintf('Testing tiles  %2.2i and %2.2i',tp(index,1),tp(index,2)))
     % We need to also map the required tile back to the index set with which
     % it was loaded...
     frst=find(indices==tp(index,1));
@@ -151,7 +174,7 @@ if length(indices)>1
 
   % I THINK THAT SIMPLY COMBINING THESE LOOPS WILL PREVENT OVERTRIMMING IN
   % CASE THERE IS MORE THAN ONE PAIR MATCH. FOR TINITALY/RAPIDEYE, SO FAR,
-  % WE HAVE ONLY ENCOUNTERED PAIRS IN THE TOPOGRAPHY MATCH. MOSAICING
+  % WE HAVE ONLY ENCOUNTERED pairs IN THE TOPOGRAPHY MATCH. MOSAICING
   % RAPIDEYE IS THE FIRST INSTANCE OF QUARTETS... 
 
   % The match is up to a "slide", we just determine where the overlapping
@@ -166,7 +189,8 @@ if length(indices)>1
   % still trim the results, as a third tile will pick up the remainder! So
   % here we determine the schedule of testing.
   for index=1:size(tp,1)
-    disp(sprintf('Trimming tiles %2.2i and %2.2i',tp(index,1),tp(index,2)))
+    disp(sprintf('%s trimming tiles %2.2i and %2.2i',upper(mfilename),...
+                 tp(index,1),tp(index,2)))
     % In the end we never check the data match... but we could, and if we
     % did and we knew how to read the warnings when they shouldn't match, or
     % if we worked out how to just check the partial match, we'd be
@@ -225,7 +249,8 @@ end
 
 % Convert TOPODATA to the RAPIDEYE coordinate system
 for index=1:length(indices)
-  [XP{index},YP{index},ZP{index}]=utm2utm(XT{index},YT{index},ZT{index},ZE,xver);
+  % Turn off the notifications
+  [XP{index},YP{index},ZP{index}]=utm2utm(XT{index},YT{index},ZT{index},ZE,0);
 end 
 % Those things are NOT equally spaced
 % ZP should be a unique entry, one would check that here
@@ -317,22 +342,24 @@ if xver>1
   caxx=[-2154.5 1601.4];
   plotit(XE,YE,TDF,caxx,2)
   axis image
-  % Plot the RAPIDEYE data
-  ah(4)=subplot(224);
-  toplot=double(alldata(:,:,1));
-  caxx=round(10.^prctile(log10(toplot(:)),[2 99]));
-  plotit(XE,YE,toplot,caxx,2)
-  axis image
-  % Plot the rivers on top
-  [SX,SY,S]=rinitaly(nprops);
-  axes(ah(3))
-  hold on; r1=plot(SX,SY,'k'); hold off
-  axes(ah(4))
-  hold on; r2=plot(SX,SY,'k'); hold off
-  set(r2,'LineWidth',2)
-  drawnow
+  if ~isempty(alldata)
+    % Plot the RAPIDEYE data
+    ah(4)=subplot(224);
+    toplot=double(alldata(:,:,1));
+    caxx=round(10.^prctile(log10(toplot(:)),[2 99]));
+    plotit(XE,YE,toplot,caxx,2)
+    axis image
+    % Plot the rivers on top
+    [SX,SY,S]=rinitaly(nprops);
+    axes(ah(3))
+    hold on; r1=plot(SX,SY,'k'); hold off
+    axes(ah(4))
+    hold on; r2=plot(SX,SY,'k'); hold off
+    set(r2,'LineWidth',2)
+    drawnow
+  end
 end
-if nargout>2 || xver==0
+if [nargout>2 || xver==0] && ~isempty(alldata)
   % Just get the rivers 
   [SX,SY,S]=rinitaly(nprops);
 else
