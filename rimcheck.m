@@ -1,7 +1,7 @@
 function [A,B]=rimcheck(A,B,rim,M,xver,sev)
-% [A,B]=RIMCHECK(A,B,rim,M,xver)
+% [A,B]=RIMCHECK(A,B,rim,M,xver,sev)
 %
-% Uses the output of PUZZLE to check the rims of matrices
+% Uses the output of PUZZLE to check the rims of matrices, and trim them
 %
 % INPUT:
 %
@@ -12,12 +12,15 @@ function [A,B]=rimcheck(A,B,rim,M,xver,sev)
 %            only in some of the cases relevant to TINITALY, but also
 %            triggers an error rather than a warning when the time comes
 %          0 do not issue any warnings [default]
+% sev      0 produces WARNING upon failure [default]
+%          1 produces ERROR upon failure 
+%           2 invokes KEYBOARD upon failure
 %
 % OUTPUT:
 %
 % A,B      The two matrices where one was trimmed to avoid the overlap
 %
-% Last modified by fjsimons-at-alum.mit.edu, 09/09/2019
+% Last modified by fjsimons-at-alum.mit.edu, 12/16/2019
 
 % Default is to not check 
 defval('xver',0)
