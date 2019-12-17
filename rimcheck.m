@@ -7,14 +7,14 @@ function [A,B]=rimcheck(A,B,rim,M,xver,sev)
 %
 % A,B      Two matrices, not necessarily the same size, some overlap
 % rim      The rim size of possible overlap
-% M        The PUZZLE match code
+% M        The PUZZLE match code - only 8, 4, 2 and 1 get trimmed
 % xver     1 issue warnings relevant for particular alignment situations
 %            only in some of the cases relevant to TINITALY, but also
 %            triggers an error rather than a warning when the time comes
 %          0 do not issue any warnings [default]
 % sev      0 produces WARNING upon failure [default]
 %          1 produces ERROR upon failure 
-%           2 invokes KEYBOARD upon failure
+%          2 invokes KEYBOARD upon failure
 %
 % OUTPUT:
 %
