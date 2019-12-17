@@ -25,7 +25,7 @@ function varargout=rinitaly(nprops,froot,dirp,diro,buf,dlev,xver)
 %
 % rinitaly('demo')
 %
-% Last modified by fjsimons-at-alum.mit.edu, 05/20/2019
+% Last modified by fjsimons-at-alum.mit.edu, 12/17/2019
 
 % Make some defaults
 
@@ -75,10 +75,10 @@ if isstruct(nprops) || [~isstruct(nprops) && ~strcmp(nprops,'demo')]
   % Turn out all of them at the same time... could insert NaNs
   SX=[S(:).X];
   SY=[S(:).Y];
-  
+
   % How about we use the polygon to subselect the rivers within it
   if buf>0
-    % Let us by liberal in extending the box a bit
+    % Let us be liberal in extending the box a bit
     [lab,lob]=bufferm(nprops.la,nprops.lo,buf);
     % But you need to get rid of the interior domain and the extra NaN
     lo=lob(length(nprops.lo)+2:end);
@@ -88,27 +88,32 @@ if isstruct(nprops) || [~isstruct(nprops) && ~strcmp(nprops,'demo')]
     lo=nprops.lo; la=nprops.la;
   end
   in=inpolygon(SX,SY,lo,la);
-  SX=SX(in);
-  SY=SY(in);
+
+  if sum(in)~=0
+    SX=SX(in);
+    SY=SY(in);
+
+    % One has to hope it comes up with the same zone as what we thought
+    warning off MATLAB:nargchk:deprecated
+    [xSX,ySY,ZS]=deg2utm(SY,SX);
+    warning on MATLAB:nargchk:deprecated
   
-  % One has to hope it comes up with the same zone as what we thought
-  warning off MATLAB:nargchk:deprecated
-  [xSX,ySY,ZS]=deg2utm(SY,SX);
-  warning on MATLAB:nargchk:deprecated
+    % Need to have a unique UTM zone
+    diferm(sum(ZS,1)/length(ZS)-ZS(1,:))
+    % What would we want it to be in UTM, regardless of what RAPIDEYE says?
+    disp(sprintf('According to DEG2UTM, this is %s',ZS(1,:)))
+    if license('test', 'map_toolbox')
+      % Another way to guess the UTM zone
+      upg=utmzone(nanmean(SY),nanmean(SX));
+      disp(sprintf('According to UTMZONE, this is %s',upg))
+    end
   
-  % Need to have a unique UTM zone
-  diferm(sum(ZS,1)/length(ZS)-ZS(1,:))
-  % What would we want it to be in UTM, regardless of what RAPIDEYE says?
-  disp(sprintf('According to DEG2UTM, this is %s',ZS(1,:)))
-  if license('test', 'map_toolbox')
-    % Another way to guess the UTM zone
-    upg=utmzone(nanmean(SY),nanmean(SX));
-    disp(sprintf('According to UTMZONE, this is %s',upg))
+    % Insert NaNs for beauty
+    [SX,SY]=penlift(xSX,ySY,dlev);
+  else
+    [SX,SY]=deal(nan);
   end
-  
-  % Insert NaNs for beauty
-  [SX,SY]=penlift(xSX,ySY,dlev);
-  
+
   % Make a plot if you so desire
   if xver==2
     plot(SX,SY,'b')
