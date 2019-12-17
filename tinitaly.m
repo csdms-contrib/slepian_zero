@@ -45,12 +45,12 @@ function varargout=tinitaly(nprops,dirp,diro,xver,alldata)
 % [alldata,nprops]=rapideye('3357121_2019-03-04_RE1_3A','enotre/20190304_094134_3357121_RapidEye-1',[],1,[],'_clip');
 % figure(3); clf; [TDF,F]=tinitaly(nprops,[],[],[],alldata);
 %
-% EXAMPLE 5, for an input that isn't a struct but rather a cell
+% EXAMPLE 5, see also METEOBLUT
 %
 % load(fullfile(getenv('ITALY'),'METEOBLUE','mat','mb_pisa.mat'))
 % warning off MATLAB:nargchk:deprecated
 % [xe,ye,ZE]=deg2utm(mb_pisa.lat,mb_pisa.lon);
-%  warning on MATLAB:nargchk:deprecated
+% warning on MATLAB:nargchk:deprecated
 % ZE=ZE(abs(ZE)~=32); kspan=20000; csize=10;
 % XXE=xe-kspan+csize/2: csize:xe+kspan-csize/2;
 % YYE=ye+kspan-csize/2:-csize:ye-kspan+csize/2;
@@ -94,7 +94,6 @@ ZTT='32N';
 
 % Convert all the box corners to the target coordinates, no notifications
 [bxp,byp,a]=utm2utm(bx,by,ZTT,ZE,0);
-% Check if theres is any change?
 
 % Determine in which box the end points of the XE,YE fall
 for index=1:length(hdr)
@@ -212,8 +211,8 @@ if length(indices)>1
     % Again... don't forget the mapping
     frst=find(indices==tp(index,1));
     scnd=find(indices==tp(index,2));
- 
-    % Check and trim and reassign... 
+
+    % Check and trim and reassign when appropriate
     [XT{frst},XT{scnd}]=...
         rimcheck(XT{frst},XT{scnd},rim,tp(index,3),hm);
     [YT{frst},YT{scnd}]=...
@@ -249,11 +248,22 @@ end
 
 % Convert TOPODATA to the RAPIDEYE coordinate system
 for index=1:length(indices)
-  % Turn off the notifications
-  [XP{index},YP{index},ZP{index}]=utm2utm(XT{index},YT{index},ZT{index},ZE,0);
+  % Looks like some codes really aren't in need of interpolation
+  if strcmp(ZT{index},'32N') && strcmp(ZE,'32T')
+    % I did verify that UTM2DEG reacts the same, see below
+    XP{index}=XT{index};
+    YP{index}=YT{index};
+    ZP{index}=ZT{index};
+  else
+    [XP{index},YP{index},ZP{index}]=utm2utm(XT{index},YT{index},ZT{index},ZE,0);
+  end
 end 
-% Those things are NOT equally spaced
+% Those things are NOT equally spaced anymore, in general
 % ZP should be a unique entry, one would check that here
+
+% If the resulting grid IS equally spaced should be using a subset of the
+% grid and perhaps griddedInterpolant. Now, in this case, XE and YE
+% define a subset of the grids composed of XP and YP....
 
 % NOW YOU NEED TO FLATTEN THESE THINGS ALL TOGETHER
 [XPP,YPP,TDD]=deal([]);
@@ -263,7 +273,7 @@ for index=1:length(indices)
   TDD=[TDD ; TD{index}(:)];
 end
 
-% Its is here that I could save time and use the polygon with USABLE
+% It's is here that I could save time and use the polygon with USABLE
 % data as opposed to the one that encompasses it all
 % on=inpolygon(XPP,YPP,nprops.xp,nprops.yp);
 % Limit the inputs to those that are definitely inside the
@@ -359,8 +369,20 @@ if xver>1
     drawnow
   end
 end
-if [nargout>2 || xver==0] && ~isempty(alldata)
+if [nargout>2 || xver==0] 
   % Just get the rivers 
+  if ~isstruct(nprops)
+    % Need to still make it
+    zizi=sprintf('%s %s',ZE(1:2),ZE(3));
+    % Here I verified the special case of which I spoke above
+    warning off MATLAB:nargchk:deprecated
+    [lala,lolo]=utm2deg([min(XE(:)) max(XE(:)) max(XE(:)) min(XE(:)) min(XE(:))]',...
+	[max(YE(:)) max(YE(:)) min(YE(:)) min(YE(:)) max(YE(:))]',repmat(zizi,5,1));
+    warning on MATLAB:nargchk:deprecated
+    clear nprops
+    nprops.lo=lolo(:)';
+    nprops.la=lala(:)';
+  end
   [SX,SY,S]=rinitaly(nprops);
 else
   [SX,SY,S]=deal(NaN);
