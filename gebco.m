@@ -84,14 +84,14 @@ if ~isstr(lon)
 	[zz(index),lonz(index),latz(index)]=gebco(lon(index),lat(index),vers,[],[],xver);
       end
       % And then leave, because you are finished, output
-      varns={zz,lonz,latz,A,R,jig};
+      varns={zz,lonz,latz,A,R,jig};  
       varargout=varns(1:nargout);
       return
     else
       % Make a little bounding box around the request, inspired by the known 2014 resolution
       % latlim and lonlim must be ascending and between what the WMS layer can support
-      latlim=lat+[-1 +1]/60/2+(-1)^randi(2)*jig*1e-3;
-      lonlim=lon+[-1 +1]/60/2+(-1)^randi(2)*jig*1e-3;
+      latlim=lat+[-1 +1]/60/2/5+(-1)^randi(2)*jig*1e-3
+      lonlim=lon+[-1 +1]/60/2/5+(-1)^randi(2)*jig*1e-3
       
       if xver==1
 	% Access the data base of all WMS servers, return a WMSLayer object
