@@ -180,8 +180,6 @@ if ~isstr(lon)
 	  num2str(latlim(1)),num2str(lonlim(1)),num2str(latlim(2)),num2str(lonlim(2)),...
 	  wms.pxx,wms.pxy,wms.pxw,wms.pxh);
       
-      keyboard
-
       % Get the output, cannot use WMSREAD if it isn't a GetMap request...
       % [wmsu,R,U]=wmsread(wmsr);
       % So, need to parse the output
