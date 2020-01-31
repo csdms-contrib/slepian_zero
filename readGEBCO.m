@@ -137,7 +137,7 @@ if nargout==0
     diferm(size(zr,1)-NxNy(2))
   elseif gt==1
     % Read the actual data
-    z=flipud(ncread(fname,'sid')');
+    zr=flipud(ncread(fname,'sid')');
     % You could read longitude and latitude directly also...
   end
   
