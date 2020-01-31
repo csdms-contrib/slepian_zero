@@ -43,7 +43,11 @@ git commit -m "Checks overlapping rims in a tile set"
 git push origin master
 
 git add tinitaly.m
-git commit -m "Matches TINITALY topography to RAPIDEYE tiles"
+git commit -m "Matches TINITALY topography to RAPIDEYE tiles and other grids"
+git push origin master
+
+git add drone2utm.m
+git commit -m "Converts drone imagery to match RAPIDEYE files "
 git push origin master
 
 git add tinitalh.m
@@ -123,12 +127,23 @@ git commit -m "Conversion of KMZ file to UTM coordinates "
 git push
 
 git add croputm.m
-git add croputm.m
 git commit -m "Limit view and transform WGS84 geocentric degrees to UTM coordinates"
+git push
+
+git add curvedist.m
+git commit -m "Calculates the distance between two curves"
 git push
 
 git add utmlabels.m
 git commit -m "Plots good-looking UTM labels on the current axes"
+git push
+
+git add treerings1.m
+git commit -m "A first code for tree-ring analysis with manual input"
+git push
+
+git add treerings2.m
+git commit -m "A second code for tree-ring analysis with manual input"
 git push
 
 git add utm2utm.m
@@ -166,9 +181,4 @@ git push
 git add lineshift.m
 git commit -m "Shifts a set of scattered points along their best-fitting line"
 git push
-
-
-
-
-
 
