@@ -1,16 +1,20 @@
-function varargout=readGEBCO(vers,npc)
-% [mname,sname,up,dn,lt,rt,dxdy,NxNy,vers,npc]=readGEBCO(vers,npc)
+function varargout=readGEBCO(vers,npc,gt)
+% [mname,sname,up,dn,lt,rt,dxdy,NxNy,vers,npc]=readGEBCO(vers,npc,gt)
 %
 % Reads a GEBCO bathymetry grid, stored in NETCDF format, and splits it
 % into manageable MAT files each containing a chunk.
 %
 % INPUT:
 %
-% vers     2014 or '2014' version (30 arc seconds)
+% vers     2019 or '2019' version (15 arc seconds)
+%          2014 or '2014' version (30 arc seconds)
 %          2008 or '2008' version (30 arc seconds, deprecated)
-%         '1MIN' version (1 arc minute, deprecated)
-%         'WMS' version (maps to the 2014 parameters)
-% npc     sqrt(number) of fitting pieces to split the data into
+%          '1MIN' version (1 arc minute, deprecated)
+%          'WMS' version (maps to the 2014 parameters)
+% npc      sqrt(number) of fitting pieces to split the data into
+% gt       0 the actual data [default] 
+%          1 the source identifier grid (SID), if applicable
+%          2 the data type identifier grid (TID), if applicable
 %
 % OUTPUT: IF NONE REQUESTED, WILL READ, SPLIT & SAVE THE FILES,
 % OTHERWISE, IT WILL ASSUME THAT THAT HAS BEEN DONE AND RETURNS:
@@ -32,10 +36,11 @@ function varargout=readGEBCO(vers,npc)
 %
 % 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu. 01/25/2019
+% Last modified by fjsimons-at-alum.mit.edu. 01/31/2020
 
-% Default value
+% Default values
 defval('vers',2014)
+defval('gt',0)
 
 % sqrt(number) of fitting pieces that we will split the data into
 defval('npc',10);
@@ -44,6 +49,13 @@ defval('npc',10);
 gebcodir=fullfile(getenv('IFILES'),'TOPOGRAPHY','EARTH','GEBCO');
 
 switch vers
+ case {2019,'2019'}
+  % The directory name for storage and retrieval
+  dname=fullfile(gebcodir,'GEBCO2019');
+  % The full path to the 'GEBCO_2019 Grid'  doi: 10/c33m
+  fname=fullfile(dname,'GEBCO_2019_1D.nc');
+  % The root filename under which the pieces will be saved
+  sname='GEBCO2019';
  case {2014,'2014','WMS'}
   % The directory name for storage and retrieval
   dname=fullfile(gebcodir,'GEBCO2014');
@@ -51,10 +63,14 @@ switch vers
   fname=fullfile(dname,'GEBCO_2014_1D.nc');
   % The root filename under which the pieces will be saved
   sname='GEBCO2014';
+  if gt>0; 
+    fname=fullfile(dname,'GEBCO_2014_SID_2D.nc');
+    sname='GEBCO2014_SID';
+  end
  case {2008,'2008'}
   % The directory name for storage and retrieval
   dname=fullfile(gebcodir,'GEBCO2008');
-  % The full path to the 'GEBCO_08\ Grid' source '20100927'
+  % The full path to the 'GEBCO_08 Grid' source '20100927'
   fname=fullfile(dname,'gebco_08.nc');
   % The root filename under which the pieces will be saved
   sname='GEBCO_08';
@@ -72,9 +88,23 @@ end
 % The directory in which the pieces will be saved
 mname=fullfile(dname,sprintf('MATFILES_%i_%i',npc,npc));
 
-% Assign spacing, this should be 1/60/2 for 30 arc seconds
-dxdy=ncread(fname,'spacing');
-NxNy=ncread(fname,'dimension');
+% Display some info on the file itself
+ncdisp(fname)
+
+if gt==0
+  % Assign spacing, this should be 1/60/2 for 30 arc seconds
+  % gt0=ncinfo(fname); gt0.Variables(4:5).Name
+  xran=ncread(fname,'x_range');
+  yran=ncread(fname,'y_range');
+  
+  dxdy=ncread(fname,'spacing');
+  NxNy=ncread(fname,'dimension');
+else
+  gt1=ncinfo(fname);
+  % NxNy=cat(1,gt1.Dimensions(2:-1:1).Length);
+  NxNy=gt1.Variables(1).Size(:);
+  dxdy=[360 ; 180]./NxNy;
+end
 
 % Check BLOCKISOLATE, BLOCKMEAN, BLOCKTILE, PCHAVE, PAULI, etc
 % but really, this here is quite efficient already...
@@ -91,25 +121,25 @@ dn=dn(2:end); up=up(1:end-1);
 if nargout==0
   % Make it if it doesn't exist it
   if exist(mname)~=7;  mkdir(mname); end
+
+  if gt==0
+    % Read the actual elevation data
+    z=ncread(fname,'z');
   
-  % Display some info on the file itself
-  ncdisp(fname)
+    % Double-check the size
+    diferm(length(z)-prod(double(NxNy)))
+    
+    % Split it into pieces and resave
+    zr=reshape(z,NxNy(:)')';
   
-  xran=ncread(fname,'x_range');
-  yran=ncread(fname,'y_range');
-  
-  % Read the actual elevation data
-  z=ncread(fname,'z');
-  
-  % Double-check the size
-  diferm(length(z)-prod(double(NxNy)))
-  
-  % Split it into pieces and resave
-  zr=reshape(z,NxNy(:)')';
-  
-  % Double-check the dimensions
-  diferm(size(zr,2)-NxNy(1))
-  diferm(size(zr,1)-NxNy(2))
+    % Double-check the dimensions
+    diferm(size(zr,2)-NxNy(1))
+    diferm(size(zr,1)-NxNy(2))
+  elseif gt==1
+    % Read the actual data
+    z=flipud(ncread(fname,'sid')');
+    % You could read longitude and latitude directly also...
+  end
   
   % Segment patches and resave
   for rindex=1:npc
