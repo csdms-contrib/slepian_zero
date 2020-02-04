@@ -7,7 +7,8 @@ function varargout=gebco(lon,lat,vers,npc,method,xver,jig)
 %
 % lon      Requested longitude, in decimal degrees, ideally -180<=lon<180
 % lat      Requested latitudes, in decimal degrees, ideally -90<=lat<=90
-% vers     2014  version (30 arc seconds) [default]
+% vers     2019  version (15 arc seconds)
+%          2014  version (30 arc seconds) [default]
 %          2008  version (30 arc seconds, deprecated)
 %          '1MIN' version (1 arc minute, deprecated)
 %          'WMS' uses the GEBCO Web Map Service request server
@@ -42,7 +43,7 @@ function varargout=gebco(lon,lat,vers,npc,method,xver,jig)
 %
 % 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 07/18/2019
+% Last modified by fjsimons-at-alum.mit.edu, 01/30/2020
 
 if ~isstr(lon)
   % Default lon and lat, for good measure, take those from the examples of 
@@ -90,8 +91,8 @@ if ~isstr(lon)
     else
       % Make a little bounding box around the request, inspired by the known 2014 resolution
       % latlim and lonlim must be ascending and between what the WMS layer can support
-      latlim=lat+[-1 +1]/60/2/5+(-1)^randi(2)*jig*1e-3
-      lonlim=lon+[-1 +1]/60/2/5+(-1)^randi(2)*jig*1e-3
+      latlim=lat+[-1 +1]/60/2+(-1)^randi(2)*jig*1e-3
+      lonlim=lon+[-1 +1]/60/2+(-1)^randi(2)*jig*1e-3
       
       if xver==1
 	% Access the data base of all WMS servers, return a WMSLayer object
@@ -207,7 +208,7 @@ if ~isstr(lon)
   end
   
   % Now it's NOT a WMS request but we interpolate our presaved data files
-  
+
   % Get information on where the data files are being kept
   [mname,sname,up,dn,lt,rt,dxdy,NxNy]=readGEBCO(vers,npc);
   
