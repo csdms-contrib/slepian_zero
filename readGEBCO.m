@@ -1,8 +1,8 @@
 function varargout=readGEBCO(vers,npc,gt)
 % [mname,sname,up,dn,lt,rt,dxdy,NxNy,vers,npc]=readGEBCO(vers,npc,gt)
 %
-% Reads a GEBCO bathymetry grid, stored in NETCDF format, and splits it
-% into manageable MAT files each containing a chunk.
+% Reads a GEBCO bathymetry grid, stored in NETCDF format, and splits it into
+% manageable MAT files each containing a chunk.
 %
 % INPUT:
 %
@@ -36,7 +36,7 @@ function varargout=readGEBCO(vers,npc,gt)
 %
 % 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu. 01/31/2020
+% Last modified by fjsimons-at-alum.mit.edu. 02/03/2020
 
 % Default values
 defval('vers',2014)
@@ -88,39 +88,46 @@ end
 % The directory in which the pieces will be saved
 mname=fullfile(dname,sprintf('MATFILES_%i_%i',npc,npc));
 
-% Display some info on the file itself
-ncdisp(fname)
+% The metadata save file so you can get rid of the NETCDF file
+hname=sprintf('%s.mat',pref(fname));
+if exist(hname)~=2
+  % Display some info on the file itself
+  ncdisp(fname)
 
-if gt==0
-  % Assign spacing, this should be 1/60/2 for 30 arc seconds
-  % gt0=ncinfo(fname); gt0.Variables(4:5).Name
-  xran=ncread(fname,'x_range');
-  yran=ncread(fname,'y_range');
-  
-  dxdy=ncread(fname,'spacing');
-  NxNy=ncread(fname,'dimension');
+  if gt==0
+    % Assign spacing, this should be 1/60/2 for 30 arc seconds
+    % gt0=ncinfo(fname); gt0.Variables(4:5).Name
+    xran=ncread(fname,'x_range');
+    yran=ncread(fname,'y_range');
+    
+    dxdy=ncread(fname,'spacing');
+    NxNy=ncread(fname,'dimension');
+  else
+    gt1=ncinfo(fname);
+    % NxNy=cat(1,gt1.Dimensions(2:-1:1).Length);
+    NxNy=gt1.Variables(1).Size(:);
+    dxdy=[360 ; 180]./NxNy;
+  end
+
+  % Check BLOCKISOLATE, BLOCKMEAN, BLOCKTILE, PCHAVE, PAULI, etc
+  % but really, this here is quite efficient already...
+
+  % Make the 'across' indices into the global matrix
+  rt=[0:NxNy(1)/npc:NxNy(1)]; lt=rt+1; 
+  rt=rt(2:end); lt=lt(1:end-1);
+
+  % Make the 'down' indices into the global matrix
+  dn=[0:NxNy(2)/npc:NxNy(2)]; up=dn+1;
+  dn=dn(2:end); up=up(1:end-1);
+  save(hname,'up','dn','lt','rt','dxdy','NxNy')
 else
-  gt1=ncinfo(fname);
-  % NxNy=cat(1,gt1.Dimensions(2:-1:1).Length);
-  NxNy=gt1.Variables(1).Size(:);
-  dxdy=[360 ; 180]./NxNy;
+  load(hname)
 end
-
-% Check BLOCKISOLATE, BLOCKMEAN, BLOCKTILE, PCHAVE, PAULI, etc
-% but really, this here is quite efficient already...
-
-% Make the 'across' indices into the global matrix
-rt=[0:NxNy(1)/npc:NxNy(1)]; lt=rt+1; 
-rt=rt(2:end); lt=lt(1:end-1);
-
-% Make the 'down' indices into the global matrix
-dn=[0:NxNy(2)/npc:NxNy(2)]; up=dn+1;
-dn=dn(2:end); up=up(1:end-1);
 
 % If no output is requested, will just split the files
 if nargout==0
   % Make it if it doesn't exist it
-  if exist(mname)~=7;  mkdir(mname); end
+  if exist(mname)~=7; mkdir(mname); end
 
   if gt==0
     % Read the actual elevation data
@@ -159,7 +166,3 @@ else
   varns={mname,sname,up,dn,lt,rt,dxdy,NxNy,vers,npc};
   varargout=varns(1:nargout);
 end
-
-
-  
-
