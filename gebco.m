@@ -1,5 +1,5 @@
-function varargout=gebco(lon,lat,vers,npc,method,xver,jig)
-% [z,lon,lat,A,R,jig]=gebco(lon,lat,vers,npc,method,xver,jig)
+function varargout=gebco(lon,lat,vers,npc,method,xver,jig,gt)
+% [z,lon,lat,A,R,jig]=gebco(lon,lat,vers,npc,method,xver,jig,gt)
 %
 % Returns the GEBCO bathymetry interpolated to the requested location
 %
@@ -16,6 +16,9 @@ function varargout=gebco(lon,lat,vers,npc,method,xver,jig)
 % method   'nearest' (default), 'linear', etc, for the interpolation
 % xver     Extra verification [1] or not [0]
 % jig      A rejigging factor to cover up for a bad request [default: none]
+% gt       0 the actual data [default] 
+%          1 the source identifier grid (SID), if applicable
+%          2 the data type identifier grid (TID), if applicable
 %
 % OUTPUT:
 %
@@ -33,7 +36,9 @@ function varargout=gebco(lon,lat,vers,npc,method,xver,jig)
 %% A whole grid that should BE like the original data set around somewhere
 % gebco('demo3')
 %% A log of a MERMAID float
-% gebco('demo4','P006'))
+% gebco('demo4','P006')
+%% A grid of data and a grid of data provenance
+% gebco('demo5')
 %
 % SEE ALSO:
 %
@@ -43,7 +48,7 @@ function varargout=gebco(lon,lat,vers,npc,method,xver,jig)
 %
 % 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 01/30/2020
+% Last modified by fjsimons-at-alum.mit.edu, 02/03/2020
 
 if ~isstr(lon)
   % Default lon and lat, for good measure, take those from the examples of 
@@ -51,6 +56,7 @@ if ~isstr(lon)
   % for comparison with WMS GetFeatureInfo requests
   defval('lon',-19.979167)
   defval('lat', 50.9625)
+  defval('gt',0)
   
   % Check size
   if any(size(lon)~=size(lat)); error('Inconsistent input data size'); end
@@ -210,8 +216,8 @@ if ~isstr(lon)
   % Now it's NOT a WMS request but we interpolate our presaved data files
 
   % Get information on where the data files are being kept
-  [mname,sname,up,dn,lt,rt,dxdy,NxNy]=readGEBCO(vers,npc);
-  
+  [mname,sname,up,dn,lt,rt,dxdy,NxNy]=readGEBCO(vers,npc,gt);
+
   % Grid or pixel registration? See below
   if strcmp(vers,'1MIN')
     flg=0; else ; flg=1;
@@ -254,7 +260,7 @@ if ~isstr(lon)
     % Loop over the unique tiles
     parfor index=1:length(utile)
       % If you are doing this right, you NOW end up in unique tiles
-      zz{index}=gebco(lon(witsj{index}),lat(witsj{index}),vers,npc,method,xver);
+      zz{index}=gebco(lon(witsj{index}),lat(witsj{index}),vers,npc,method,xver,[],gt);
     end
     
     % And then stick in the output at the right place
@@ -396,7 +402,7 @@ elseif strcmp(lon,'demo2')
   [z,lon,lat]=gebco(LO,LA); imagefnan([-180 90],[180 -90],z)
 elseif strcmp(lon,'demo3')
   c11=[100 -10]; cmn=[140 -40]; spc=1/10;
-  [LO,LA]=meshgrid(c11(1):spc:cmn(1),c11(2):-spc*2:cmn(2));
+  [LO,LA]=meshgrid(c11(1):spc:cmn(1),c11(2):-spc:cmn(2));
   [z,lon,lat]=gebco(LO,LA); imagefnan(c11,cmn,z,'demmap',[-7473 5731])
 elseif strcmp(lon,'demo4')
   % Go grab a float's log from this directory
@@ -420,5 +426,24 @@ elseif strcmp(lon,'demo4')
   fprintf(fid,'%12.6f %11.6f %12.6f %11.6f %12.6f %11.6f %i %i\n',...
 	 [lola' ; lon2014' ; lat2014' ; lonWMS' ; latWMS' ; z2014' ; zWMS'])
   fclose(fid)
+elseif strcmp(lon,'demo5')
+  % Modification of demo3 to give us provenance also
+  % Global view
+  %c11=[-180 90]; cmn=[180 -90];
+  %[LO,LA]=meshgrid(-180:1/10:180,90:-1/10:-90);
+  % c11=[-150 15]; cmn=[-130 -5]; spc=1/20;
+  % c11=[-107 15]; cmn=[-97 5]; spc=1/60/2;
+  c11=[-100 12]; cmn=[-91 3]; spc=1/60/2;
+  [LO,LA]=meshgrid(c11(1):spc:cmn(1),c11(2):-spc:cmn(2));
+  % plotcont; hold on; 
+  % plot([c11(1) cmn(1) cmn(1) c11(1) c11(1)]+360,[c11(2) c11(2) cmn(2) cmn(2) c11(2)])
+  % The actual data
+  [z,lon,lat]=gebco(LO,LA,[],[],[],[],[],0); 
+  % The provenance data
+  [zp,lon,lat]=gebco(LO,LA,[],[],[],[],[],1); 
+  subplot(121)
+  imagefnan(c11,cmn,z,'demmap',[-7473 5731])
+  subplot(122)
+  imagefnan(c11,cmn,zp,'demmap',[-7473 5731])
 end
 
