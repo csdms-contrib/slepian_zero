@@ -1,5 +1,5 @@
-function campusblast(cmp,yli)
-% CAMPUSBLAST(cmp,yli)
+function campusblast(cmp,yli,ddir)
+% CAMPUSBLAST(cmp,yli,ddir)
 %
 % Makes a picture of the campus blasts
 %
@@ -10,10 +10,11 @@ function campusblast(cmp,yli)
 %                  3 for Z
 % ytli   'hard' for provided yaxis limits
 %        'soft' for calculated yaxis limits
+% ddir   The directory where the data files are being kept
 %
 % Tested on: 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 02/24/2020
+% Last modified by fjsimons-at-alum.mit.edu, 02/26/2020
 
 % Defaul values
 defval('cmp',1)
@@ -23,7 +24,8 @@ cmps={'x','y','z'};
 defval('yli','soft');
 
 % Directory and filenames and other sundries
-ddir='/u/fjsimons/PIX/GuyotPhysics/MAT';
+defval('ddir','/u/fjsimons/PIX/GuyotPhysics/MAT');
+
 snam={'PP.S0001.00.HHA_MC-PH1_0248_20200218_160000.mat',...
      'PP.S0001.00.HHA_MC-PH1_0248_20200221_160000.mat'};
 cols={'b','r'};
