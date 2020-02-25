@@ -14,7 +14,7 @@ function campusblast(cmp,yli,ddir)
 %
 % Tested on: 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 02/26/2020
+% Last modified by fjsimons-at-alum.mit.edu, 02/27/2020
 
 % Defaul values
 defval('cmp',1)
