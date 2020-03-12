@@ -36,7 +36,7 @@ function varargout=readGEBCO(vers,npc,gt)
 %
 % 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu. 02/03/2020
+% Last modified by fjsimons-at-alum.mit.edu. 03/12/2020
 
 % Default values
 defval('vers',2014)
@@ -53,7 +53,7 @@ switch vers
   % The directory name for storage and retrieval
   dname=fullfile(gebcodir,'GEBCO2019');
   % The full path to the 'GEBCO_2019 Grid'  doi: 10/c33m
-  fname=fullfile(dname,'GEBCO_2019_1D.nc');
+  fname=fullfile(dname,'GEBCO_2019.nc');
   % The root filename under which the pieces will be saved
   sname='GEBCO2019';
  case {2014,'2014','WMS'}
@@ -90,18 +90,28 @@ mname=fullfile(dname,sprintf('MATFILES_%i_%i',npc,npc));
 
 % The metadata save file so you can get rid of the NETCDF file
 hname=sprintf('%s.mat',pref(fname));
+
+defval('varname','z')
+
 if exist(hname)~=2
   % Display some info on the file itself
   ncdisp(fname)
 
   if gt==0
-    % Assign spacing, this should be 1/60/2 for 30 arc seconds
-    % gt0=ncinfo(fname); gt0.Variables(4:5).Name
-    xran=ncread(fname,'x_range');
-    yran=ncread(fname,'y_range');
-    
-    dxdy=ncread(fname,'spacing');
-    NxNy=ncread(fname,'dimension');
+    if strfind(fname,'2019')
+      gt0=ncinfo(fname); 
+      %gt0.Variables(1:3).Name
+      NxNy=cat(2,gt0.Dimensions(1:2).Length);
+      dxdy=[360 180]./NxNy;
+      varname=gt0.Variables(3).Name;
+    else
+      % Assign spacing, this should be 1/60/2 for 30 arc seconds
+      % gt0=ncinfo(fname); gt0.Variables(4:5).Name
+      % xran=ncread(fname,'x_range');
+      % yran=ncread(fname,'y_range');
+      dxdy=ncread(fname,'spacing');
+      NxNy=ncread(fname,'dimension');
+    end
   else
     gt1=ncinfo(fname);
     % NxNy=cat(1,gt1.Dimensions(2:-1:1).Length);
@@ -130,14 +140,19 @@ if nargout==0
   if exist(mname)~=7; mkdir(mname); end
 
   if gt==0
-    % Read the actual elevation data
-    z=ncread(fname,'z');
-  
-    % Double-check the size
-    diferm(length(z)-prod(double(NxNy)))
     
     % Split it into pieces and resave
-    zr=reshape(z,NxNy(:)')';
+    if strfind(fname,'2019')
+      zr=flipud(ncread(fname,varname)');
+    else
+      % Read the actual elevation data
+      z=ncread(fname,varname);
+      % Double-check the size
+      diferm(length(z)-prod(double(NxNy)))
+      % Reformat
+      zr=reshape(z,NxNy(:)')';
+      clear z
+    end
   
     % Double-check the dimensions
     diferm(size(zr,2)-NxNy(1))
