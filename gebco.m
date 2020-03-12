@@ -48,7 +48,7 @@ function varargout=gebco(lon,lat,vers,npc,method,xver,jig,gt)
 %
 % 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 03/02/2020
+% Last modified by fjsimons-at-alum.mit.edu, 03/12/2020
 
 if ~isstr(lon)
   % Default lon and lat, for good measure, take those from the examples of 
@@ -187,7 +187,6 @@ if ~isstr(lon)
 	  num2str(latlim(1)),num2str(lonlim(1)),num2str(latlim(2)),num2str(lonlim(2)),...
 	  wms.pxx,wms.pxy,wms.pxw,wms.pxh);
       
-      keyboard
       % Get the output, cannot use WMSREAD if it isn't a GetMap request...
       % [wmsu,R,U]=wmsread(wmsr);
       % So, need to parse the output
