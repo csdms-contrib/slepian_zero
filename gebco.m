@@ -5,7 +5,7 @@ function varargout=gebco(lon,lat,vers,npc,method,xver,jig,gt)
 %
 % INPUT:
 %
-% lon      Requested longitude, in decimal degrees, ideally -180<=lon<180
+% lon      Requested longitudes, in decimal degrees, ideally -180<=lon<180
 % lat      Requested latitudes, in decimal degrees, ideally -90<=lat<=90
 % vers     2019  version (15 arc seconds)
 %          2014  version (30 arc seconds) [default]
@@ -42,7 +42,7 @@ function varargout=gebco(lon,lat,vers,npc,method,xver,jig,gt)
 %
 % SEE ALSO:
 %
-% https://www.gebco.net/
+% https://www.gebco.net/, POLYNESIA
 %
 % TESTED ON:
 %
@@ -82,7 +82,7 @@ if ~isstr(lon)
     % Fudge factor for difficult cases
     defval('jig',0)
 
-    % Executive this sequentially if the inputs are manifold
+    % Execute this sequentially if the inputs are manifold
     if length(lon)~=1 || length(lat)~=1
       [zz,lonz,latz]=deal(nan(size(lon)));
       % Should probably take advantage of the parallellization here
@@ -218,7 +218,7 @@ if ~isstr(lon)
   % Get information on where the data files are being kept
   [mname,sname,up,dn,lt,rt,dxdy,NxNy]=readGEBCO(vers,npc,gt);
 
-  % Grid or pixel registration? See below
+  % Grid (0) or pixel (1) registration? See below.
   if strcmp(vers,'1MIN')
     flg=0; else ; flg=1;
   end
@@ -234,7 +234,7 @@ if ~isstr(lon)
   rindep=max(1,ceil(npc-[lat+90 ]/[180/npc]));
   cindex=unique(cindep);
   rindex=unique(rindep);
-  
+
   % If you are spread across multiple tiles you're in trouble
   if length(cindex)~=1 || length(rindex)~=1
     % What are the running tile numbers?
@@ -403,7 +403,9 @@ elseif strcmp(lon,'demo2')
 elseif strcmp(lon,'demo3')
   c11=[100 -10]; cmn=[140 -40]; spc=1/10;
   [LO,LA]=meshgrid(c11(1):spc:cmn(1),c11(2):-spc:cmn(2));
-  [z,lon,lat]=gebco(LO,LA); imagefnan(c11,cmn,z,'demmap',[-7473 5731])
+  ver=2019;
+  [z,lon,lat]=gebco(LO,LA,ver); imagefnan(c11,cmn,z,'demmap',[-7473 5731])
+  title(sprintf('%i',ver))
 elseif strcmp(lon,'demo4')
   % Go grab a float's log from this directory
   dname='/u/fjsimons/MERMAID/serverdata/locdata';
@@ -446,4 +448,3 @@ elseif strcmp(lon,'demo5')
   subplot(122)
   imagefnan(c11,cmn,zp,'demmap',[-7473 5731])
 end
-
