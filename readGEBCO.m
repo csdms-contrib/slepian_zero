@@ -43,7 +43,7 @@ defval('vers',2014)
 defval('gt',0)
 
 % sqrt(number) of fitting pieces that we will split the data into
-defval('npc',10);
+defval('npc',20);
 
 % Make sure you have these various directories and data files
 gebcodir=fullfile(getenv('IFILES'),'TOPOGRAPHY','EARTH','GEBCO');
@@ -93,6 +93,7 @@ hname=sprintf('%s.mat',pref(fname));
 
 defval('varname','z')
 
+% I need to remake the 1MIN files, but never mind for now
 if exist(hname)~=2
   % Display some info on the file itself
   ncdisp(fname)
@@ -103,7 +104,7 @@ if exist(hname)~=2
       %gt0.Variables(1:3).Name
       NxNy=cat(2,gt0.Dimensions(1:2).Length);
       dxdy=[360 180]./NxNy;
-      varname=gt0.Variables(3).Name;
+      % varname=gt0.Variables(3).Name
     else
       % Assign spacing, this should be 1/60/2 for 30 arc seconds
       % gt0=ncinfo(fname); gt0.Variables(4:5).Name
@@ -143,6 +144,7 @@ if nargout==0
     
     % Split it into pieces and resave
     if strfind(fname,'2019')
+      varname='elevation';
       zr=flipud(ncread(fname,varname)');
     else
       % Read the actual elevation data
