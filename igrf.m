@@ -1,5 +1,5 @@
-function lmcosi=igrf(vrs,yr,yir)
-% lmcosi=IGRF(vrs,yr,yir)
+function [lmcosi,prepar]=igrf(vrs,yr,yir)
+% [lmcosi,prepar]=IGRF(vrs,yr,yir)
 %
 % Interface to load the International Geomagnetic Reference Field
 % and pass it on to other subroutines.
@@ -16,6 +16,7 @@ function lmcosi=igrf(vrs,yr,yir)
 %
 % lmcosi    The tradition matrix with the ordered real coefficients
 %           for the potential - however, in units of nT (nanoTesla)
+% prepar    The different ordering, for verification purposes only
 %
 % EXAMPLE:
 %
@@ -42,11 +43,17 @@ function lmcosi=igrf(vrs,yr,yir)
 %
 % Last modified by fjsimons-at-alum.mit.edu, 03/17/2020
 
-% Note that the inputs to PLM2XYZ are SPHERICAL coordinates...
-% r=plm2xyz(igrf(13,2015),50,5)
+% Note that the inputs to PLM2XYZ are GEOCENTRIC coordinates...
+% Normalize the coefficients such that they can be expanded in the 4pi basis
 % lola= guyotphysics(0); 
-% r=plm2xyz(igrf(13,2020),lola(2),lola(1))
-% So the results don't quite match... at all!
+% h=igrf(13,2020);
+% Don't be missing the normalization
+% h(:,3:4)=h(:,3:4)./repmat(sqrt(2*h(:,1)+1),1,2);
+% Don't be missing the radial derivative
+% h(:,3:4)=h(:,3:4).*repmat(h(:,1)+1,1,2);
+% [r,lon,lat]=plm2xyz(h,lola(2),lola(1))
+% So the results match igrf12.f and igrf13.f
+% But this calculator is in geodetic coordinates... See the switch inside.
 % http://www.geomag.bgs.ac.uk/data_service/models_compass/igrf_calc.html
 
 defval('vrs',13)
@@ -120,6 +127,7 @@ if ~isstr(vrs)
     % and what we want is lmcosi with the coefficients in the right position 
     % This is the output
     lmcosi(mzo+2*size(lmcosi,1))=prepar;
+    
   end
 elseif strcmp(vrs,'demo1')
   % Now the version is defaulted... everything skips
