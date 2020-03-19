@@ -26,7 +26,8 @@ function [lmcosi,prepar]=igrf(vrs,yr,yir)
 % igrf('demo4') % The radial non-dipolar field, only contoured, in nanoTesla
 % igrf('demo5') % The radial non-dipolar field, also contoured
 % igrf('demo6') % The secular variation
-% igrf('demo7') % Code and model testing which should produce no output
+% igrf('demo7') % Power-spectral density figure
+% igrf('demo8') % Code and model testing which should produce no output
 %
 % Only very subtle changes when an IGRF becomes a DGRF
 % igrf('demo3',13,2010)
@@ -169,21 +170,92 @@ elseif strcmp(vrs,'demo5')
   % Plot and print
   plotandprint(h,vrs,yr,yir,1,2,[-20000:2000:-2000],[2000:2000:20000])
 elseif strcmp(vrs,'demo6')
-  for yir=1900:5:2005
-    h=igrf10(yir);
-
+  defval('yr',13)
+  for yir=1900:5:2020
+    h=igrf(yr,yir);
     % Plot and print
     plotandprint(h,vrs,yr,yir,1,2,[-20000:2000:-2000],[2000:2000:20000])
   end
 elseif strcmp(vrs,'demo7')
   clf
-  for yir=1900:5:2005
-    h=igrf10(yir);
+  ah=gca;
+  defval('yr',13)
+  defval('yir',1920);
+  defval('mods',sprintf('IGRF-%2.2i (%i)',yr,yir));
+  defval('units','nT');
+  
+  % Load the model
+  h=igrf(yr,yir);
+  % The degree range of interest
+  EL=minmax(h(abs(h(:,3))>0,1));
 
-    % Plot and print
-    plotandprint(h,vrs,yr,yir,1,2,[-20000:2000:-2000],[2000:2000:20000])
+  % Plot and print
+  norma=1;
+  % Spectral calculation of signal or noise - watch the normalization
+  [sdl,l,bta,lfit,logy,logpm]=plm2spec(h,norma,2,max(EL)+1);
+  
+  % The following borrowed from WATTSANDMOORE
+  fig2print(gcf,'portrait')
+
+  % The power spectral density
+  a=loglog(l,sdl,'o');
+  hold on
+  % The loglinear fit
+  b=loglog(lfit,logy,'k-');
+  hold off
+
+  % Take that fit off here
+  % delete(b)
+  
+  % Create labels for future use
+  xlabs='spherical harmonic degree';
+  xxlabs='equivalent wavelength (km)';
+  ylabs=sprintf('%s power spectral density [%s**2]',mods,units);
+
+  % Cosmetics
+  set(a,'MarkerFaceColor','k','MarkerSize',3,'MarkerEdgeColor','k')
+  
+  xlim(EL+[-0.5 27]);
+  longticks(gca)
+  shrink(gca,1.333,1.075)
+
+  % This needs to be data-dependent
+  ylim=[1e1 1e11];
+  ah.YLim=ylim;
+
+  % The reference degrees you want plotted also
+  nn=[1 13];
+  % The reference degrees you wanted as well
+  hold on
+  for index=1:length(nn)
+    pn(index)=plot([nn(index) nn(index)],ylim,'k--');
   end
-elseif strcmp(vrs,'demo7')
+  hold off
+
+  % Labels
+  ylabel(ylabs)
+  xlabel(xlabs)
+
+  % Extra axis in equivalent wavelengths, needed to know 6371.2 from IGRF
+  % model specification, but fix label precision
+  nlt=[2*pi*6371.2/2 10000 3000 1000];
+
+  % With or without round, it's always going to be approximate...
+  [ax,xl,yl]=xtraxis(ah,round(jeans(nlt,0,1)),1000*round(nlt/1000),xxlabs);
+  longticks(ax)
+  
+  % Final cosmetics
+  delete(pn)
+  ax.XMinorTick='off';  
+  ah.XTick=[1 2 3 4 6 9 13 40];
+  ah.XGrid='on';
+  ah.YGrid='on';
+  ah.XMinorTick='off';
+  ah.MinorGridLineStyle='none';
+
+  % Output to PDF
+  figdisp('igrf',sprintf('%s-%i-%i',vrs,yr,yir),[],2)
+elseif strcmp(vrs,'demo8')
   for yr=1900:5:2005
     diferm(igrf(10,yr),igrf10(yr))
   end
