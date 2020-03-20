@@ -13,8 +13,8 @@ function varargout=POMME4(L,degres,doplot,hr)
 %            [default: 0.25, as a ppropriate for L=720]
 % doplot     1 Actually render this [default]
 %            0 Just return the data, both map and coefficients
-% hr         The HALVERANGE parameter for the color rendition [default: 75]
-%
+% hr         The HALVERANGE parameter for the color rendition [default: 75], 
+%            OR: two explicit axis limits for the color bar
 % OUTPUT:
 %
 % d          The map being plotted
@@ -102,14 +102,18 @@ if exist(fname,'file')~=2
    if doplot
      clf
      [d,ch,ph]=plotplm(lmcosip,[],[],4,degres);
-     caxis(halverange(d,hr))
+     if length(hr)==1
+       caxis(halverange(d,hr))
+     else 
+       caxis(hr)
+     end
      touchup(ztit,xlab)
    else
      d=plm2xyz(lmcosip,degres);
    end
    
-  % Then save the expansion and the expansion coefficients
-  save(fname,'d','lmcosip','degres')
+   % Then save the expansion and the expansion coefficients
+   save(fname,'d','lmcosip','degres')
 else
   load(fname)
   disp(sprintf('Loading %s',fname))
@@ -117,7 +121,11 @@ else
     clf
     imagef(d)
     plotcont; plotplates
-    caxis(halverange(d,hr))
+    if length(hr)==1
+      caxis(halverange(d,hr))
+    else 
+      caxis(hr)
+    end
     touchup(ztit,xlab)
   end
 end
