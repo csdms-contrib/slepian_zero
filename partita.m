@@ -1,5 +1,5 @@
 function varargout=partita(mn,partn,olap,meth,xver)
-% CT=PARTITA(mn,partn,olap,meth,xver)
+% [ro,CT]=PARTITA(mn,partn,olap,meth,xver)
 %
 % Finds a partition selecting somewhat overlapping subsets of the rows (in a
 % randomized sense: no contiguous blocks, but some rows can be selected more
@@ -20,15 +20,21 @@ function varargout=partita(mn,partn,olap,meth,xver)
 %
 % OUTPUT:
 %
-% CT        The partitition matrix
+% ro        The partitition index matrix, only the same-size row blocks
+%           as can be most comfortably fit, as opposed to:
+% CT        The overcomplete partitition matrix, including adjustments
 %
 % EXAMPLE:
 %
 % partita([72 18],10,1)
 % partita([1020 15],80,12,2,0)
-% partita([1020 15],80,12,2,0)
+% partita([1020 15],80,12,2,1)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 08/11/2020
+% SEE ALSO:
+%
+% PARTITF, PARTITS
+%
+% Last modified by fjsimons-at-alum.mit.edu, 08/13/2020
 
 % Matrix size
 defval('mn',[51 25])
@@ -71,7 +77,7 @@ switch meth
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% The shuffling is not necessary in the testing phase
+% The shuffling is neither necessary nor desired in the testing phase
 defval('xver',0)
 if xver==0
   shuf=shuffle(1:m);
@@ -90,8 +96,9 @@ CT=sparse(ro(:)',co,1,m,n);
 % If there is no or only one column missing, add missing rows to the last
 % column or make just one more
 [romis1,comis1,romis2,comis2]=reportit(CT,m,n,ps,partn,olap);
+
 if comis1==0 && romis1>0
-  CT=CT+sparse(shuf(m-romis1+1:m),co(end),1);
+  CT=CT+sparse(shuf(m-romis1+1:m),co(end),1,m,n);
   [romis1,comis1]=reportit(CT,m,n,ps,partn,olap);
 end
 if comis1>=1 && romis1>=0
@@ -114,16 +121,16 @@ if nargout==0
   set(gca,'XTick',1:n,'YTick',unique([1:fix(m/5):m m]))
   set(gca,'GridLineStyle',':')
   grid on
-  xlabel(sprintf('minimum/maximum row sum %i %i',...
+  xlabel(sprintf('min/max row sum %i %i',...
 		 minmax(sum(full(CT),2))))
-  ylabel(sprintf('minimum/maximum column sum %i %i, number of degenerates %i',...
+  ylabel(sprintf('min/max column sum %i %i, %i degenerates',...
 		 minmax(sum(full(CT),1)),sum(sum(full(CT),2)>=2)))
   ylim([1 m]+round(m/20)*[-1 1])
   xlim([1 n]+round(n/20)*[-1 1])
 end
 
 % Return only as much output as asked
-varns={CT};
+varns={ro,CT};
 varargout=varns(1:nargout);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
