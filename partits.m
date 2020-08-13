@@ -1,31 +1,36 @@
 function partits(spc,partn,figs)
 % PARTITS(spc,partn,figs)
 %
-% Illustrates a realistic configuration whereby a irregularly spaced
-% "seismic shot gather" (a discrete [t,x] plane) is available and whereby
-% group velocity delineates the desirable from the undesirable part of
-% the data (as in: what one would need to do to mask surface waves). It
-% calculates the periodogram of the "boxcar" windows covering the
-% desirable part of the [t,x] plane. It pulls out a particular
-% "seismogram" (a particular [t,x']) and illustrates what happens if it
-% is approximated by a limited Fourier-term reconstruction, where the
-% terms in the expansation are randomly chosen subsets. It reports on the
-% quality of the reconstruction. 
+% Illustrates a realistic configuration whereby an irregularly spaced
+% "seismic shot gather" (a discrete [t,x] plane or "data panel") is
+% available, and whereby a group velocity delineates the desirable from the
+% undesirable part of the data (as, e.g. required to mask surface waves). It
+% calculates the periodogram of the "boxcar" windows covering the desired
+% ragged-edged wedge part of the [t,x] plane. It pulls out a particular
+% "seismogram" (a [t,x']) to illustrate what happens if it is approximated
+% by a limited Fourier-term reconstruction, where the terms in the expansion
+% are randomly chosen subsets according to a certain frequency partition,
+% hence the name. It reports on the quality of the reconstruction.
 %
 % INPUT:
 %
 % spc     Approximate sparsity of the stations (in percent)
 % partn   Approximate frequency completion of the partition (in percent)
-% figs    1 Makes time and frequency plots
-%         2 Illustrates random window example
-%         3 Proceeds to optimization
-%         0 Makes no plots
+% figs    1 Makes time and frequency plots of the [t,x] and [f,x] planes
+%         2 Illustrates random window example and one approximation
+%         3 Proceeds to optimization over possible random partitions
+%         0 Makes no plots at all, just does the calculations
 %
+% EXAMPLE:
+%
+% partits([],[],1)
+%
+% 
 % SEE ALSO:
 % 
 % SURFACEWIN, PARTITA
 %
-% Last modified by fjsimons-at-alum.mit.edu, 08/10/2020
+% Last modified by fjsimons-at-alum.mit.edu, 08/13/2020
 
 % Defaults
 defval('spc',80);
@@ -98,7 +103,7 @@ if figs>1
   % Pick a particular trace at random
   defval('win',max(1,randi(size(Wtx,2))))
 
-  % Use the partition to provide a partial reconstruction
+  % Use partition to provide a partial reconstruction
   [Wtfix,compf,concf,~,win]=partitf(Wtf);
   
   ah(1)=subplot(211);
@@ -132,14 +137,24 @@ end
 % And now for the real work: attempt to find the most orthogonal way to
 % partition the frequency axis that most optimally reassembles the time axis
 if figs>2
-  % So now you make randomized partitions for all and you test them
-  % parti=partita([ufreq-1 size(Wtf,2)],15,2,2,1)+1;
-  % win=max(1,randi(size(Wtf,2),1,size(parti,2)))
+  % Some more subsetting to make the numbers work
+  win=1:8;
   
-  keyboard
-  err=100; keepf;
-  for index=1:10000
+  % Figure out a reasonable partition parameter set, where, to test the
+  % parameters, you just run PARTITA without output (watch nargout!)
+  Nf=6; No=0;
+  
+  err=100; keepf=[];
+  for index=1:1
+    keyboard
+    
+    % So now you make randomized partitions for all windows...
+    parti=partita([ufreq-1 length(win)],Nf,No,[],0)+1;
+        
+    % ... and you test them
     [Wtfix,compf,concf,partf]=partitf(Wtf,win,parti);
+    % And then you keep the overall best ones
+    keyboard
     if conf<err
       keepf=partf;
     end
