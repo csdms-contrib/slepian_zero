@@ -10,11 +10,11 @@ function [Wtfix,compf,concf,partf,win,Wtx]=partitf(Wtf,win,parti)
 %             frequencies, as coming out directly from an FFT operation
 %             (no shifts, redundant, and Hermitian symmetric)
 % win         An index (set) indicating the column(s) of interest
-% parti       A frequency partition (matrix with row numbers) which only
+% parti       A frequency partition (matrix with row numbers and as many
+%             columns as available in the variable win) which only
 %             specifies the (non-zero) half of the frequencies that
 %             matter. Those are the frequencies selected, which are
-%             applied by symmetry to Wtf, and zero is always included.
-%
+%             applied by symmetry to Wtf, and dc-zero is always included.
 %
 % OUTPUT:
 %
@@ -24,14 +24,31 @@ function [Wtfix,compf,concf,partf,win,Wtx]=partitf(Wtf,win,parti)
 % partf       The full frequency selection index matrix as applied
 % win         The index (set) indicating the column(s) of interest
 % Wtx         The time-domain thing against which Wtfix is compared
-
+%
+% EXAMPLE:
+%
+% Here's an example of Nf frequencies with No overlap for testing. Make
+% sure to ever only start at nonzero frequency #2. 
+%
+% Wtx=kindeks(surfacewin([],[],[],[3 Inf],1,0),sort(randi(101,1,12)));
+% ufreq=floor(size(Wtx,1)/2)+1;
+% Wtf=fft(Wtx,size(Wtx,1),1);
+% Nf=15; No=2; xver=0; % Consecutive or random
+% parti=partita([ufreq-1 size(Wtf,2)],Nf,No,2,xver)+1;
+% win=max(1,randi(size(Wtf,2),1,size(parti,2)));
+% [Wtfix,compf,concf,partf,win,Wtx]=partitf(Wtf,win,parti);
+% for ind=1:length(win); subplot(length(win),1,ind);
+%    plot(Wtx(:,ind)); hold on; plot(Wtfix(:,ind))
+%    xlim([1 size(Wtx,1)]);  ylim([-1.1 1.1]); hold off
+% end
+%
 % SEE ALSO:
 %
-% SLEPENCODE, PARTITA
+% PARTITA, PARTITS
 %
 % Last modified by fjsimons-at-alum.mit.edu, 08/12/2020
 
-% By default you specify a random thing, column and some partition
+% By default you specify a random function, one column and some partition
 defval('Wtf',fft(peaks))
 defval('win',max(1,randi(size(Wtf,2))))
 
@@ -43,11 +60,6 @@ defval('partn',ceil(size(Wtf,1)/2*60/100))
 % Specify the partition in terms of the actual non-zero frequency indices
 % of the non-redundant part of the Fourier transform
 defval('parti',indeks(shuffle(2:ufreq),1:partn));
-
-% Here's an example of 15 frequencies with 2 overlap for testing, see
-% also PARTITF. Make sure to ever only start at nonzero frequency #2
-% parti=partita([ufreq-1 size(Wtf,2)],15,2,2,1)+1;
-% win=max(1,randi(size(Wtf,2),1,size(parti,2)))
 
 % Symmetrize to pick up the hermitian part
 partf=[parti ; size(Wtf,1)-parti+2];
