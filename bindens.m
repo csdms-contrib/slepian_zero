@@ -1,7 +1,7 @@
 function [h,c11,cmn,hh,ybine]=bindens(x,y,nxbins,nybins)
 % [h,c11,cmn,hh,ybine]=BINDENS(x,y,nxbins,nybins)
 %
-% Density plot for data in 2D histograms
+% Constructs a two-dimensional histogram
 %
 % INPUT:
 %
@@ -10,15 +10,26 @@ function [h,c11,cmn,hh,ybine]=bindens(x,y,nxbins,nybins)
 %
 % OUTPUT:
 %
-% h          The '2D' histogram
+% h          The '2D' histogram, an auxiliary quantity
 % c11,cmn    The centers of the top left and bottom right of this histogram
-% hh         Globally normalized histogram
+% hh         Globally normalized histogram, THAT is what you want to plot
 % ybine      The y bin edges that are being used
 %
-% See also ROW2STATS, HIST2D
+% EXAMPLE:
 %
-% Last modified by fjsimons-at-alum.mit.edu, 03/18/2013
+% N=1000; x=randn(randi(N),1); y=randn(length(x),1);
+% [h,c11,cmn,hh]=bindens(x,y);
+% subplot(121); plot(x,y,'.'); axis image; axis([-3.5 3.5 -3.5 3.5])
+% subplot(122); imagefnan(c11,cmn,hh,flipud(gray)); axis image; axis([-3.5 3.5 -3.5 3.5])
+% hold on; pp=plot(x,y,'w.'); hold off
+%
+% SEE ALSO:
+%
+% ROW2STATS, BIN2STATS, (HIST2D)
+%
+% Last modified by fjsimons-at-alum.mit.edu, 08/20/2020
 
+% Specify defaults
 defval('nxbins',10)
 defval('nybins',10)
 defval('xbin',range(x)/nxbins);
