@@ -19,10 +19,12 @@ function [xi,ypi]=bin2median(x,y,multp,perc)
 % x=rand(N,1);
 % x=[x ; x(randi(N,100,1))]';
 % y=randn(length(x(:)),1);
-% [xi,ypi]=bin2median(x,y,round(sqrt(N)),[5 50 95]);
-% plot(x,y,'b.')
+% M=10;
+%
+% [xi,ypi]=bin2median(x,y,M,[5 50 95]);
+% plot(x,y,'b.','MarkerSize',2)
 % hold on
-% plot(xi,ypi(:,2),'k','LineWidth',1)
+% plot(xi,ypi(:,2),'k','LineWidth',2)
 % plot(xi,ypi(:,1),'r')
 % plot(xi,ypi(:,3),'r')
 % hold off
@@ -64,20 +66,20 @@ ypi=nan(ntms,length(perc(:)));
 
 % Snap every value to the nearest increment of newdt 
 newt=round(x/newdt)*newdt;
-
 % Interpolate the data to the median sampling intervals
 yi=interp1(x,y,newt);
 
 % This is roughly how many of those will find into the vector that you have
 multc=floor(length(yi)/multp);
+
 % Could have saved us the initialization. Compute the medians
 ypi=prctile(reshape(yi(1:multp*multc),multp,multc),perc)';
 
 % But... there's a couple you might have missed, so add their medians also
 ypi=[ypi ; prctile(yi(multp*multc+1:end),perc)];
 
-% From this you can learn at which time "meds" should be quoted
+% From this you can learn at which time "ypi" should be quoted
 xi=newt([round(multp/2):multp:multp*multc ...
-           multp*multc+round([length(yi)-multp*multc]/2)])';
+           multp*multc+round([length(yi)-multp*multc]/2)]);
 
 
