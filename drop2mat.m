@@ -1,4 +1,4 @@
-function [t,d]=drop2mat(fname)
+function varargout=drop2mat(fname)
 % [t,d]=DROP2MAT(fname)
 %
 % Reads, and converts a CSV file from the Kestrel Drop instrument to a
@@ -79,4 +79,6 @@ fclose(fid);
 [a,b,c]=fileparts(fname);
 save(b,'t','d')
 
-
+% Optional output
+varns={t,d};
+varargout=varns(1:nargout);
