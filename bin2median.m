@@ -26,13 +26,15 @@ function varargout=bin2median(x,y,multp,perc)
 
 % Supply some defaults for unit testing
 defval('x',rand(randi(10000),1))
-defval('y',randn(length(x),1));
-% Supply some more defaults
-defval('multp',round(range(x(:))/10/median(diff(sort(x)))));
-defval('perc',[5 50 95]);
 
 % Get to it, boss!
+
 if ~isstr(x)
+  defval('y',randn(length(x),1));
+  % Supply some more defaults
+  defval('multp',round(range(x(:))/10/median(diff(sort(x)))));
+  defval('perc',[5 50 95]);
+
   % Make sure the input arrays are one-dimensional
   x=x(:);
   y=y(:);
@@ -86,13 +88,13 @@ if ~isstr(x)
            multp*multc+round([length(yi)-multp*multc]/2)])';
   
   % Optional output
-  varns={xi,ypi};
+  varns={xi,ypi,x,y,multp,perc};
   varargout=varns(1:nargout);
 elseif strcmp(x,'demo1')
   % Now the second input is the number,for the demo only
-  N=y; defval('N',10000)
-  x=rand(randi(N),1));
-  y=randn(length(x),1));
+  defval('y',[]); N=y; defval('N',10000)
+  x=rand(randi(N),1);
+  y=randn(length(x),1);
 
   % Go through the motions
   [xi,ypi,x,y]=bin2median(x,y);
