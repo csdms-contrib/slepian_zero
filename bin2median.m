@@ -6,8 +6,7 @@ function varargout=bin2median(x,y,multp,perc)
 % x           The independent variable, not necessarily unique or equally spaced
 % y           The same-size dependent variable
 % multp       The median-x-interval multiplier, the interval over which the
-%             desired statistics will be quoted [default gets up to 1/10th of
-%             the x-range]
+%             desired statistics are quoted [default a fraction of the x-range]
 % perc        The percentiles [default: 5 50 95]
 %
 % OUTPUT:
@@ -32,7 +31,7 @@ defval('x',rand(randi(10000),1))
 if ~isstr(x)
   defval('y',randn(length(x),1));
   % Supply some more defaults
-  defval('multp',round(range(x(:))/10/median(diff(sort(x)))));
+  defval('multp',round(range(x(:))/30/median(diff(unique(x)))));
   defval('perc',[5 50 95]);
 
   % Make sure the input arrays are one-dimensional
@@ -71,22 +70,28 @@ if ~isstr(x)
   % Snap every value to the nearest increment of newdt 
   newt=round(x/newdt)*newdt;
 
-  % Interpolate the data to the median sampling intervals
-  yi=interp1(x,y,newt);
+  % Interpolate the data to the median sampling intervals - explore
+  % methods! Nearest is most appropriate when noisy data are taken
+  % sometimes very closest together
+  yi=interp1(x,y,newt,'nearest');
 
-  % This is roughly how many of those will find into the vector that you have
+  % This is the average number of values that you'll want to take the
+  % statistics over, which will end up filling an unequally spaced numbers
+  % of bins through the reshaped data matrix that you are about to
+  % construct; watch out for strongly nonhomogeneously distributed data
+  % sets where you'll want to play with the multp parameter much
   multc=floor(length(yi)/multp);
 
-  % Compute the stats
+  % Compute the desired stats in one go, over the same number of elements
   ypi=prctile(reshape(yi(1:multp*multc),multp,multc),perc)';
 
-  % But... there's a couple you might have missed, so add their medians also
+  % But... there's a couple you might have missed, so add their stats also
   ypi=[ypi ; prctile(yi(multp*multc+1:end),perc)];
 
   % From this you can learn at which time "ypi" should be quoted
   xi=newt([round(multp/2):multp:multp*multc ...
            multp*multc+round([length(yi)-multp*multc]/2)])';
-  
+
   % Optional output
   varns={xi,ypi,x,y,multp,perc};
   varargout=varns(1:nargout);
