@@ -1,20 +1,21 @@
 function varargout=bin2median(x,y,multp,perc)
-% [xi,ypi,x,y]=BIN2MEDIAN(x,y,multp,perc)
+% [xi,ypi,x,y,mult,perc]=BIN2MEDIAN(x,y,multp,perc)
 %
 % INPUT:
 %
-% x       The independent variable, not necessarily unique or equally spaced
-% y       The same-size dependent variable
-% multp   The median-x-interval multiplier, the interval over which the
-%         desired statistics will be quoted [default gets up to 1/10th of
-%         the x-range]
-% perc    The percentiles [default: 5 50 95]
+% x           The independent variable, not necessarily unique or equally spaced
+% y           The same-size dependent variable
+% multp       The median-x-interval multiplier, the interval over which the
+%             desired statistics will be quoted [default gets up to 1/10th of
+%             the x-range]
+% perc        The percentiles [default: 5 50 95]
 %
 % OUTPUT:
 %
-% xi      New independent variables, midpoints of the requested intervals
-% ypi     A matrix with columns according to the requested percentages
-% x,y     Regurgitated inputs
+% xi          New independent variables, midpoints of the requested intervals
+% ypi         A matrix with columns according to the requested percentages
+% x,y         Regurgitated inputs
+% mult,perc   Regurgitated inputs
 % 
 % EXAMPLE:
 % 
@@ -25,9 +26,9 @@ function varargout=bin2median(x,y,multp,perc)
 
 % Supply some defaults for unit testing
 defval('x',rand(randi(10000),1))
-defval('y',randn(length(x),1);
+defval('y',randn(length(x),1));
 % Supply some more defaults
-defval('multp',);
+defval('multp',round(range(x(:))/10/median(diff(sort(x)))));
 defval('perc',[5 50 95]);
 
 % Get to it, boss!
@@ -82,7 +83,7 @@ if ~isstr(x)
 
   % From this you can learn at which time "ypi" should be quoted
   xi=newt([round(multp/2):multp:multp*multc ...
-           multp*multc+round([length(yi)-multp*multc]/2)]);
+           multp*multc+round([length(yi)-multp*multc]/2)])';
   
   % Optional output
   varns={xi,ypi};
