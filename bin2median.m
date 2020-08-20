@@ -89,8 +89,11 @@ if ~isstr(x)
   varns={xi,ypi};
   varargout=varns(1:nargout);
 elseif strcmp(x,'demo1')
-   % Now the second input is the number,for the demo only
-  defval('x',[]); N=y; 
+  % Now the second input is the number,for the demo only
+  N=y; defval('N',10000)
+  x=rand(randi(N),1));
+  y=randn(length(x),1));
+
   % Go through the motions
   [xi,ypi,x,y]=bin2median(x,y);
   plot(x,y,'b.')
