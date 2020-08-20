@@ -73,16 +73,17 @@ if ~isstr(x)
 
   % This is roughly how many of those will find into the vector that you have
   multc=floor(length(yi)/multp);
-  % Could have saved us the initialization. Compute the medians
+
+  % Compute the stats
   ypi=prctile(reshape(yi(1:multp*multc),multp,multc),perc)';
 
   % But... there's a couple you might have missed, so add their medians also
   ypi=[ypi ; prctile(yi(multp*multc+1:end),perc)];
 
-  % From this you can learn at which time "meds" should be quoted
+  % From this you can learn at which time "ypi" should be quoted
   xi=newt([round(multp/2):multp:multp*multc ...
-           multp*multc+round([length(yi)-multp*multc]/2)])';
-
+           multp*multc+round([length(yi)-multp*multc]/2)]);
+  
   % Optional output
   varns={xi,ypi};
   varargout=varns(1:nargout);
