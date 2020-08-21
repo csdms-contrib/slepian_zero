@@ -18,8 +18,9 @@ function varargout=drop2mat(fname)
 % EXAMPLE:
 %
 % [t,d]=drop2mat('export_fjsimons_2020_8_17_9_54_16.csv');
+% plot(t,d.Temperature)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 08/19/2020
+% Last modified by fjsimons-at-alum.mit.edu, 08/20/2020
 
 % Open the file
 fid=fopen(fname);
@@ -77,8 +78,15 @@ fclose(fid);
 
 % Now save all of that as a MAT file
 [a,b,c]=fileparts(fname);
-save(b,'t','d')
+ename=sprintf('%s.mat',b);
+if exist(ename)~=2 
+  save(b,'t','d')
+else 
+  disp(sprintf('%s: %s existed so not resaved',upper(mfilename),ename))
+end
 
 % Optional output
 varns={t,d};
 varargout=varns(1:nargout);
+
+
