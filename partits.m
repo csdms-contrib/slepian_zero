@@ -23,8 +23,7 @@ function partits(spc,partn,figs)
 %
 % EXAMPLE:
 %
-% partits([],[],1)
-%
+% partits([],[],figs) % where figs is 1, 2, or 3
 % 
 % SEE ALSO:
 % 
@@ -92,7 +91,7 @@ if figs>0
   colormap(gray(64))
   longticks(ah(2),2)
 
-%  figdisp([],1,[],2)
+  figdisp([],1,[],2)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
 
@@ -104,8 +103,8 @@ if figs>1
   defval('win',max(1,randi(size(Wtx,2))))
 
   % Use partition to provide a partial reconstruction
-  [Wtfix,compf,concf,~,win]=partitf(Wtf);
-  
+  [Wtfix,compf,reler,partf,win]=partitf(Wtf);
+
   ah(1)=subplot(211);
   plot(t,Wtx(:,win),'LineWidth',1)
   ylim([-0.2 1.2])
@@ -118,52 +117,72 @@ if figs>1
   ah(2)=subplot(212);
   plot(t,Wtx(:,win),'k','LineWidth',1)
   hold on
-  plot(t,Wtfix,'b')
+  plot(t,Wtfix,'b','LineWidth',1)
+  plot(partf,-1,'kx','MarkerSize',4)
   hold off
   ylim(halverange([Wtfix ; 0 ; 1],110,NaN))
   xlim(minmax(t))
   grid on
   tl(4)=title(sprintf('frequency completion %i%% ; relative error %i%%',...
-		      compf,concf));
+		      compf,reler));
   longticks(ah(2),2)
   movev(tl(4),range(ylim(ah(2)))/20)
   nolabels(ah(1),1)
   xl(4)=xlabel('time (s)');
 
-%  figdisp([],2,[],2)
+  figdisp([],2,[],2)
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % And now for the real work: attempt to find the most orthogonal way to
 % partition the frequency axis that most optimally reassembles the time axis
-if figs>2
-  % Some more subsetting to make the numbers work
+if figs>2 || figs==0
+  % Some more subsetting to make the numbers work with the defaults
   win=1:8;
   
   % Figure out a reasonable partition parameter set, where, to test the
   % parameters, you just run PARTITA without output (watch nargout!)
   Nf=6; No=0;
-  
-  err=100; keepf=[];
-  for index=1:1
-    keyboard
-    
+  xver=1;
+  keyboard
+  bester=10000; 
+  keepf=[];
+  % Should parallelize although the early indications are not great
+  for index=1:1e5
     % So now you make randomized partitions for all windows...
+    % These two are the same lines as appear in the PARTITF demo
     parti=partita([ufreq-1 length(win)],Nf,No,[],0)+1;
-        
-    % ... and you test them
-    [Wtfix,compf,concf,partf]=partitf(Wtf,win,parti);
-    % And then you keep the overall best ones
-    keyboard
-    if conf<err
+    [Wtfix,compf,reler,partf]=partitf(Wtf,win,parti);
+    
+    % What to optimize? The average reconstruction error? 
+    % The concentration factor? 
+    if mean(reler)<bester
+      bester=mean(reler);
       keepf=partf;
+      keepi=parti;
+      Wtfib=Wtfix;
     end
   end
-  clf
-  plot(Wtx(:,win))
-  hold on
-  Wtfi=zeros(size(Wtf,1),1);
-  Wtfi(keepf)=Wtf(keepf,win);
-  plot(ifft(Wtfi))
+  
+  keyboard
+  
+  % Then work with the best
+  if xver==1
+    figure(3); clf
+    plot(t,Wtx(:,win),'k','LineWidth',1)
+    hold on
+    plot(t,Wtfib,'b','LineWidth',1)
+    plot(partf,-1,'kx','MarkerSize',4)
+    hold off
+    ylim(halverange([Wtfib ; 0 ; 1],110,NaN))
+    xlim(minmax(t))
+    grid on
+    title(sprintf('frequency completion %i%% ; average relative error %i%%',...
+		  compf,round(bester)));
+    longticks(gca,2)
+    movev(tl,range(ylim(gca))/20)
+    nolabels(ah(1),1)
+    xl=xlabel('time (s)');
+  end
 end
 
