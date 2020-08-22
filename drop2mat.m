@@ -27,8 +27,8 @@ function varargout=drop2mat(fname)
 
 if isempty(strfind(fname,'demo'))
   % Prepare to save the CSV file as a MAT file
-  [a,b,c]=fileparts(fname);
-  ename=sprintf('%s.mat',b);
+  [aa,bb,cc]=fileparts(fname);
+  ename=sprintf('%s.mat',bb);
   
   if exist(ename)~=2 
     % Open the file
@@ -88,15 +88,17 @@ if isempty(strfind(fname,'demo'))
     end
 
     % Save
-    save(b,'t','d')
+    save(bb,'t','d')
   else 
     disp(sprintf('%s: %s existed',upper(mfilename),ename))
     load(ename)
   end
 
 elseif strcmp(fname,'demo1')
-  [t,d]=drop2mat('export_fjsimons_2020_8_20_19_13_54.csv');
-
+  % [t,d]=drop2mat('export_fjsimons_2020_8_20_19_13_54.csv');
+  % [t,d]=drop2mat('export_fjsimons_2020_8_21_17_36_49.csv');
+  [t,d]=drop2mat('export_fjsimons_2020_8_21_17_36_50.csv');
+  
   if nargout==0
     % Make a picture
     col={'b' 'r' 'k'};
@@ -107,7 +109,7 @@ elseif strcmp(fname,'demo1')
     t.TimeZone=tz; 
     lb=plot(t,d.Temperature,col{1}); hold on
     index=0; maxrain=0; 
-    for jday=229:232
+    for jday=229:234
       index=index+1;
       yyaxis left
       [dd,h]=guyotweather(jday); dd.Timestamp.TimeZone=tz;
