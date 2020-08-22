@@ -27,8 +27,8 @@ function varargout=mark2mat(fname)
 
 if isempty(strfind(fname,'demo'))
   % Prepare to save the CSV file as a MAT file
-  [a,b,c]=fileparts(fname);
-  ename=sprintf('%s.mat',b);
+  [aa,bb,cc]=fileparts(fname);
+  ename=sprintf('%s.mat',bb);
 
   if exist(ename)~=2 
     % Open the file
@@ -45,6 +45,8 @@ if isempty(strfind(fname,'demo'))
     % Got to knnow there are double quotes in there
     [v1,v2]=strread(h{4},'%s%q','delimiter',',');
     d.(char(v1))=char(v2);
+    
+    % Later, I'll build in some units also, like in DROP2MAT
 
     % Read the rest as the "data"
     fms=sprintf('%s%s',repmat('%s',1,4),repmat('%f',1,34));
@@ -105,7 +107,7 @@ if isempty(strfind(fname,'demo'))
     end
     
     % Save
-    save(b,'t','d')
+    save(bb,'t','d')
   else 
     disp(sprintf('%s: %s existed',upper(mfilename),ename))
     load(ename)
