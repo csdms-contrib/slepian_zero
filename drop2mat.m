@@ -135,7 +135,7 @@ elseif strcmp(fname,'demo1')
     yyaxis left 
     yl=ylabel(sprintf('Air temperature (%sC)',str2mat(176)));
     leg=legend('Leabrook Lane','Guyot Hall','Location','NorthWest',...
-	       ,'AutoUpdate','off');
+	       'AutoUpdate','off');
 
     yyaxis right
     yl=ylabel(sprintf('Rain accumulation (mm)'));
