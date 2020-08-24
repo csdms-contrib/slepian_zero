@@ -113,9 +113,9 @@ elseif strcmp(fname,'demo1')
       index=index+1;
       yyaxis left
       [dd,h]=guyotweather(jday); dd.Timestamp.TimeZone=tz;
-      gh(index)=plot(dd.Timestamp,dd.AirTemp_C,col{2});
+      gh(index)=plot(dd.Timestamp,dd.AirTemp_C,col{2},'LineStyle','-');
       yyaxis right
-      pc(index)=plot(dd.Timestamp,dd.RainAcc_mm,col{3});
+      pc(index)=plot(dd.Timestamp,dd.RainAcc_mm,col{3},'LineStyle','-');
       maxrain=max(maxrain,max(dd.RainAcc_mm));
       [mrd,tmrd]=max(dd.RainAcc_mm);
       maxrainday(index)=dd.Timestamp(tmrd);
