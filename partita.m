@@ -15,18 +15,18 @@ function varargout=partita(mn,partn,olap,meth,xver)
 % mn         A certain matrix size [#rows #columns]
 % partn      A certain partition block length
 % olap       A certain partition block overlap in samples
-% meth       One of two methods, where 2 is fastest
-% xver       1 is for testing only
+% meth       One of two methods, where 2 is fastest [default]
+% xver       1 is for testing and display only, shows non-randomized blocks
+%            0 is the real thing, applies the randomization via SHUFFLE
 %
 % OUTPUT:
 %
 % ro        The partitition index matrix, only the same-size row blocks
-%           as can be most comfortably fit, as opposed to:
+%           as can be most comfortably fit, so no true degenerates, as opposed to:
 % CT        The overcomplete partitition matrix, including adjustments
 %
 % EXAMPLE:
 %
-% partita([72 18],10,1)
 % partita([1020 15],80,12,2,0)
 % partita([1020 15],80,12,2,1)
 %
@@ -34,7 +34,7 @@ function varargout=partita(mn,partn,olap,meth,xver)
 %
 % PARTITF, PARTITS
 %
-% Last modified by fjsimons-at-alum.mit.edu, 08/13/2020
+% Last modified by fjsimons-at-alum.mit.edu, 08/19/2020
 
 % Matrix size
 defval('mn',[51 25])
@@ -52,7 +52,10 @@ end
 defval('olap',0);
 % Use lower-integer, if remainder we add a partition later 
 defval('partn',fix(m/n));
-disp(sprintf('Obvious partition length is %i with overlap %i',fix(m/n),0))
+if xver==1
+  disp(sprintf('Obvious partition length is %i with overlap %i',...
+	       fix(m/n),0))
+end
 
 if olap>=partn
   error(sprintf('%s overlap %i not < %i block size ',...
@@ -95,24 +98,24 @@ CT=sparse(ro(:)',co,1,m,n);
 
 % If there is no or only one column missing, add missing rows to the last
 % column or make just one more
-[romis1,comis1,romis2,comis2]=reportit(CT,m,n,ps,partn,olap);
+[romis1,comis1,romis2,comis2]=reportit(CT,m,n,ps,partn,olap,xver);
 
 if comis1==0 && romis1>0
   CT=CT+sparse(shuf(m-romis1+1:m),co(end),1,m,n);
-  [romis1,comis1]=reportit(CT,m,n,ps,partn,olap);
+  [romis1,comis1]=reportit(CT,m,n,ps,partn,olap,xver);
 end
 if comis1>=1 && romis1>=0
   CT=CT+sparse(shuf(m-romis1-olap+1:m),co(end)+1,1,m,n);
-  [romis1,comis1]=reportit(CT,m,n,ps,partn,olap);
+  [romis1,comis1]=reportit(CT,m,n,ps,partn,olap,xver);
   % If there STILL are missing columns, just fill them up with the olap
   if comis1>=1
     % This however is the situation you like least of all
     CT=CT+sparse(repmat(shuf(m-max(1,olap)+1:m),comis1,1)',...
 		 repmat(n-comis1+1:n,max(1,olap),1),1,m,n);
-    reportit(CT,m,n,ps,partn,olap);
+    reportit(CT,m,n,ps,partn,olap,xver);
   end
-end
-
+  end
+  
 % Make a plot if no output
 if nargout==0
   clf
@@ -134,7 +137,7 @@ varns={ro,CT};
 varargout=varns(1:nargout);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function varargout=reportit(CT,m,n,ps,partn,olap)
+function varargout=reportit(CT,m,n,ps,partn,olap,xver)
 
 % Rows missed (two calculation methods)
 romis1=sum(~sum(full(CT),2));
@@ -143,11 +146,11 @@ romis2=m-(ps*(partn-olap)+olap+([n-ps]<0)*(n-ps)*(partn-olap));
 comis1=sum(~sum(full(CT),1));
 comis2=max(n-ps,0);
 
-if nargout>2
+if nargout>2 & xver==1
   % Full report from the two calculation methods
   disp(sprintf('Missing rows    %2.2i %2.2i',romis1,romis2))
   disp(sprintf('Missing columns %2.2i %2.2i',comis1,comis2))
-else
+elseif xver==1
   % After fixing; the second calculation method is no longer valid
   disp(sprintf('Missing rows    %2.2i',romis1))
   disp(sprintf('Missing columns %2.2i',comis1))
