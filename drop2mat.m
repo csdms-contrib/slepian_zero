@@ -23,7 +23,7 @@ function varargout=drop2mat(fname)
 %
 % drop2mat('demo1')
 %
-% Last modified by fjsimons-at-alum.mit.edu, 08/22/2020
+% Last modified by fjsimons-at-alum.mit.edu, 08/24/2020
 
 if isempty(strfind(fname,'demo'))
   % Prepare to save the CSV file as a MAT file
@@ -134,7 +134,8 @@ elseif strcmp(fname,'demo1')
     grid on; longticks(gca,2)
     yyaxis left 
     yl=ylabel(sprintf('Air temperature (%sC)',str2mat(176)));
-    leg=legend('Leabrook Lane','Guyot Hall','Location','NorthWest');
+    leg=legend('Leabrook Lane','Guyot Hall','Location','NorthWest',...
+	       ,'AutoUpdate','off');
 
     yyaxis right
     yl=ylabel(sprintf('Rain accumulation (mm)'));
