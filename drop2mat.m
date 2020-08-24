@@ -146,10 +146,10 @@ elseif strcmp(fname,'demo1')
     hold off
     try
       xlim(xels)
-      set(gca,'XTick',xells,'XTickLabel',xells); 
+      set(gca,'XTick',xells); 
     catch
       xlim(datenum(xels)); 
-      set(gca,'XTick',datenum(xells),'XTickLabel',datenum(xells)); 
+      set(gca,'XTick',datenum(xells));
     end
     xl=xlabel(xlabs); 
     movev(xl,-range(ylim)/20); 
