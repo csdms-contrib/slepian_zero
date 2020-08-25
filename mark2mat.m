@@ -23,55 +23,88 @@ function varargout=mark2mat(fname)
 %
 % mark2mat('demo1')
 %
-% Last modified by fjsimons-at-alum.mit.edu, 08/22/2020
+% Last modified by fjsimons-at-alum.mit.edu, 08/24/2020
 
 if isempty(strfind(fname,'demo'))
   % Prepare to save the CSV file as a MAT file
   [aa,bb,cc]=fileparts(fname);
   ename=sprintf('%s.mat',bb);
 
-  if exist(ename)~=2 
+  if exist(ename)~=2
     % Open the file
     fid=fopen(fname);
 
     % Read the first few lines as a "header"
-    for index=1:12
+    for index=1:10
       % These are all read in straight 
       h{index}=fgetl(fid);
     end
-
-    % Do the only one that is relevant here
+    % Take care of possible disclaimer
+    if ~isempty(h{10})
+      % This the empty
+      h{11}=fgetl(fid);
+    end
+    % Force this to be the header, create extra empty
+    h{12}=fgetl(fid);
+    
+    % Do the only one that is relevant here - Location
     vnames=h{4}; vnames(abs(vnames)==32)='';
     % Got to knnow there are double quotes in there
-    [v1,v2]=strread(h{4},'%s%q','delimiter',',');
+    [v1,v2]=strread(vnames,'%s%q','delimiter',',');
     d.(char(v1))=char(v2);
+
+    % Other, rejected ways
+    % d=struct(char(v{1}(5)),a{5})
+    % d=cellstruct({a{5}},char(v{1}(5)))
     
-    % Later, I'll build in some units also, like in DROP2MAT
-
-    % Read the rest as the "data"
-    fms=sprintf('%s%s',repmat('%s',1,4),repmat('%f',1,34));
-    a=textscan(fid,fms,'Delimiter',',');
-
-    % Close the file
-    fclose(fid);
-
-    % Convert the ISO8601 time stamps to MATLAB datetime arrays
-    % by removing the 'Z' and blanking the 'T' (84->32) via an anoymous
-    % function. Note that putting the DATETIME inside would take longer
-    convt=@(x) char(abs(x(1:end-1))-[zeros(1,10) 52 zeros(1,8)]);
-    t=datetime(cellfun(convt,a{1},'UniformOutput',0));
-
+    % Unit designations
+    for index=6:9
+      % Do the only one that is relevant here
+      vnames=h{index}; vnames(abs(vnames)==32)='';
+      vnames(abs(vnames)==47)='';
+      % Got to knnow there are double quotes in there
+      [v1,v2]=strread(vnames,'%s%q','delimiter',',');
+      v1=strcat(v1,'Unit');
+      d.(char(v1))=char(v2);
+    end
+    
     % Pick out the data variable names
     % Replace the underscores with nothing
     vnames=h{12}; vnames(abs(vnames)==95)='';
     % These are simple parameter value pairs, prefer TEXTSCAN over STRREAD
     v=textscan(vnames,'%s','delimiter',',');
 
-    % Put everything into a big data structure
-    % d=struct(char(v{1}(5)),a{5})
-    % d=cellstruct({a{5}},char(v{1}(5)))
+    % Read the rest as the "data"
+    sv11=size(v{1},1);
+    if sv11==38
+      % Mark 1 without wind
+      fms=sprintf('%s%s',repmat('%s',1,4),repmat('%f',1,34));
+    elseif sv11==39
+      % Mark 2 with wind
+      fms=sprintf('%s%s%s%s%s',repmat('%s',1,4),repmat('%f',1,30),...
+		  '%s',repmat('%f',1,3),'%s');
+    end
+    a=textscan(fid,fms,'Delimiter',',');
+
+    % Close the file
+    fclose(fid);
+
+    % One of the first two is the UTC time, this could be switched
+    utc=find(strcmp(v{1},'utctime'));
     
-    % The simple tages
+    % Note that we are going with the UTC times
+    try
+      % Convert the ISO8601 time stamps to MATLAB datetime arrays
+      % by removing the 'Z' and blanking the 'T' (84->32) via an anoymous
+      % function. Note that putting the DATETIME inside would take longer
+      convt=@(x) char(abs(x(1:end-1))-[zeros(1,10) 52 zeros(1,8)]);
+      t=datetime(cellfun(convt,a{utc},'UniformOutput',0));
+    catch
+      % A newer, simpler format
+      t=datetime(a{utc});
+    end
+
+    % The simple tags
     for index=3:4
       eval(sprintf('d.%s=char(a{%i}(1));',char(v{1}(index)),index))
     end
@@ -94,15 +127,17 @@ if isempty(strfind(fname,'demo'))
       d=rmfield(d,'long');
     end
     % All the rest of the data
-    for index=7:38
+    for index=7:sv11
       eval(sprintf('d.%s=a{%i};',char(v{1}(index)),index))
     end
-    % Remove the completely empty columns
+    % Remove the completely empty numeric columns
     fn=fieldnames(d);
     for index=1:length(fn)
       dn=d.(fn{index});
-      if sum(isnan(dn))==length(dn)
-	d=rmfield(d,fn{index});
+      try
+	if sum(isnan(dn))==length(dn)
+	  d=rmfield(d,fn{index});
+	end
       end
     end
     
@@ -114,7 +149,7 @@ if isempty(strfind(fname,'demo'))
   end
 
 elseif strcmp(fname,'demo1')
-  [t,d]=mark2mat('arable_calval_Guyot_A000510_hourly_20200424.csv');
+  [t,d]=mark2mat('arable__Guyot_Roof_C003384_hourly_20200823.csv');
 
   if nargout==0
     % Make a picture, take your inspiration from DROP2MAT
