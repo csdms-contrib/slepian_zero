@@ -27,6 +27,11 @@ function varargout=mark2mat(fname,hord)
 %
 % mark2mat('demo1')
 %
+% TESTED ON: 
+%
+% 9.0.0.341360 (R2016a)
+% 9.4.0.813654 (R2018a)
+%
 % Last modified by fjsimons-at-alum.mit.edu, 08/25/2020
 
 if isempty(strfind(fname,'demo'))
