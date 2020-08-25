@@ -1,19 +1,23 @@
-function varargout=mark2mat(fname)
-% [t,d]=MARK2MAT(fname)
+function varargout=mark2mat(fname,hord)
+% [t,d,h]=MARK2MAT(fname)
 %
 % Reads, and converts a CSV file from the Arable Mark 2 instrument to a
 % MATLAB file including proper date-time variables. The format of the data
-% line is presumed to be (everything being given in metric SI units) as: 
+% line is according to our knowledge of 'daily' and 'hourly' files, with
+% and without external data (wind) sensor.
 % 
 %
 % INPUT:
 %
 % fname       A complete file name string
+% hord        1 'hourly' data file 
+%             2 'daily' data file 
 %
 % OUTPUT:
 %
 % t           The timestamp as a DATETIME array
 % d           The data as a STRUCTURE array
+% h           The header line CELL array
 %
 % SEE ALSO:
 %
@@ -23,7 +27,7 @@ function varargout=mark2mat(fname)
 %
 % mark2mat('demo1')
 %
-% Last modified by fjsimons-at-alum.mit.edu, 08/24/2020
+% Last modified by fjsimons-at-alum.mit.edu, 08/25/2020
 
 if isempty(strfind(fname,'demo'))
   % Prepare to save the CSV file as a MAT file
@@ -76,13 +80,25 @@ if isempty(strfind(fname,'demo'))
 
     % Read the rest as the "data"
     sv11=size(v{1},1);
-    if sv11==38
-      % Mark 1 without wind
-      fms=sprintf('%s%s',repmat('%s',1,4),repmat('%f',1,34));
-    elseif sv11==39
-      % Mark 2 with wind
+    if sv11>=38
+      % Mark 1 hourly file
       fms=sprintf('%s%s%s%s%s',repmat('%s',1,4),repmat('%f',1,30),...
+		  '%s',repmat('%f',1,3));
+      if sv11==39
+	% Mark 2 appears to have one more column (and time order switched)
+	fms=[fms '%s'];
+      end
+    else
+      if sv11==28
+	% Mark 1 daily file
+	fms=sprintf('%s%s%s%s%s',repmat('%s',1,4),repmat('%f',1,20),...
+		  '%s',repmat('%f',1,3));
+      end
+      if sv11==26
+	% Mark 2 daily file
+	fms=sprintf('%s%s%s%s%s%s',repmat('%s',1,3),repmat('%f',1,18),...
 		  '%s',repmat('%f',1,3),'%s');
+      end
     end
     a=textscan(fid,fms,'Delimiter',',');
 
@@ -91,6 +107,7 @@ if isempty(strfind(fname,'demo'))
 
     % One of the first two is the UTC time, this could be switched
     utc=find(strcmp(v{1},'utctime'));
+    if isempty(utc); utc=1; end
     
     % Note that we are going with the UTC times
     try
@@ -104,6 +121,10 @@ if isempty(strfind(fname,'demo'))
       t=datetime(a{utc});
     end
 
+    % Sanity check
+    disp(sprintf('%s records expected, %i received',...
+		 h{5}(abs(h{5})>=48 & abs(h{5})<=58),length(t)))
+    
     % The simple tags
     for index=3:4
       eval(sprintf('d.%s=char(a{%i}(1));',char(v{1}(index)),index))
@@ -142,21 +163,22 @@ if isempty(strfind(fname,'demo'))
     end
     
     % Save
-    save(bb,'t','d')
+    save(bb,'t','d','h')
   else 
     disp(sprintf('%s: %s existed',upper(mfilename),ename))
     load(ename)
   end
 
 elseif strcmp(fname,'demo1')
+  % Supply an existing filename
   [t,d]=mark2mat('arable__Guyot_Roof_C003384_hourly_20200823.csv');
 
   if nargout==0
     % Make a picture, take your inspiration from DROP2MAT
-    keyboard
+    plot(t,Tair)
   end
 end
 
 % Optional output
-varns={t,d};
+varns={t,d,h};
 varargout=varns(1:nargout);
