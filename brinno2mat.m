@@ -12,7 +12,8 @@ function [t,R,G,B]=brinno2mat(fname,xver,poly)
 % xver       A verification interval (0 does not verify, any other
 %            integer is the spacing) between reviewed frames. Input a
 %            negative number and you get to look at the polygonal data. 
-% poly       [x y] a matrix with a polygon defining the area of interest
+% poly       [x y] a matrix with a polygon defining the area of interest,
+%            if presaved as a MAT file perform a LOAD first
 %
 % OUTPUT:
 %
@@ -61,28 +62,6 @@ if exist(ename)~=2
     end
   end
   
-  % The polygon 
-  poly=[ 409         159
-         585          25
-         754          27
-         777           3
-        1273           3
-        1271          30
-        1229         109
-        1033         365
-         773         642
-         708         699
-         512         699
-         539         648
-         493         612
-         552         591
-         533         570
-         564         478
-         543         380
-         543         316
-         462         230
-         414         170];
-
   % Mask the region of not interest
   x=1:v.Width;
   y=1:v.Height;
@@ -111,6 +90,7 @@ if exist(ename)~=2
       xlabel(char(t(index)),'FontSize',14)
       pause
     end
+    % Make a thing called IMAGESTATS - see REGIONPROPS
     % Now convert these polygons to actual DATA
     grm=gr(~mask);
     ggm=gg(~mask);
