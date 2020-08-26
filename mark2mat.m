@@ -39,7 +39,7 @@ if isempty(strfind(fname,'demo'))
   [aa,bb,cc]=fileparts(fname);
   ename=sprintf('%s.mat',bb);
 
-  if exist(ename)~=2
+  if exist(ename)~=2 || 1==1
     % Open the file
     fid=fopen(fname);
 
@@ -125,6 +125,8 @@ if isempty(strfind(fname,'demo'))
       % A newer, simpler format
       t=datetime(a{utc});
     end
+    % Definitely set the time zone
+    t.TimeZone='UTC';
 
     % Sanity check
     disp(sprintf('%s records expected, %i received',...
