@@ -27,14 +27,14 @@ function varargout=drop2mat(fname)
 %
 % MATLAB Version: 9.4.0.813654 (R2018a)
 % 
-% Last modified by fjsimons-at-alum.mit.edu, 08/31/2020
+% Last modified by fjsimons-at-alum.mit.edu, 09/03/2020
 
 if isempty(strfind(fname,'demo'))
   % Prepare to save the CSV file as a MAT file
   [aa,bb,cc]=fileparts(fname);
   ename=sprintf('%s.mat',bb);
   
-  if exist(ename)~=2
+  if exist(ename)~=2 | 1==1
     % Open the file
     fid=fopen(fname);
 
@@ -59,22 +59,22 @@ if isempty(strfind(fname,'demo'))
       % Replace the blanks with nothing
       vnames=h{index}; vnames(abs(vnames)==32)='';
       % These are simple parameter value pairs
-      [v1,v2]=strread(vnames,'%s%s','delimiter',',');
+      [v1,v2]=strread(vnames,'%q%q','delimiter',',');
 
-      % Start the actual data structure
-      d.(char(v1))=char(v2);
+      % Start the actual data structure... some versions have empties
+      d.(char(v1{1}))=char(v2{1});
     end
 
     % Pick out the data variable names
     vnames=h{4}; vnames(abs(vnames)==32)='';
     % You'll now know there are FOUR to SIX variables of interest (any empties?)
-    [~,v1,v2,v3,v4,v5,v6]=strread(vnames,'%s%s%s%s%s%s%s','delimiter',',');
+    [~,v1,v2,v3,v4,v5,v6]=strread(vnames,'%q%q%q%q%q%q%q','delimiter',',');
 
     % Pick out the unit name strings
     index=5;
     vnames=h{index}; vnames(abs(vnames)==32)='';
     % You'll now know there are FOUR to SIX units of interest (two empties?)
-    [~,u1,u2,u3,u4,u5,u6]=strread(vnames,'%s%s%s%s%s%s%s','delimiter',',');
+    [~,u1,u2,u3,u4,u5,u6]=strread(vnames,'%q%q%q%q%q%q%q','delimiter',',');
 
     % For the next loop, it's a DROP 2 or a DROP 3
     maxi=5+~isempty(u5)*2;
@@ -103,7 +103,8 @@ if isempty(strfind(fname,'demo'))
   end
 
 elseif strcmp(fname,'demo1')
-%  [t,d]=drop2mat('export_fjsimons_2020_8_21_17_36_50.csv');
+  % Stick in example filenames. Use DEFVAL, ultimately
+  % [t,d]=drop2mat('export_fjsimons_2020_8_21_17_36_50.csv');
   [t,d]=drop2mat('export_fjsimons_2020_8_29_11_47_33.csv');
   if nargout==0
     % Make a picture
