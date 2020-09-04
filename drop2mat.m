@@ -26,6 +26,7 @@ function varargout=drop2mat(fname)
 % TESTED ON:
 %
 % MATLAB Version: 9.4.0.813654 (R2018a)
+% MATLAB Version: 9.8.0.1451342 (R2020a) Update 5
 % 
 % Last modified by fjsimons-at-alum.mit.edu, 09/03/2020
 
