@@ -32,14 +32,14 @@ function varargout=mark2mat(fname,hord)
 % 9.0.0.341360 (R2016a)
 % 9.4.0.813654 (R2018a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 09/03/2020
+% Last modified by fjsimons-at-alum.mit.edu, 09/21/2020
 
 if isempty(strfind(fname,'demo'))
   % Prepare to save the CSV file as a MAT file
   [aa,bb,cc]=fileparts(fname);
   ename=sprintf('%s.mat',bb);
 
-  if exist(ename)~=2 || 1==1
+  if exist(ename)~=2
     % Open the file
     fid=fopen(fname);
 
@@ -93,6 +93,16 @@ if isempty(strfind(fname,'demo'))
 	% Mark 2 appears to have one more column (and time order switched)
 	fms=[fms '%s'];
       end
+      if sv11==146
+	% Mark 2 hourly Sentek file
+	fms=sprintf('%s%s%s%s%s',repmat('%s',1,4),repmat('%f',1,94),...
+		  '%s',repmat('%f',1,47));
+      end
+      if sv11==145
+	% Mark 2 daily Sentek file
+	fms=sprintf('%s%s%s%s%s',repmat('%s',1,3),repmat('%f',1,94),...
+		  '%s',repmat('%f',1,47));
+      end
     else
       if sv11==28
 	% Mark 1 daily file
@@ -131,13 +141,15 @@ if isempty(strfind(fname,'demo'))
     % Sanity check
     disp(sprintf('%s records expected, %i received',...
 		 h{5}(abs(h{5})>=48 & abs(h{5})<=58),length(t)))
-    
-    % The simple tags
-    for index=3:4
+
+    isdaily=~isempty(strfind(fname,'daily'));
+    % The simple tags of device and location
+    for index=[3:4]-isdaily
       eval(sprintf('d.%s=char(a{%i}(1));',char(v{1}(index)),index))
     end
-    % The geographical tags
-    for index=5:6
+
+    % The geographical tags (if it's not an external probe, but never mind)
+    for index=[5:6]-isdaily
       eval(sprintf('d.%s=a{%i};',char(v{1}(index)),index))
     end
     try
@@ -154,6 +166,7 @@ if isempty(strfind(fname,'demo'))
       d.lon=lo;
       d=rmfield(d,'long');
     end
+
     % All the rest of the data
     for index=7:sv11
       eval(sprintf('d.%s=a{%i};',char(v{1}(index)),index))
