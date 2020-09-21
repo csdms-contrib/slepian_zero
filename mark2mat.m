@@ -32,7 +32,7 @@ function varargout=mark2mat(fname,hord)
 % 9.0.0.341360 (R2016a)
 % 9.4.0.813654 (R2018a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 08/25/2020
+% Last modified by fjsimons-at-alum.mit.edu, 09/03/2020
 
 if isempty(strfind(fname,'demo'))
   % Prepare to save the CSV file as a MAT file
@@ -58,7 +58,7 @@ if isempty(strfind(fname,'demo'))
     
     % Do the only one that is relevant here - Location
     vnames=h{4}; vnames(abs(vnames)==32)='';
-    % Got to knnow there are double quotes in there
+    % Got to know there are double quotes in there
     [v1,v2]=strread(vnames,'%s%q','delimiter',',');
     d.(char(v1))=char(v2);
 
