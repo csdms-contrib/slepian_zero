@@ -1,5 +1,5 @@
 function varargout=meteobluf(fname)
-% [t,d]=METEOBLUE(fname)
+% [t,d]=METEOBLUF(fname)
 %
 % Reads, and converts a CSV file from METEOBLUE data to a MATLAB file
 % including proper date-time variables. The format of the data is
@@ -99,6 +99,9 @@ if exist(ename)~=2
       eval(sprintf('d.(char(w))=char(u{%i});',index))
       eval(sprintf('d.(char(z))=char(e{%i});',index))
     end
+
+    % Assign structure
+    d.msg=sprintf('Created by fjsimons@alum.mit.edu using %s on %s',upper(mfilename),date);
 
     % Convert the time stamps, see MARK2MAT
     convt=@(x) char(abs(x)-[zeros(1,8) 52 zeros(1,4)]);
