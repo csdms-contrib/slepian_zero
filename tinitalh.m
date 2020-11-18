@@ -1,7 +1,8 @@
 function varargout=tinitalh(dirp,diro,xver)
 % [hdr,TV,TN,TA,bx,by]=TINITALH(dirp,diro,xver)
 %
-% Gets and displays all headers inside a TINITALY directory
+% Gets and displays all headers inside a TINITALY directory ready to feed
+% into TINITALG which will get and display data and grids.
 %
 % INPUT:
 %
@@ -17,12 +18,13 @@ function varargout=tinitalh(dirp,diro,xver)
 % TN         The header variable names, as a matrix
 % TA         All the the header variables, in a matrix
 % bx,by      All the box corners, if you like
+% tt,t       Object handles to the box titles and the overall title
 %
 % EXAMPLE:
 %
 % tinitalh([],[],2) % will bring up the map with available tiles
 %
-% Last modified by fjsimons-at-alum.mit.edu, 12/16/2019
+% Last modified by fjsimons-at-alum.mit.edu, 11/18/2020
 
 % Bottom-level directory name, taken from the Tinitaly download
 defval('dirp','DATA')
@@ -96,10 +98,9 @@ if xver==2
     bbx=double([xl xl xl xl xl]+[0 0      nc*sp nc*sp 0]);
     bby=double([yl yl yl yl yl]+[0 nr*sp  nr*sp 0     0]);
     plot(bbx,bby); hold on
-    text(bbx(1)+[bbx(3)-bbx(1)]/2,...
-	 bby(1)+[bby(2)-bby(1)]/2,...
-	 sprintf('%i %s',index,...
-		 pref(pref(hdr{index}),'_')))
+    tt(index)=text(bbx(1)+[bbx(3)-bbx(1)]/2,...
+		   bby(1)+[bby(2)-bby(1)]/2,...
+		   sprintf('%i %s',index,pref(pref(hdr{index}),'_')));
     BX(index,:)=minmax(bbx);
     BY(index,:)=minmax(bby);
   end
@@ -111,11 +112,13 @@ if xver==2
   ylim(yel+[-1 1]*range(yel)/20)
   % Annotate
   shrink(ah,1.5,1.5)
-  t(1)=title(sprintf('From the headers inside\n %s',...
+  tl=title(sprintf('From the headers inside\n %s',...
 		     fullfile(diro,dirp)));
-  movev(t(1),range(ylim)/10)
+  movev(tl,range(ylim)/10)
+else
+  [tt,tl]=deal(NaN);
 end
 
 % All the outputs fit to print
-varns={hdr,TV,TN,TA,bx,by};
+varns={hdr,TV,TN,TA,bx,by,tt,tl};
 varargout=varns(1:nargout);
