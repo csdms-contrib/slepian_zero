@@ -5,8 +5,8 @@ function varargout=tinitalg(hdr,TV,index,dirp,diro,xver)
 %
 % INPUT:
 %
-% hdr        All the header name strings in a cell array
-% TV         All the header variables, in a cell
+% hdr        All the header name strings in a cell array, from TINITALH
+% TV         All the header variables, in a cell, from TINITALH
 % index      The single running index for the file that you really want
 % dirp       Subdirectory [e.g. 'DATA'] of:
 % diro       Main directory [e.g. '/u/fjsimonsIFILES/TOPOGRAPHY/ITALY/TINITALY']
