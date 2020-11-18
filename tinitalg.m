@@ -7,7 +7,7 @@ function varargout=tinitalg(hdr,TV,index,dirp,diro,xver)
 %
 % hdr        All the header name strings in a cell array
 % TV         All the header variables, in a cell
-% index      The running index for the file that you really want
+% index      The single running index for the file that you really want
 % dirp       Subdirectory [e.g. 'DATA'] of:
 % diro       Main directory [e.g. '/u/fjsimonsIFILES/TOPOGRAPHY/ITALY/TINITALY']
 % xver       >0 Provides excessive verification 
@@ -28,7 +28,7 @@ function varargout=tinitalg(hdr,TV,index,dirp,diro,xver)
 % imagefnan([XT(1),YT(1)],[XT(end) YT(end)],topodata,'sergeicol',sax)
 % title(nounder(hdr{index}))
 %
-% Last modified by fjsimons-at-alum.mit.edu, 09/03/2019 
+% Last modified by fjsimons-at-alum.mit.edu, 11/18/2020
 
 % Bottom-level directory name, taken from the Tinitaly download
 defval('dirp','DATA')
@@ -77,7 +77,7 @@ ZT='32N';
 % Mercator coordinate system (UTM), World Geodetic System WGS 84. Notice
 % that all the DEM is projected in zone 32N, even if eastern italian
 % regions are in zone 33N (in case you need to re-project portions of
-% the DEM). Couresy of Simone Tarquini.
+% the DEM). Courtesy of Simone Tarquini.
 
 % May convert the structure with the XML inside Tinitaly and the EPSG files
 if nargout>3
