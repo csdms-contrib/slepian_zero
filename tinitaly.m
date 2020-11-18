@@ -26,7 +26,7 @@ function varargout=tinitaly(nprops,dirp,diro,xver,alldata)
 % EXAMPLE 1, for unclipped data, multiple images of the same "grid_cell"
 %
 % [alldata1,nprops1]=rapideye('3357121_2018-09-11_RE3_3A','20180911_094536_3357121_RapidEye-3',[],[],[],'_clip');
-% [alldata2,nprops2]=rapideye('3357121_2018-11-12_RE1_3A','20181112_093003_3357121_RapidEye-4',[],[],[],'_clip');
+% [alldata2,nprops2]=rapideye('3357121_2018-11-12_RE4_3A','20181112_093003_3357121_RapidEye-4',[],[],[],'_clip');
 % figure(1); clf; tinitaly(nprops1,[],[],[],alldata1)
 % figure(2); clf; tinitaly(nprops2,[],[],[],alldata2)
 % 
