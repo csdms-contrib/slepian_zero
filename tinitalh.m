@@ -1,5 +1,5 @@
 function varargout=tinitalh(dirp,diro,xver)
-% [hdr,TV,TN,TA,bx,by]=TINITALH(dirp,diro,xver)
+% [hdr,TV,TN,TA,bx,by,tt,tl]=TINITALH(dirp,diro,xver)
 %
 % Gets and displays all headers inside a TINITALY directory ready to feed
 % into TINITALG which will get and display data and grids.
@@ -18,7 +18,7 @@ function varargout=tinitalh(dirp,diro,xver)
 % TN         The header variable names, as a matrix
 % TA         All the the header variables, in a matrix
 % bx,by      All the box corners, if you like
-% tt,t       Object handles to the box titles and the overall title
+% tt,tl      Object handles to the box titles and the overall title
 %
 % EXAMPLE:
 %
