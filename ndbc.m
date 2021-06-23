@@ -1,5 +1,5 @@
-function varargout=ndbc(bnum,fname,ccode)
-% [t,d,h]=NDBC(bnum,filename,ccode)
+function varargout=ndbc(bnum,dtype,dyear)
+% [t,d,h]=NDBC(bnum,dtype,dyear)
 %
 % Reads buoy data from the NDBC
 %
