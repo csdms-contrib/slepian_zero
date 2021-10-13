@@ -1,13 +1,14 @@
-function varargout=meteobluf(fname)
-% [t,d]=METEOBLUF(fname)
+function varargout=meteobluf(fname,N)
+% [t,d]=METEOBLUF(fname,N)
 %
 % Reads, and converts a CSV file from METEOBLUE data to a MATLAB file
-% including proper date-time variables. The format of the data is
-% presumed to be consistent with 2020 retrievals from the company. 
+% including proper date-time variables. The format of the data is presumed
+% to be consistent with 2020 and 2021 retrievals from the company.
 %
 % INPUT:
 %
 % fname       A complete file name string
+% N           Number of weather variables (40 in 2020, 41 in 2021)
 %
 % OUTPUT:
 %
@@ -16,7 +17,7 @@ function varargout=meteobluf(fname)
 %
 % SEE ALSO: METEOBLUE, DROP2MAT, MARK2MAT
 %
-% Last modified by fjsimons-at-alum.mit.edu, 09/25/2020
+% Last modified by fjsimons-at-alum.mit.edu, 10/13/2021
 
 % Prepare to save the CSV file as a MAT file
 [aa,bb,cc]=fileparts(fname);
@@ -33,7 +34,7 @@ if exist(ename)~=2
   end
 
   % The apparent format - one time string and FORTY weather variables
-  N=40;
+  defval('N',40);
   % General data format inluding the time stamp, or numerical header format
   fmt=sprintf('%s%s%%f','%s',repmat('%f',[1 N-1]));
   % General string header format
@@ -50,7 +51,7 @@ if exist(ename)~=2
     % Start the actual data structure... some versions have empties
     d.(char(v1))=v2;
   end
-
+  
   % Extract the string variables that are simple pairs without testing
   % for uniqueness
   for index=[1 8 9]
@@ -59,7 +60,12 @@ if exist(ename)~=2
     % These are simple parameter value pairs
     [v1,v2]=strread(vnames,'%q%q','delimiter',',');
     % Start the actual data structure... some versions have empties
-    d.(char(v1{1}))=char(v2{1});
+    try
+      d.(char(v1{1}))=char(v2{1});
+    catch
+      % Weird instances of a "hidden" 65279 ASCII leading character...
+      d.(char(v1{1}(2:end)))=char(v2{1});
+    end
   end
 
   % Pick out the data variable types
@@ -104,9 +110,16 @@ if exist(ename)~=2
     d.msg=sprintf('Created by fjsimons@alum.mit.edu using %s on %s',upper(mfilename),date);
 
     % Convert the time stamps, see MARK2MAT
-    convt=@(x) char(abs(x)-[zeros(1,8) 52 zeros(1,4)]);
-    t=datetime(cellfun(convt,a{1},'UniformOutput',0),'InputFormat','yyyyMMddHHmm');
-
+    try
+      % From '19850101T0000' to what we need - in 2020
+      convt=@(x) char(abs(x)-[zeros(1,8) 52 zeros(1,4)]);
+      t=datetime(cellfun(convt,a{1},'UniformOutput',0),'InputFormat','yyyyMMddHHmm');
+    catch
+      % From  '1985-01-01T00:00:00' to what we need - in 2021
+      convt=@(x) char(abs(x)-[zeros(1,10) 52 zeros(1,8)]);
+      t=datetime(cellfun(convt,a{1},'UniformOutput',0),...
+		 'InputFormat','yyyy-MM-dd HH:mm:ss');
+    end    
     % Save
     save(bb,'t','d')
 else 
