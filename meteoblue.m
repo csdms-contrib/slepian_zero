@@ -1,8 +1,9 @@
 function meteoblue(diro,xver)
 % meteoblue(diro,xver)
 %
-% For all the METEOBLUE csv files inside of a directory, turns them into
-% MAT files and resaves them there.
+% For all the METEOBLUE csv files inside of a directory, turns them into MAT
+% files and resaves them there. The format of the data is presumed to be
+% consistent with 2019 retrievals from the company. 
 %
 % INPUT:
 %
@@ -10,7 +11,9 @@ function meteoblue(diro,xver)
 % xver      1 Makes a plot of a variable
 %           0 Just does the conversion [default]
 %
-% Last modified by fjsimons-at-alum.mit.edu, 12/16/2019
+% SEE ALSO: METEOBLUF
+%
+% Last modified by fjsimons-at-alum.mit.edu, 09/24/2020
 
 % Defaults
 defval('xver',0)
@@ -19,7 +22,7 @@ defval('diro',fullfile(getenv('ITALY'),'METEOBLUE','csv'))
 % Look inside, find them all
 fnames=ls2cell(fullfile(diro,'*.csv'));
 
-% The apparent format - twenty-five total
+% The apparent format - twenty-five including TWENTY weather variables
 N=25;
 % General data format
 fmt=sprintf('%s%%f',repmat('%f;',[1 N-1]));
