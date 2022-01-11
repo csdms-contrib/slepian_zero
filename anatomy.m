@@ -26,13 +26,18 @@ function varargout=anatomy(fname,snumber)
 
 % Do something interesting with the input
 if isempty(strfind(fname,'demo'))
-  % Like, find the creation time stamp of the first input
-  [~,b]=system(sprintf('GetFileInfo %s',which(fname)));
-  s=strfind(b,'created: ')+9;
-  t=datetime(b(s:s+18),'InputFormat','MM/dd/uuuu HH:mm:ss');
-  % And, find the file size, multiplied by the second input
-  [~,b]=system(sprintf('ls -l %s | awk ''{print $5}''',which(fname)));
-  d=str2num(b(1:length(b)-1))*snumber;
+    % Like, find the creation time stamp of the first input
+    [~,b]=system(sprintf('GetFileInfo %s',which(fname)));
+    s=strfind(b,'created: ')+9;
+    t=datetime(b(s:s+18),'InputFormat','MM/dd/uuuu HH:mm:ss');
+    % And, find the file size, multiplied by the second input
+    [~,b]=system(sprintf('ls -l %s | awk ''{print $5}''',which(fname)));
+    d=str2num(b(1:length(b)-1))*snumber;
+    if isnat(t)
+      % This would be the Windows version
+      [~,b]=system('dir');
+      % ... 
+    end
 elseif strcmp(fname,'demo1')
   % Call your own example... do check out DEFVAL, RAND, etc
   [t,d]=anatomy(mfilename,1);
