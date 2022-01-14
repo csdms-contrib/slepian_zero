@@ -4,7 +4,7 @@ function varargout=mark2mat(fname,hord)
 % Reads, and converts a CSV file from the Arable Mark 2 instrument to a
 % MATLAB file including proper date-time variables. The format of the data
 % line is according to our knowledge of 'daily' and 'hourly' files, with
-% and without external data (wind) sensor.
+% and without external data (wind) sensor. Also for external sensors.
 % 
 %
 % INPUT:
@@ -33,6 +33,8 @@ function varargout=mark2mat(fname,hord)
 % 9.4.0.813654 (R2018a)
 %
 % Last modified by fjsimons-at-alum.mit.edu, 09/21/2020
+
+% Where do the location etc get unicized? Should do the same for model
 
 if isempty(strfind(fname,'demo'))
   % Prepare to save the CSV file as a MAT file
@@ -71,7 +73,7 @@ if isempty(strfind(fname,'demo'))
       % Do the only one that is relevant here
       vnames=h{index}; vnames(abs(vnames)==32)='';
       vnames(abs(vnames)==47)='';
-      % Got to knnow there are double quotes in there
+      % Got to know there are double quotes in there
       [v1,v2]=strread(vnames,'%s%q','delimiter',',');
       v1=strcat(v1,'Unit');
       d.(char(v1))=char(v2);
