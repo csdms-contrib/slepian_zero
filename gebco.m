@@ -215,6 +215,9 @@ if ~isstr(lon)
   
   % Now it's NOT a WMS request but we interpolate our presaved data files
 
+  % Here I will put in Pete's direct solution
+  % https://github.com/sirpipat/MERMAIDS_work/blob/master/bathymetry.m
+
   % Get information on where the data files are being kept
   [mname,sname,up,dn,lt,rt,dxdy,NxNy]=readGEBCO(vers,npc,gt);
 
@@ -333,7 +336,7 @@ if ~isstr(lon)
   varns={z,lon,lat,A,R,jig};
   varargout=varns(1:nargout);
   
-  % Grid documentation for 2008 and 2014 it's pixel-registered.
+  % Grid documentation for 2008 and 2014 (and 2019) it's pixel-registered.
   % https://www.bodc.ac.uk/data/documents/nodb/301801/#6_format
   %
   % The grid is stored as a two-dimensional array of 2-byte signed integer ...
