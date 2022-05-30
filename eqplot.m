@@ -22,7 +22,7 @@ function varargout=eqplot(lat,dlon,c11cmn,varargin)
 % [lat,dlon,c,nmr]=authalic(c11,cmn,1,5);
 % a=eqplot(lat,dlon,[c11 cmn]); set(a(length(lat)+1:end),'color','b')
 % 
-% Last modified by fjsimons-at-alum.mit.edu, 06/12/2007
+% Last modified by fjsimons-at-alum.mit.edu, 05/30/2022
 
 [c11,cmn]=deal(c11cmn(1:2),c11cmn(3:4));
 
@@ -54,7 +54,6 @@ end
 axis image
 hold off
 
-if nargout~=0
-  varargout{1}=[lats ; hands];
-end
+varns={lats,hands};
+varargout=varns(1:nargout);
 
