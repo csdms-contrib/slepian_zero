@@ -43,12 +43,11 @@ function [lat,dlon,refarea,nmr]=authalic(c11,cmn,dlat,dlon)
 %% Check that both grids yield the same number of parameters
 % difer(sum(nmr1)-sum(nmr2)*3)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 06/12/2007
-% Small change by plattner-at-alumni.ethz.ch, 10/22/2017: uncommented the following
+% Last modified by fjsimons-at-alum.mit.edu, 05/30/2022
 %
 % Compute reference area on Earth (in km^2)
-%refarea=spharea([0 dlat/2],[dlon -dlat/2])*4*pi*(fralmanac('Radius')/1000)^2;
-%disp(['Reference area is ',num2str(fround(refarea,0)),' square km'])
+refarea=spharea([0 dlat/2],[dlon -dlat/2])*4*pi*(fralmanac('Radius')/1000)^2;
+disp(['Reference area is ',num2str(fround(refarea,0)),' square km'])
 
 % Adjust longitudinal intervals
 lat=c11(2):-abs(dlat):cmn(2);
