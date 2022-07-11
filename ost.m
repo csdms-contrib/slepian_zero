@@ -1,5 +1,5 @@
 function varargout=ost(fname,tw,delt,xver,xcor,subsi,fmt)
-% [t,o,s]=ost(fname,tw,delt,xver,xcor,subsi,fmt)
+% [c,o,s,t]=ost(fname,tw,delt,xver,xcor,subsi,fmt)
 %
 % Observation-synthetic-triplet. Reads in a binary file containing a triplet
 % of variables, one independent followed by two independent
@@ -9,6 +9,7 @@ function varargout=ost(fname,tw,delt,xver,xcor,subsi,fmt)
 % INPUT:
 %
 % fname     A file name string containing binaries t, o, and s
+%           ... or a matrix with Mx3 entries
 % tw        Beginning and end of the time window (inclusive)
 % xver      1 Makes a plot 
 %           0 does not
@@ -22,9 +23,9 @@ function varargout=ost(fname,tw,delt,xver,xcor,subsi,fmt)
 % OUTPUT:
 %
 % c         A structure with the comparisons, the measures XCORR and RDIST
-% t         The independent variable (time)
 % o         One dependent variable (observation)
 % s         Another dependent variable (synthetic)
+% t         The independent variable (time)
 %
 % SEE ALSO: XCORR and RDIST
 %
@@ -38,17 +39,23 @@ defval('tw',[2275 2854])
 defval('delt',0.2)
 defval('xver',1)
 defval('xcor',1)
-defval('subsi',[-200:200])
+defval('subsi',[-300:300])
 defval('fmt','float64')
 % Prepare for options
 xco={'coeff','unbiased','biased','none'};
 
-% Load it, it was just a straight bitwrite
-ost=loadb(fname,fmt);
-% Split it
-tt=ost(                1:  length(ost)/3);
- o=ost(  length(ost)/3+1:2*length(ost)/3);
- s=ost(2*length(ost)/3+1:  length(ost));
+if isstr(fname)
+  % Load it, it was just a straight bitwrite
+  ost=loadb(fname,fmt);
+  % Split it
+  tt=ost(                1:  length(ost)/3);
+  o=ost(  length(ost)/3+1:2*length(ost)/3);
+  s=ost(2*length(ost)/3+1:  length(ost));
+else
+  tt=fname(:,1);
+   o=fname(:,2);
+   s=fname(:,3);
+end
 
 %% CALCULATION %%
 
@@ -81,7 +88,7 @@ x0=x(length(ws));
 rtxm=rdist(wo,ws,txm); 
 
 % The zero-lag normalized rmse
-r0=sum([ws-wo].^2)/sum(wo.^2);
+r0=sqrt(sum([ws-wo].^2)/sum(wo.^2));
 
 % The normalized rmse at a subset around the cross-correlation maximum
 [r,ts]=rdist(wo,ws,txm+round(subsi/delt)); ts=ts(:);
@@ -148,13 +155,14 @@ if nargout==0 || xver==1
   hold on
   th(1)=text(wt(1)+[wt(end)-wt(1)]/2,yls1(2)-[yls1(2)-yls2(2)]/2,...
        sprintf('X(0) = %4.2f X(%s) = %4.2f %s = %4.1f s X(%s) = %4.2f',...
-	       x0,'\tau',xm,'\tau',txms,'\sigma',xtrm));
+	       x0,'\tau',...
+	       xm,'\tau',txms,...
+	       '\sigma',xtrm));
   th(2)=text(wt(1)+[wt(end)-wt(1)]/2,yls1(1)+[yls2(1)-yls1(1)]/2,...
        sprintf('R(0) = %i%s R(%s) = %i%s %s = %4.1f s R(%s) = %i%s',...
 	       round(100*r0),'%','\sigma',...
-	       round(100*rm),'%',...
-	       '\sigma',trms,...
-	       '\tau',round(100*rm),'%'));
+	       round(100*rm),'%','\sigma',trms,...
+	       '\tau',round(100*rtxm),'%'));
   hold off
   set(th,'HorizontalAlignment','center')
   longticks(gca,2)
@@ -251,6 +259,6 @@ if nargout==0 || xver==1
 end
 
 % Optional output
-varns={c,t,o,s};
+varns={c,o,s,tt};
 varargout=varns(1:nargout);
 
