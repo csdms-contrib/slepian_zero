@@ -1,5 +1,5 @@
-function r=rdist(a,b,lags)
-% r=RDIST(a,b,lags)
+function [r,lags]=rdist(a,b,lags)
+% [r,lags]=RDIST(a,b,lags)
 %
 % Relative mean-squared difference between two time series, the difference
 % version of the multiplicative signal similarity measure XCORR.
@@ -34,14 +34,15 @@ maxlag=M-1;
 defval('lags',-maxlag:maxlag);
 
 % Initialize output
-r=nan(size(lags))
+r=nan(size(lags));
 
 % Do the computation, for loop might be slower but vectorization costs memory
 i=0;
 for l=lags
   i=i+1;
-  r(i)=sum([b(1-l*[l<0]:end-l*[l>0])-a(1+l*[l>0]:end+l*[l<0])].^2)...
-       /sum(a(1+l*[l>0]:end+l*[l<0]).^2);
+  r(i)=sqrt(sum([b(1-l*[l<0]:end-l*[l>0])-a(1+l*[l>0]:end+l*[l<0])].^2)...
+       /sum(a(1+l*[l>0]:end+l*[l<0]).^2));
 end
+
 
 
