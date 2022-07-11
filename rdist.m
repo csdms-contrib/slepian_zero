@@ -14,9 +14,9 @@ function [r,lags]=rdist(a,b,lags)
 %
 % r           The root-mean-squared difference between the timeseries
 %             shifted to the lags in question, normalized by the
-%             root-mean-squared value of the first input time series
+%             root-mean-squared value of the FIRST input time series in
+%             trhe area of overlap
 % lags        The lags at which the measure was computed [defaulted]
-%
 % 
 % SEE ALSO: XCORR and OST
 %
@@ -39,7 +39,7 @@ maxlag=M-1;
 defval('lags',-maxlag:maxlag);
 
 % Initialize output
-r=nan(size(lags));
+r=nan(length(lags),1);
 
 % Do the computation, for loop might be slower but vectorization costs memory
 i=0;
