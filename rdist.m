@@ -1,8 +1,9 @@
 function [r,lags]=rdist(a,b,lags)
 % [r,lags]=RDIST(a,b,lags)
 %
-% Relative mean-squared difference between two time series, the difference
-% version of the multiplicative signal similarity measure XCORR.
+% Relative root-mean-squared difference between two time series, the difference
+% version of the multiplicative signal similarity measure XCORR,
+% normalized by the rmse of the first signal in the area of overlap
 %
 % INPUT:
 %
@@ -15,6 +16,10 @@ function [r,lags]=rdist(a,b,lags)
 %             shifted to the lags in question, normalized by the
 %             root-mean-squared value of the first input time series
 % lags        The lags at which the measure was computed [defaulted]
+%
+% 
+% SEE ALSO: XCORR and OST
+%
 %
 % Last modified by fjsimons-at-alum.mit.edu, 07/11/2022
 
