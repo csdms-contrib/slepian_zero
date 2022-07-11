@@ -72,7 +72,7 @@ wo= o(tmi:tma)-mean(o(tmi:tma));
 
 % Compute the appropriate correlation 
 [x,t]=xcorr(wo,ws,xco{xcor}); t=t(:);
-% Find the (arg) maximum, negative offset means ws is delayed wrt wo
+% Find the (arg)maximum, negative offset means ws is delayed wrt wo
 [xm,j]=max(x);
     txm=t(j);
 % Convert tau to units
@@ -93,7 +93,7 @@ r0=sqrt(sum([ws-wo].^2)/sum(wo.^2));
 % The normalized rmse at a subset around the cross-correlation maximum
 [r,ts]=rdist(wo,ws,txm+round(subsi/delt)); ts=ts(:);
 
-% Find the (arg) minimum, negative offset means ws is delayed wrt wo
+% Find the (arg)minimum, negative offset means ws is delayed wrt wo
 [rm,j]=min(r);
     trm=ts(j);
 % Convert ts to units
@@ -112,7 +112,7 @@ c.x=x;
 c.ts=ts;
 c.r=r;
 
-% (Arg)max of cross-correlation, in sample index and time
+% The (arg)max of cross-correlation, in sample index and time
 c.txm=txm;
 c.txms=txms;
 c.xm=xm;
@@ -121,7 +121,7 @@ c.x0=x0;
 % Cross-correlation at the rmse optimum (minimum)
 c.xtrm=xtrm;
 
-% (Arg)max of relative rmse, in sample index and time
+% The (arg)min of relative rmse, in sample index and time
 c.trm=trm;
 c.trms=trms;
 c.rm=rm;
