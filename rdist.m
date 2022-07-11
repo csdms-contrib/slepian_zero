@@ -40,7 +40,7 @@ r=nan(size(lags))
 i=0;
 for l=lags
   i=i+1;
-  R(i)=sum([b(1-l*[l<0]:end-l*[l>0])-a(1+l*[l>0]:end+l*[l<0])].^2)...
+  r(i)=sum([b(1-l*[l<0]:end-l*[l>0])-a(1+l*[l>0]:end+l*[l<0])].^2)...
        /sum(a(1+l*[l>0]:end+l*[l<0]).^2);
 end
 
