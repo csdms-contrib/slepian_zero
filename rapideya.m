@@ -27,7 +27,7 @@ function [TC,FC,perx]=rapideya(alldata)
 % SEE ALSO: RAPIDEYE, IMADJUST, TRIMIT, SCALE
 %
 % Last modified by maloof-at-princeton.edu, 09/13/2019
-% Last modified by fjsimons-at-alum.mit.edu, 12/05/2019
+% Last modified by fjsimons-at-alum.mit.edu, 09/22/2022
 
 % Table of channel codes for internal reference
 channels={'blu' 'grn' 'red' 'rdg' 'nir'};
@@ -39,6 +39,10 @@ percs=[6.3 98.3
        6.3 98.3
        6.3 98.3
        6.3 98.3];
+
+% Adjustment for 4-channel data
+channels=channels{1:size(alldata,3)};
+percs=percs(1:size(alldata,3),:);
 
 % Initialize to the same integer class!
 
@@ -54,8 +58,13 @@ end
 % Reconstruct TRUE and FALSE color images
 % So that is RED GRN BLU as "RGB" channels
 TC=tfcdata(:,:,[3 2 1]);
-% And this is NIR RED GREEN as "RGB" channels
-FC=tfcdata(:,:,[5 3 2]);
+
+if size(alldata,3)==5
+  % And this is NIR RED GREEN as "RGB" channels
+  FC=tfcdata(:,:,[5 3 2]);
+else
+  FC=NaN;
+end
 
 % Subfunction to clip and stretch an individual channel
 function [data,perx]=clipit(data,percs)
