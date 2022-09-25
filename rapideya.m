@@ -9,7 +9,7 @@ function [TC,FC,perx]=rapideya(alldata)
 %          channel 1 BLUE
 %          channel 2 GREEN
 %          channel 3 RED
-%          hannel 4 RED-GREEN
+%          channel 4 RED-GREEN
 %          channel 5 NEAR-INFRARED
 %
 % OUTPUT:
@@ -18,10 +18,16 @@ function [TC,FC,perx]=rapideya(alldata)
 % FC       An adjusted FALSE COLOR image for plotting with IMAGESC, same class
 % perx     The channel percentiles corresponding to the chosen percentages, double
 %
+% EXAMPLE:
+%
+% load('ri_maddie'); tox2ell(maddie.tox)
+% imagesc([ims{1}.nprops.C11(1) ims{1}.nprops.CMN(1)],...
+%   [ims{1}.nprops.C11(2) ims{1}.nprops.CMN(2)],rapideya(ims{1}.alldata)); axis xy
+%
 % SEE ALSO: RAPIDEYE, IMADJUST, TRIMIT, SCALE
 %
 % Last modified by maloof-at-princeton.edu, 09/13/2019
-% Last modified by fjsimons-at-alum.mit.edu, 10/01/2019
+% Last modified by fjsimons-at-alum.mit.edu, 12/05/2019
 
 % Table of channel codes for internal reference
 channels={'blu' 'grn' 'red' 'rdg' 'nir'};
