@@ -1,16 +1,19 @@
 function varargout=rapideye(froot,dirp,diro,xver,urld,clip)
 % [alldata,nprops,props,rgbdata,alfadat]=RAPIDEYE(froot,dirp,diro,xver,urld,clip)
 %
-% Loads and returns a RAPIDEYE satellite image and its properties.
+% Loads and returns a single RAPIDEYE satellite image and its properties.
 %
 % INPUT:
 %
 % froot      Filename root             [e.g. '3357121_2018-09-11_RE3_3A']
+%                                      [e.g. '20220801_091544_87_247d_3B']
 % dirp       Directory [e.g. '20180911_094536_3357121_RapidEye-3']
+%                      [e.g. '20220801_091544_87_247d']
 % diro       Directory [e.g. '/u/fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE']
+%                      [e.g. '/u/fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE/20220801']
 % xver       1 Provides excessive verification [default]
 %            0 Does not provide excessive verification
-%            2 Provides a graphical test for the very beginning  
+%            2 Provides a graphical test for the very beginning
 % urld       A URL a directory with a copy of the JSON file for
 %            when a direct read and parsing using JSONDECODE fails
 %            [e.g. 'http://geoweb.princeton.edu/people/simons/JSON']
@@ -55,14 +58,19 @@ function varargout=rapideye(froot,dirp,diro,xver,urld,clip)
 % 20180911_094536_3357121_RapidEye-3_metadata.json
 % And in that case, I am able to do, without any further inputs:
 % [alldata,nprops,props,rgbdata,alfadat]=rapideye;
+% 
 % Most often you will be in the directory one up from 'dirp' and
 % call it as follows, either of (note: no trailing backslashes):
 % [alldata,nprops,props,rgbdata,alfadat]=rapideye('3357121_2018-09-11_RE3_3A','20180911_094536_3357121_RapidEye-3','.',1);
 % [alldata,nprops,props,rgbdata,alfadat]=rapideye('3357911_2019-03-31_RE3_3A','20190331_094550_3357911_RapidEye-3',pwd,1);
+% [alldata,nprops,props,rgbdata,alfadat]=rapideye('20220801_091549_44_247d_3B','20220801_091549_44_247d','.',1,[],'_clip');
+%
 %% Inside RAPIDEYE, an unclipped example:
 % [alldata,nprops,props,rgbdata,alfadat]=rapideye('3357121_2013-04-28_RE5_3A','20130428_105037_3357121_RapidEye-5');
+%
 %% Inside RAPIDEYE/enotre, a clipped example:
 % [alldata,nprops,props,rgbdata,alfadat]=rapideye('3357121_2013-04-28_RE5_3A','enotre/20130428_105037_3357121_RapidEye-5',[],[],[],'_clip');
+%
 % And then a proper picture can be obtained using, e.g., one of the various
 % imagesc([nprops.C11(1) nprops.CMN(1)],[nprops.C11(2) nprops.CMN(2)],rapideya(alldata)); axis xy
 % imagefnan(nprops.C11,nprops.CMN,rapideya(alldata))
@@ -77,7 +85,7 @@ function varargout=rapideye(froot,dirp,diro,xver,urld,clip)
 % Tested on 9.0.0.341360 (R2016a)
 % Tested on 9.6.0.1072779 (R2019a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 12/01/2019
+% Last modified by fjsimons-at-alum.mit.edu, 09/25/2022
 
 % Root of the filename for three of the four files inside the directory
 defval('froot','3357121_2018-09-11_RE3_3A')
@@ -88,7 +96,7 @@ defval('clip',[])
 if ~strcmp(froot,'demo')
 
   %%%%%%%%%% FILENAME AND DIRECTORY ORGANIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+
   % Bottom-level directory name, taken from the Rapideye download
   defval('dirp','20190809_092354_3357121_RapidEye-1')
   % Top-level directory name, where you keep the Rapideye directory
@@ -106,14 +114,17 @@ if ~strcmp(froot,'demo')
   file2=fullfile(diro,dirp,sprintf('%s_udm%s.tif'              ,froot,clip));
   % An alternative, non-RAPIDEYE format
   file2a=fullfile(diro,dirp,sprintf('%s_AnalyticMS_DN_udm%s.tif'              ,froot,clip));
+  file2a=fullfile(diro,dirp,sprintf('%s_udm2%s.tif'              ,froot,clip));
 
   % The XML metadata local file, which should exist (maybe clipped)
   file3=fullfile(diro,dirp,sprintf('%s_Analytic_metadata%s.xml',froot,clip));
+  % An alternative, non-RAPIDEYE format
+  file3a=fullfile(diro,dirp,sprintf('%s_AnalyticMS_metadata%s.xml',froot,clip));
 
   % The ANALYTIC actual data local file, which should exist
   file4=fullfile(diro,dirp,sprintf('%s_Analytic%s.tif'         ,froot,clip));
   % An alternative, non-RAPIDEYE format
-  file4a=fullfile(diro,dirp,sprintf('%s_AnalyticMS%s.tif'         ,froot,clip));
+  file4a=fullfile(diro,dirp,sprintf('%s_AnalyticMS_SR_harmonized%s.tif'         ,froot,clip));
 
   % The JSON metadata webfile, may be a backup for the local file
   file5=fullfile(     urld,sprintf('%s_metadata.json'        ,dirp ));
@@ -150,6 +161,7 @@ if ~strcmp(froot,'demo')
     
     % Specifically: pixel resolution in m
     sp=props.pixel_resolution;
+    
     % Specifically: corresponding reference system, see
     % http://epsg.io/32633 which is 33N
     cr=props.epsg_code;
@@ -159,7 +171,7 @@ if ~strcmp(froot,'demo')
     % Specifically: the y and x origins
     ys=props.origin_y;
     xs=props.origin_x;
-    
+
     % The coordinates of a polygon which fits inside and contains good data
     % Longitudes and latitudes clockwise from NW with extra point to close box
     lonpg=tiffm.geometry.coordinates(:,:,1);
@@ -167,7 +179,11 @@ if ~strcmp(froot,'demo')
   else
     %%%%%%%%%% CLIPPED DATA TIFFINFO METADATA READ%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % All properties pertaining to the image
-    props=geotiffinfo(file2);
+    try
+      props=geotiffinfo(file2);
+    catch
+      props=geotiffinfo(file2a);
+    end
 
     % See the explanatory comments in the previous block
     sp=props.PixelScale(1);
@@ -192,7 +208,7 @@ if ~strcmp(froot,'demo')
   end
 
   %%%%%%%%%% DATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+
   % Create main TIFF object with the data we really want
   warning off MATLAB:imagesci:tiffmexutils:libtiffWarning 
   warning off        imageio:tiffmexutils:libtiffWarning
@@ -300,6 +316,7 @@ if ~strcmp(froot,'demo')
       % it now since it's a thicket of attributes and children
       % Save it for now, it takes extra time!
       % refxml=xml2struct(file3);
+      % refxml=xml2struct(file3a);
       
       % If I get this right, this should hold mutely, if there should ever
       % be a difference we need to revisit this
