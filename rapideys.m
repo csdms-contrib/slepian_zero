@@ -1,34 +1,38 @@
-function rapideys(diro,dupli,xver)
-% RAPIDEYS(diro,dupli,xver)
+function rapideys(diro,xver)
+% RAPIDEYS(diro,xver)
 %
-% For a data directory containing multiple *_*_*_RapidEye-* directories
-% with ONE *_Analytic_*.tif each, builds and saves an organized *.mat
-% structure. This for the case where MULTIPLE directories pertain to the
-% same date, which need to be mosaicked together using MOSAIC.
+% For a data directory containing multiple SINGLE-DATE satellite
+% *_*_*_RapidEye-* directories with one *_Analytic_*.tif each, loads
+% them using RAPIDEYE, builds and saves an organized *.mat structure.
+%
+% This in contrast to RAPIDEYM, which deals with duplicate dates that
+% require mosaicking using MOSAIC. Run by, e.g., REMOTEOLIVE.
 %
 % INPUT:
 %
-% diro     Data directory [default: $ITALY/RAPIDEYE/ceraudo]
-% duplic   Duplicity (how many tiles to consider in a mosaic)
-% xver     2 halts for verification
+% diro     Data directory [default: $ITALY/RAPIDEYE/enotre]
+%          with entries like:
+%                20170805_100927_3357121_RapidEye-4
+%                20170826_101723_3357121_RapidEye-1
+%                20170923_100705_3357121_RapidEye-1
+% xver     2 halts for explicit verification
+% 
+% NOTE:
+%
+% After download, I used $UFILES/directorize to name everything
+% YYYYMMDD_HHMMSS_GGGGGGG_RapidEye-N where GGGGGGGG is grid cell and N
+% the satellite id and YYYYMMDD_HHMMSS the date acquired
 %
 % SEE ALSO:
 %
-% RAPIDEYM
+% RAPIDEYM, RAPIDEYG, RAPIDEYE, REMOTEOLIVE
 %
-% Last modified by fjsimons-at-alum.mit.edu, 10/07/2019
+% Last modified by Last modified by fjsimons-at-alum.mit.edu, 11/02/2022
 
-% Do a first loop to get unique days, then figure out multiplicity frmo
-% another ls2cell then adjust the main loop
-
-% Defaults
-defval('diro',fullfile(getenv('ITALY'),'RAPIDEYE','ceraudo'))
+% Default
+defval('diro',fullfile(getenv('ITALY'),'RAPIDEYE','enotre'))
 defval('clip',[])
-defval('xver',1)
-% Initialize
 defval('tox',[])
-% Duplicity
-defval('dupli',4)
 
 % Make the save file
 if isempty(suf(diro,'/'))
@@ -38,10 +42,17 @@ else
 end
 
 % Get contents of this directory, both short and long forms
-dirp=ls2cell(fullfile(diro,'*_*_*_RapidEye-*'),0);
-dirf=ls2cell(fullfile(diro,'*_*_*_RapidEye-*'),1);
+try 
+  % If it's definitely RAPIDEYE
+  dirp=ls2cell(fullfile(diro,'*_*_*_RapidEye-*'),0);
+  dirf=ls2cell(fullfile(diro,'*_*_*_RapidEye-*'),1);
+catch
+  % If it's some other satellite system but still from PLANET
+  dirp=ls2cell(fullfile(diro,'*_*_*'),0);
+  dirf=ls2cell(fullfile(diro,'*_*_*'),1);
+end
 
-% Begin the saved file - default will be 'ceraudo'
+% Begin the saved file - default will be what's last in the path 
 sname=sprintf('%s',suf(diro,'/'));
 if isempty(sname)
   sname=diro;
@@ -51,7 +62,7 @@ end
 spitout(sname,'tox',tox); clear tox
 
 % AT THIS POINT YOU ARE STARTING A NEW FILE!! 
-% Save the variable named sname into the file named fname to initialize
+% Save the variable named sname into the file named fname to initializes
 if xver~=2
   % Ask for input
   disp('File will be overwritten. Type dbcont to continue')
@@ -60,59 +71,26 @@ if xver~=2
   savit(sname)
 end
 
-% Collect all the filenames and corresponding directories
-for index=1:length(dirf)
-  prot=pref(ls2cell(sprintf('%s/*Analytic_clip.tif',dirf{index})),'A');
-  froot{index}=sprintf('%sA',[prot{:}]); 
-end
+% Main loop to get the images, one at a time
+for index=1:length(dirp)
+  % Need to still get in there to recover the root filename
+  froot=ls2cell(fullfile(dirf{index},'*_Analytic*.tif'));
+  % Clipped or not - pass on to RAPIDEYE
+  if ~isempty(strfind(froot{1},'_clip')); clip='_clip'; end
+  % There should be only one at this point
+  froot=froot{1}(1:strfind(froot{1},'_Analytic')-1);
 
-% Here need the wherewithall to step through the dirf structure
+  % Now read the image, don't bother with setting xver=2 after a while
+  [alldata,nprops,props,rgbdata,alfadat]=rapideye(froot,dirp{index},diro,1,[],clip);
 
-if xver==2
-  % Quick rundown of what's about to happen
-  % Need parentheses and not curly braces
-  more off
-  for index=1:dupli:length(dirp)
-    disp(sprintf(repmat('%s\n',1,dupli),dirf{index:index+dupli-1}))
-    disp(' ')
-  end
-end
+  % Rimming and trimming
+  [alldata,nprops]=trimimage(alldata,nprops,2);
 
-% Main loop
-for index=1:dupli:length(dirp)
-  % Feed it the right directories
-  disp(reshape(cell2mat(dirp(index:index+dupli-1)),[],dupli)')
-  % Get the images and MOSAIC them together, never request the topography
-  [alldata,nprops,props]=mosaic(froot(index:index+dupli-1),...
-                                dirf(index:index+dupli-1),[],xver);
-
-  % You'll want to verify the picture
-  if xver==2
-    figure(4); clf
-    % Two next lines are equivalent
-    % imagesc(nprops.xx,nprops.yy,rapideya(alldata)); axis xy
-    imagesc([nprops.C11(1) nprops.CMN(1)],[nprops.C11(2) nprops.CMN(2)],rapideya(alldata)); axis xy
-    j=axis;
-    hold on
-    try % If we have it
-      [xe,ye,ze]=kmz2utm(fullfile(diro,sprintf('oc_%s.kmz',sname))); plot(xe,ye,'y','LineWidth',2)
-    end
-    hold off
-    % To play with
-    ah=get(2,'children');
-    for ondex=1:length(ah)
-      ah(ondex).XLim=j([1:2]);
-      ah(ondex).YLim=j([3:4]);
-    end
-    keyboard
-  end
-    
-  % Append acquisition day YYYYMMDD to sname to make vname
-  acquiday=dirp{index}(1:8);
-  vname=sprintf('%s_%s',sname,acquiday);
-  % Update the table of contents... only every other one! So you will
-  % have blank spaces in there
-  tox(index,:)=sprintf('%s_%s',sname,acquiday);
+  % Append acquisition time YYYYMMDDHHMMSS to sname to make vname
+  acquitime=dirp{index}([1:8 10:15]);
+  vname=sprintf('%s_%s',sname,acquitime);
+  % Update the table of contents
+  tox(index,:)=sprintf('%s_%s',sname,acquitime);
 
   % The precision of these variables remains what they were
   spitout(vname,'alldata',alldata)
@@ -124,23 +102,14 @@ for index=1:dupli:length(dirp)
 end
 
 % Should I save the LARGEST EVER nprops for the TOPODATA?
-% Now I work with the LAST EVER nprops from the last MOSAIC
+% Now I work with the LAST EVER nprops from the last RAPIDEYE
 
 % Add table of contents
 spitout(sname,'tox',tox)
 
 % Now add the topography and rivers for the same region
 % Again don't bother with setting xver=2 after a while
-% Don't bother with the rivers for now, they needed lon and lat
-% Also, we'll just take the FIRST TDC like we did before (that was last then...)
-%[TDF,~,SX,SY]=tinitaly(nprops,[],[],1,alldata);
-TDF=tinitaly(nprops,[],[],1,alldata);
-[SX,SY]=deal(NaN);
-
-if xver==2
-  figure(5); clf; 
-  imagesc([nprops.C11(1) nprops.CMN(1)],[nprops.C11(2) nprops.CMN(2)],TDC); axis xy
-end
+[TDF,~,SX,SY]=tinitaly(nprops,[],[],1,alldata);
 
 % Get the whole grid out, always verify equal spacing
 [~,~,~,xeye,yeye]=rapideyg(nprops,1);
@@ -161,9 +130,9 @@ spitout(sname,'xeye',xeye)
 spitout(sname,'yeye',yeye)
 % Make a snug axis
 % I first used this
-% snug=[nprops.xp(1) nprops.xp(2) nprops.yp(3) nprops.yp(1)];
+snug=[nprops.xp(1) nprops.xp(2) nprops.yp(3) nprops.yp(1)];
 % But those are properties I didn't adjust after trimming, so...
-snug=nan;
+
 spitout(sname,'snug',snug)
 spitout(sname,'riverx',SX)
 spitout(sname,'rivery',SY)
@@ -175,7 +144,8 @@ try
   [xe,ye,ze]=kmz2utm(fullfile(diro,sprintf('oc_%s.kmz',sname)));
   % Make a snugger axis
   inflet=30;
-  snugger=[[min(xe) max(xe)]+[-1 1]*range(xe)*inflet/100 [min(ye) max(ye)]+[-1 1]*range(ye)*inflet/100];
+  snugger=[[min(xe) max(xe)]+[-1 1]*range(xe)*inflet/100 [min(ye) max(ye)]...
+           +[-1 1]*range(ye)*inflet/100];
 catch
   [xe,ye,ze]=deal(NaN);
   snugger=nan(1,4);
@@ -194,11 +164,13 @@ spitout(sname,'orchardz',ze)
 
 % Finalize table of contents
 fn=str2mat(eval(sprintf('fieldnames(%s)',sname)));
-fn=[repmat([sname '.'],size(fn,1),1) fn repmat(' ',size(fn,1),size(tox,2)-size(fn,2)-length(sname)-1)];
+fn=[repmat([sname '.'],...
+           size(fn,1),1) fn repmat(' ',size(fn,1),size(tox,2)-size(fn,2)-length(sname)-1)];
 tox=[[sname repmat(' ',1,size(tox,2)-length(sname))] ; fn ; tox];
-spitout(sname,'tox',tox)
+% Get rid of any newlines
+spitout(sname,'tox',detox(tox))
 
-% Add all that information to the saved file
+% Add all that information also separately to the saved file
 savito('tox')
 savito(sname)
 
