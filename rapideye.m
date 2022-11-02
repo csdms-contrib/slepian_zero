@@ -6,18 +6,15 @@ function varargout=rapideye(froot,dirp,diro,xver,urld,clip)
 % INPUT:
 %
 % froot      Filename root             [e.g. '3357121_2018-09-11_RE3_3A']
-%                                      [e.g. '20220801_091544_87_247d_3B']
 % dirp       Directory [e.g. '20180911_094536_3357121_RapidEye-3']
-%                      [e.g. '20220801_091544_87_247d']
-% diro       Directory [e.g. '/u/fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE']
-%                      [e.g. '/u/fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE/20220801']
+% diro       Directory [e.g. '/u/fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE/enotre']
 % xver       1 Provides excessive verification [default]
 %            0 Does not provide excessive verification
-%            2 Provides a graphical test for the very beginning
+%            2 Provides a graphical test for the very beginning  
 % urld       A URL a directory with a copy of the JSON file for
 %            when a direct read and parsing using JSONDECODE fails
 %            [e.g. 'http://geoweb.princeton.edu/people/simons/JSON']
-% clip       '_clip' files come with the '_clip' extension 
+% clip       '_clip' files come with the '_clip' extension
 %            [] no further extension extension at all [default]
 %
 % OUTPUT:
@@ -47,33 +44,54 @@ function varargout=rapideye(froot,dirp,diro,xver,urld,clip)
 %
 % EXAMPLE:
 %
-% rapideye('demo',N) where N=1,2
+% rapideye('demo',N) where N is an index into the list of images
 % 
 % Making the default inputs work, my directory example
-% /u/fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE/20180911_094536_3357121_RapidEye-3
+%
+% /u/fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE/enotre/20180911_094536_3357121_RapidEye-3
+%
 % contains the four necessary files 
 %                 3357121_2018-09-11_RE3_3A_udm.tif
 %                 3357121_2018-09-11_RE3_3A_Analytic.tif
 %                 3357121_2018-09-11_RE3_3A_Analytic_metadata.xml
-% 20180911_094536_3357121_RapidEye-3_metadata.json
-% And in that case, I am able to do, without any further inputs:
-% [alldata,nprops,props,rgbdata,alfadat]=rapideye;
+% 20180911_094536_3357121_RapidEye-3_metadanta.json
+%
+% And in that case, I am able to do, only setting the clip variable with these defaults
+%
+% [alldata,nprops,props,rgbdata,alfadat]=rapideye([],[],[],[],[],'_clip');
+%
+% -> No particular need to be anywhere if you use the DEFAULT diro and the files exist
 % 
-% Most often you will be in the directory one up from 'dirp' and
-% call it as follows, either of (note: no trailing backslashes):
-% [alldata,nprops,props,rgbdata,alfadat]=rapideye('3357121_2018-09-11_RE3_3A','20180911_094536_3357121_RapidEye-3','.',1);
-% [alldata,nprops,props,rgbdata,alfadat]=rapideye('3357911_2019-03-31_RE3_3A','20190331_094550_3357911_RapidEye-3',pwd,1);
-% [alldata,nprops,props,rgbdata,alfadat]=rapideye('20220801_091549_44_247d_3B','20220801_091549_44_247d','.',1,[],'_clip');
+% [alldata,nprops,props,rgbdata,alfadat]=...
+%          rapideye('3357121_2013-04-28_RE5_3A','20130428_105037_3357121_RapidEye-5',[],1,[],'_clip');
+% [alldata,nprops,props,rgbdata,alfadat]=...
+%          rapideye('3357121_2019-08-09_RE1_3A','20190809_092354_3357121_RapidEye-1',[],1,[],'_clip');
 %
-%% Inside RAPIDEYE, an unclipped example:
-% [alldata,nprops,props,rgbdata,alfadat]=rapideye('3357121_2013-04-28_RE5_3A','20130428_105037_3357121_RapidEye-5');
+% -> No particular need to be anywhere if you use the EXPLICIT diro and the files exist
+% 
+% [alldata,nprops,props,rgbdata,alfadat]=...
+%          rapideye('3356718_2018-10-08_RE2_3A','20181008_094231_3356718_RapidEye-2',...
+%                             '/data1/fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE/maddie',1,[]);
 %
-%% Inside RAPIDEYE/enotre, a clipped example:
-% [alldata,nprops,props,rgbdata,alfadat]=rapideye('3357121_2013-04-28_RE5_3A','enotre/20130428_105037_3357121_RapidEye-5',[],[],[],'_clip');
+% -> Inside RAPIDEYE/enotre containing subdirectories 20180911_094536_3357121_RapidEye-3 etc (clipped):
+%
+% [alldata,nprops,props,rgbdata,alfadat]=...
+%          rapideye('3357121_2018-09-11_RE3_3A','20180911_094536_3357121_RapidEye-3','.',1,[],'_clip');
+% [alldata,nprops,props,rgbdata,alfadat]=...
+%          rapideye('3357121_2017-07-12_RE4_3A','20170712_100420_3357121_RapidEye-4',pwd,1,[],'_clip');
+%
+% -> Inside RAPIDEYE/maddie containing subdirectories 20181008_094231_3356718_RapidEye-2 etc (unclipped, alternatives, ...):
+%
+% [alldata,nprops,props,rgbdata,alfadat]=...
+%          rapideye('3356718_2018-10-08_RE2_3A','20181008_094231_3356718_RapidEye-2','.',1,[]);
+% [alldata,nprops,props,rgbdata,alfadat]=...
+%          rapideye('20191029_091730_1044_3B','20191029_091730_1044','.',1,[]);
+% [alldata,nprops,props,rgbdata,alfadat]=...
+%          rapideye('20191030_094105_18_1057_3B','20191030_094105_18_1057','.',1,[]);
 %
 % And then a proper picture can be obtained using, e.g., one of the various
+%
 % imagesc([nprops.C11(1) nprops.CMN(1)],[nprops.C11(2) nprops.CMN(2)],rapideya(alldata)); axis xy
-% imagefnan(nprops.C11,nprops.CMN,rapideya(alldata))
 %
 % SEE ALSO
 %
@@ -82,24 +100,27 @@ function varargout=rapideye(froot,dirp,diro,xver,urld,clip)
 % https://developers.planet.com/docs/api/reorthotile/
 % $UFILES/directorize for some meaningful directory-name and variable identification
 %
+% RAPIDEYS for a series of single-date RAPIDEYE calls inside a directory
+% RAPIDEYM for a series of mosaicked duplicate-date RAPIDEYE calls inside a directory
+%
 % Tested on 9.0.0.341360 (R2016a)
 % Tested on 9.6.0.1072779 (R2019a)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 09/25/2022
+% Last modified by fjsimons-at-alum.mit.edu, 11/02/2022
 
 % Root of the filename for three of the four files inside the directory
 defval('froot','3357121_2018-09-11_RE3_3A')
 
 % Root of the filename for three of the four files inside the directory
+% Must do "nothing" as a default since if you INPUT nothing it would override
 defval('clip',[])
 
 if ~strcmp(froot,'demo')
-
   %%%%%%%%%% FILENAME AND DIRECTORY ORGANIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%
-
-  % Bottom-level directory name, taken from the Rapideye download
-  defval('dirp','20190809_092354_3357121_RapidEye-1')
-  % Top-level directory name, where you keep the Rapideye directory
+  
+  % Bottom-level directory name, taken from the RapidEye download
+  defval('dirp','20180911_094536_3357121_RapidEye-3')
+  % Top-level directory name, where you keep the RapidEye directory
   defval('diro','/u/fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE/enotre')
   
   % Remote directory where I copied the JSON file from DIRP so as to use
@@ -112,19 +133,17 @@ if ~strcmp(froot,'demo')
 
   % The UDM metadata local file, which should exist
   file2=fullfile(diro,dirp,sprintf('%s_udm%s.tif'              ,froot,clip));
+
   % An alternative, non-RAPIDEYE format
   file2a=fullfile(diro,dirp,sprintf('%s_AnalyticMS_DN_udm%s.tif'              ,froot,clip));
-  file2a=fullfile(diro,dirp,sprintf('%s_udm2%s.tif'              ,froot,clip));
 
   % The XML metadata local file, which should exist (maybe clipped)
   file3=fullfile(diro,dirp,sprintf('%s_Analytic_metadata%s.xml',froot,clip));
-  % An alternative, non-RAPIDEYE format
-  file3a=fullfile(diro,dirp,sprintf('%s_AnalyticMS_metadata%s.xml',froot,clip));
 
   % The ANALYTIC actual data local file, which should exist
   file4=fullfile(diro,dirp,sprintf('%s_Analytic%s.tif'         ,froot,clip));
   % An alternative, non-RAPIDEYE format
-  file4a=fullfile(diro,dirp,sprintf('%s_AnalyticMS_SR_harmonized%s.tif'         ,froot,clip));
+  file4a=fullfile(diro,dirp,sprintf('%s_AnalyticMS%s.tif'         ,froot,clip));
 
   % The JSON metadata webfile, may be a backup for the local file
   file5=fullfile(     urld,sprintf('%s_metadata.json'        ,dirp ));
@@ -161,7 +180,6 @@ if ~strcmp(froot,'demo')
     
     % Specifically: pixel resolution in m
     sp=props.pixel_resolution;
-    
     % Specifically: corresponding reference system, see
     % http://epsg.io/32633 which is 33N
     cr=props.epsg_code;
@@ -171,7 +189,7 @@ if ~strcmp(froot,'demo')
     % Specifically: the y and x origins
     ys=props.origin_y;
     xs=props.origin_x;
-
+    
     % The coordinates of a polygon which fits inside and contains good data
     % Longitudes and latitudes clockwise from NW with extra point to close box
     lonpg=tiffm.geometry.coordinates(:,:,1);
@@ -179,11 +197,7 @@ if ~strcmp(froot,'demo')
   else
     %%%%%%%%%% CLIPPED DATA TIFFINFO METADATA READ%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % All properties pertaining to the image
-    try
-      props=geotiffinfo(file2);
-    catch
-      props=geotiffinfo(file2a);
-    end
+    props=geotiffinfo(file2);
 
     % See the explanatory comments in the previous block
     sp=props.PixelScale(1);
@@ -208,11 +222,12 @@ if ~strcmp(froot,'demo')
   end
 
   %%%%%%%%%% DATA READ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+  
   % Create main TIFF object with the data we really want
   warning off MATLAB:imagesci:tiffmexutils:libtiffWarning 
   warning off        imageio:tiffmexutils:libtiffWarning
   try
+      
     tiffo=Tiff(file4,'r');
     flag=1;
   catch
@@ -316,7 +331,6 @@ if ~strcmp(froot,'demo')
       % it now since it's a thicket of attributes and children
       % Save it for now, it takes extra time!
       % refxml=xml2struct(file3);
-      % refxml=xml2struct(file3a);
       
       % If I get this right, this should hold mutely, if there should ever
       % be a difference we need to revisit this
@@ -373,21 +387,25 @@ if ~strcmp(froot,'demo')
   varns={alldata,nprops,props,rgbdata,alfadat};
   varargout=varns(1:nargout);
 else
-  % The demo number was entered as the seond variable
+  % The demo number was entered as the second variable
   defval('dirp',1)
   N=dirp;
 
-  % Top-level directory name, where you keep the Rapideye directory
-  defval('diro','/u/fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE')
+  % Top-level directory name, where you keep the RapidEye directory
+  defval('diro','/u/fjsimons/IFILES/TOPOGRAPHY/ITALY/RAPIDEYE/enotre')
+
   % All the files we ever tried
-  dirps=ls2cell(diro);
+  dirps=ls2cell(fullfile(diro,'*_RapidEye-*'),1);
   for index=1:length(dirps)
-    fname=cell2mat(pref(ls2cell(fullfile(dirps{index},'*udm.tif')),'udm'));
+    fname=cell2mat(pref(ls2cell(fullfile(dirps{index},'*udm_clip.tif')),'udm'));
     froots{index}=fname(1:length(fname)-1);
   end
 
-  % Now get a numbered file from the stack
-  [alldata,nprops,props,rgbdata,alfadat]=rapideye(froots{N},dirps{N},[],0);
+  % Try again but now without the full path
+  dirps=ls2cell(fullfile(diro,'*_RapidEye-*'),0);
+
+  % Now get a numbered file from the stack         
+  [alldata,nprops,props,rgbdata,alfadat]=rapideye(froots{N},dirps{N},[],0,[],'_clip');
   % Get the rivers to plot on top
   [SX,SY]=rinitaly(nprops,[],[],[],[],[],0); 
 
@@ -404,11 +422,6 @@ else
     toplot=double(alldata(:,:,index));
     % Proper ranges
     saxis=round(10.^prctile(log10(toplot(:)),percs));
-    
-    % Emily's recipe
-    % Now RAPIDEYA
-    % toplot=toplot/prctile(toplot(:),95);
-    % saxis=[0 1];
     
     axes(ah(index))
     if slo==1
