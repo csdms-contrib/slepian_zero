@@ -9,7 +9,7 @@ function [TC,FC,perx]=rapideya(alldata)
 %          channel 1 BLUE
 %          channel 2 GREEN
 %          channel 3 RED
-%          hannel 4 RED-GREEN
+%          channel 4 RED-GREEN
 %          channel 5 NEAR-INFRARED
 %
 % OUTPUT:
@@ -18,10 +18,16 @@ function [TC,FC,perx]=rapideya(alldata)
 % FC       An adjusted FALSE COLOR image for plotting with IMAGESC, same class
 % perx     The channel percentiles corresponding to the chosen percentages, double
 %
+% EXAMPLE:
+%
+% load('ri_maddie'); tox2ell(maddie.tox)
+% imagesc([ims{1}.nprops.C11(1) ims{1}.nprops.CMN(1)],...
+%   [ims{1}.nprops.C11(2) ims{1}.nprops.CMN(2)],rapideya(ims{1}.alldata)); axis xy
+%
 % SEE ALSO: RAPIDEYE, IMADJUST, TRIMIT, SCALE
 %
 % Last modified by maloof-at-princeton.edu, 09/13/2019
-% Last modified by fjsimons-at-alum.mit.edu, 10/01/2019
+% Last modified by fjsimons-at-alum.mit.edu, 09/22/2022
 
 % Table of channel codes for internal reference
 channels={'blu' 'grn' 'red' 'rdg' 'nir'};
@@ -33,6 +39,10 @@ percs=[6.3 98.3
        6.3 98.3
        6.3 98.3
        6.3 98.3];
+
+% Adjustment for 4-channel data
+channels=channels{1:size(alldata,3)};
+percs=percs(1:size(alldata,3),:);
 
 % Initialize to the same integer class!
 
@@ -48,8 +58,13 @@ end
 % Reconstruct TRUE and FALSE color images
 % So that is RED GRN BLU as "RGB" channels
 TC=tfcdata(:,:,[3 2 1]);
-% And this is NIR RED GREEN as "RGB" channels
-FC=tfcdata(:,:,[5 3 2]);
+
+if size(alldata,3)==5
+  % And this is NIR RED GREEN as "RGB" channels
+  FC=tfcdata(:,:,[5 3 2]);
+else
+  FC=NaN;
+end
 
 % Subfunction to clip and stretch an individual channel
 function [data,perx]=clipit(data,percs)
