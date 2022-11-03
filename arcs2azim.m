@@ -14,6 +14,7 @@ function [Xa,Ya,Ra,XX,YY]=arcs2azim(X,Y,Ta)
 % X       NxM zero-padded matrix of x-coordinates of M circle segments 
 % Y       NxM zero-padded matrix of y-coordinates of M circle segments
 % Ta      an azimuth, in degrees clockwise from NORTH
+% flag    1 if, God forbid, you shouldn't have a complete circle
 %
 % OUTPUT:
 %
@@ -35,7 +36,11 @@ function [Xa,Ya,Ra,XX,YY]=arcs2azim(X,Y,Ta)
 % t=title(sprintf('azimuth clockwise from North %i%s',Ta(1),176)); grid on
 % movev(t,range(ylim)/40);
 % 
-% Last modified by fjsimons-at-alum.mit.edu, 11/1/2022
+% Last modified by fjsimons-at-alum.mit.edu, 11/3/2022
+
+% Always add a row of NaNs to make sure you have one
+X=[X ; nan(1,size(X,2))];
+Y=[Y ; nan(1,size(Y,2))];
 
 % Transform all Cartesian coordinates to polar ones clockwise from North
 T=90-cart2pol(X,Y)/pi*180; T(T<0)=T(T<0)+360;
@@ -51,16 +56,18 @@ Y=[Y(ro2co(size(Y),sum(~isnan(Y)))) ; Y];
 T=[90-cart2pol(X(1,:),Y(1,:))/pi*180 ; T];
 
 % Find the azimuths T that bracket the requested azimuth Ta
-t=ro2co(size(X),sum(T<=Ta));
+% The flag takes care of cases of incomplete orbits that don't go past 270...
+% I may end up removing this again
+flag=T(1,:)<=Ta;
+t=ro2co(size(X),sum(T<=Ta)+~flag);
 
 % Periodize by making the first NaN equal to the now second element
 X(ro2co(size(X),sum(~isnan(X))+1))=X(2,:);
 Y(ro2co(size(Y),sum(~isnan(Y))+1))=Y(2,:);
 
-% Now find the bracketing points
-XX=X([t ; max(t+1,size(X,2))]);
-YY=Y([t ; max(t+1,size(Y,2))]);
-% May still need another protection if somehow there is a NaN?
+% Now find the bracketing points, they never exceed what's allowable
+XX=X([t ; t+1]);
+YY=Y([t ; t+1]);
 
 % Now find the interpolants as the Cartesian coordinates that form the
 % intersection formed by the line formed by the bracketing points and
@@ -103,3 +110,4 @@ d2=det([x3 y3 ; x4 y4]);
 d3=det([x1-x2 y1-y2 ; x3-x4 y3-y4]);
 x=det([d1 x1-x2 ; d2 x3-x4])/d3;
 y=det([d1 y1-y2 ; d2 y3-y4])/d3;
+
