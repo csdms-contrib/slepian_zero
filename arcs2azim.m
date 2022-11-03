@@ -14,7 +14,6 @@ function [Xa,Ya,Ra,XX,YY]=arcs2azim(X,Y,Ta)
 % X       NxM zero-padded matrix of x-coordinates of M circle segments 
 % Y       NxM zero-padded matrix of y-coordinates of M circle segments
 % Ta      an azimuth, in degrees clockwise from NORTH
-% flag    1 if, God forbid, you shouldn't have a complete circle
 %
 % OUTPUT:
 %
