@@ -1,5 +1,5 @@
-function histud(X,Y)
-% HISTUD(X,Y)
+function histud(X,Y,perx)
+% HISTUD(X,Y,perx)
 % 
 % Compares two populations by making upside-down facing histograms and
 % superposing a normal distribution performing a basic goodness-of-fit
@@ -8,13 +8,16 @@ function histud(X,Y)
 % INPUT:
 %
 % X,Y   Two vectors
+% perx  Cell array of percentiles outside of which the data will be trimmed, 
+%       X>perx{1}(1) & X<perx{1}(2) will be kept (strict!)
+%       Y>perx{2}(1) & X<perx{2}(2) will be kept (strict!)
 %
 % EXAMPLE:
 %
 % load('17_40_BHT'); Y=X(unique(randi(length(X),1000,1)));
-% histud(X,Y);
+% histud(X,Y,{[3 97],[3 97]})
 %
-% Last modified by fjsimons-at-alum.mit.edu, 03/01/2023
+% Last modified by fjsimons-at-alum.mit.edu, 03/06/2023
 
 % Make sure the data are unwrapped
 X=X(:);
@@ -25,7 +28,7 @@ c={'r','g'};
 xlabs={'global','regional'};
 
 % Percentiles for normality calculation
-perx={[2.5 97.5],[2.5 97.5]};
+defval('perx',{[2.5 97.5],[2.5 97.5]});
 
 % Bw is the bin width 
 bw=0.75;
@@ -54,8 +57,8 @@ ah(2).XLim=[min(xel(:,1)) max(xel(:,2))];
 % X-Cleanup option 2
 ah(1).XLim=[-1 1]*max(abs([min(xel(:,1)) max(xel(:,2))]));
 ah(2).XLim=[-1 1]*max(abs([min(xel(:,1)) max(xel(:,2))]));
-% Y-Cleanup
-ah(1).YLim=[0 max([ah(1).YLim ah(2).YLim])];
+% Y-Cleanup with a bit of a stretch
+ah(1).YLim=[0 max([ah(1).YLim ah(2).YLim])]*1.075;
 ah(2).YLim=ah(1).YLim;
 
 % Relative moving
@@ -83,6 +86,8 @@ function [h,p,xel,xl]=plotit(zd,c,xlab,o,percs,bw,bl)
 % This is how the bin width and limits get turned into symmetricedges
 be=[bw/2:bw:bl];
 be=sort([-be be]);
+% Mathurin
+be=[-12:1:12]
 
 % Min and max of the original data set
 ma=max(zd);
@@ -122,6 +127,7 @@ diferm(es,sh)
 % a=histc(zdx,be); 
 % ... of all the data
 a=histc(zd,be);
+keyboard
 
 % Compute normal with same moments as the trimmed data
 % Could show explicitly the limits of what the calculation is based on
@@ -135,12 +141,13 @@ N=N*[be(2)-be(1)];
 
 % Plot the histogram, take care to normalize to what's actually computed
 h=bar(be,a/sum(a),'histc');
+
 % Overlay the normal with the same area
 hold on
 p=plot(xels,N);
 pt=plot(xels,N);
-% Plot the mean+-stdas a cross above the highest bar
-tops=max(a/sum(a))*1.075;
+% Plot the mean+-stdas a cross above the highest bar or curve, whichever is higher
+tops=max([max(N) max(a/sum(a))])*1.075;
 ps=plot(em+[-1 1]*es,[tops tops],'k-');
 pm=plot(em,tops,'o',...
 	'MarkerFaceColor',c,'MarkerEdgeColor','k');
@@ -175,7 +182,7 @@ set(t(7:10),'HorizontalAlignment','right')
 % Cosmetics
 set([t tn gca],'FontSize',12)
 grid on
-% Redfine?
+% Redefine?
 xel=[min(be) max(be)];
 xlim(xel)
 longticks(gca)
@@ -183,4 +190,3 @@ longticks(gca)
 set(h,'FaceColor',c,'EdgeColor','k')
 set(p,'Color',c,'LineWidth',2)
 set(pt,'Color','k','LineWidth',0.5)
-
