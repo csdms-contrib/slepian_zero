@@ -19,9 +19,9 @@ function varargout=guyotphysics(num,noprint)
 %
 % 8.3.0.532 (R2014a) and 9.0.0.341360 (R2016a)
 %
-% See also VIRGINIA.
+% See also GUYOTWEATHER
 % 
-% Last modified by fjsimons-at-alum.mit.edu, 06/14/2019
+% Last modified by fjsimons-at-alum.mit.edu, 09/20/2023
 
 % Default cases
 defval('num',1)
@@ -70,7 +70,7 @@ switch num
   % Load the data
   [S,H]=readsac(fullfile(ddir,'SAC',sprintf('%s.sac',fnames{num})));
   % This is the beginning of the record in absolute time
-  dttime=[indeks(jul2dat(H.NZYEAR,H.NZJDAY),[3 1 2]) H.NZHOUR H.NZMIN H.NZSEC H.NZMSEC];
+  dttime=[indeks(doy2dat(H.NZYEAR,H.NZJDAY),[3 1 2]) H.NZHOUR H.NZMIN H.NZSEC H.NZMSEC];
   % So this is the event offset from that beginning in seconds
   ofset=etime(evtime{num},dttime);
   % Now figure out the great-circle distance - to Guyot Hall, the default
