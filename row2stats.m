@@ -16,7 +16,9 @@ function [g,s,h,hh]=row2stats(col1,col2,ybine)
 % h       Matrix with histogram counts per group in the bins provided
 % hh      Matrix with histogram counts globally normalized
 % 
-% See also BINDENS 
+% SEE ALSO:
+%
+% BINDENS, BIN2STATS
 %
 % Last modified by fjsimons-at-alum.mit.edu, 12/21/2011
 
