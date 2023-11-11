@@ -1,31 +1,33 @@
 function varargout=bin2stats(x,y,multp,perc)
 % [xi,ypi,x,y,mult,perc]=BIN2STATS(x,y,multp,perc)
 %
+% A binned-percentile calculator
+%
 % INPUT:
 %
 % x           The independent variable, not necessarily unique or equally spaced
 % y           The same-size dependent variable
-% multp       The median-x-interval multiplier, the interval over which the
-%             desired statistics are quoted [default a fraction of the x-range]
+% multp       The median-x-sampling interval multiplier, the interval over which the
+%             desired statistics are quoted [default: a fraction of the x-range]
 % perc        The percentiles [default: 5 50 95]
 %
 % OUTPUT:
 %
 % xi          New independent variables, midpoints of the requested intervals
-% ypi         A matrix with columns according to the requested percentages
+% ypi         A matrix with columns according to the requested percentiles
 % x,y         Regurgitated inputs
 % mult,perc   Regurgitated inputs
 % 
 % EXAMPLE:
 % 
 % bin2stats('demo1')
-% bin2stats('demo1',N) % for N a certain integer
+% bin2stats('demo1',N) % for N a certain integer which randomizes the sample size
 %
 % SEE ALSO:
 %
 % ROW2STATS, BINDENS
 %
-% Last modified by fjsimons-at-alum.mit.edu, 08/20/2020
+% Last modified by fjsimons-at-alum.mit.edu, 11/10/2023
 
 % Supply some defaults for unit testing
 defval('x',rand(randi(10000),1))
@@ -62,7 +64,7 @@ if ~isstr(x)
   % Then we go MAG2MED, GPS2MEDIAN
   beg=min(x);
 
-  % Figure out the median sampling intervals
+  % Figure out the median x-sampling intervals
   newdt=median(diff(x));
   intv=multp*newdt;
 
@@ -101,18 +103,29 @@ if ~isstr(x)
   varargout=varns(1:nargout);
 elseif strcmp(x,'demo1')
   % Now the second input is the number,for the demo only
-  defval('y',[]); N=y; defval('N',10000)
-  x=rand(randi(N),1);
-  y=randn(length(x),1);
+    defval('y',[]); N=y; defval('N',10000)
+    % Some random-size sample of uniform random independent variables
+    x=rand(randi(N),1);
+    % Some Gaussian random dependent variables
+    y=randn(length(x),1);
 
-  % Go through the motions
-  [xi,ypi,x,y]=bin2stats(x,y);
-  plot(x,y,'b.')
-  hold on
-  plot(xi,ypi(:,2),'k','LineWidth',1)
-  plot(xi,ypi(:,1),'r','LineWidth',1.5)
-  plot(xi,ypi(:,3),'r','LineWidth',1.5)
-  hold off
+    % Go through the motions
+    [xi,ypi,x,y,m,p]=bin2stats(x,y);
+    plot(x,y,'b.')
+    hold on
+    pp(1)=plot(xi,ypi(:,2),'k','LineWidth',1);
+    pp(2)=plot(xi,ypi(:,1),'r','LineWidth',1.5);
+    pp(3)=plot(xi,ypi(:,3),'r','LineWidth',1.5);
+    hold off
+    grid on
+    longticks(gca,2)
+    title(sprintf('sample size %i',length(x)))
+    for index=1:length(p)
+        pl{index}=sprintf('%ith percentile',p(index));
+    end
+    legend(pp,pl)
+    xlabel('independent variable')
+    ylabel('dependent variable')
 end
 
 
