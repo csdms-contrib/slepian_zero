@@ -1,5 +1,5 @@
-function varargout=bin2median(x,y,multp,perc)
-% [xi,ypi,x,y,mult,perc]=BIN2MEDIAN(x,y,multp,perc)
+function varargout=bin2stats(x,y,multp,perc)
+% [xi,ypi,x,y,mult,perc]=BIN2STATS(x,y,multp,perc)
 %
 % INPUT:
 %
@@ -18,8 +18,12 @@ function varargout=bin2median(x,y,multp,perc)
 % 
 % EXAMPLE:
 % 
-% bin2median('demo1')
-% bin2median('demo1',N) % for N a certain integer
+% bin2stats('demo1')
+% bin2stats('demo1',N) % for N a certain integer
+%
+% SEE ALSO:
+%
+% ROW2STATS, BINDENS
 %
 % Last modified by fjsimons-at-alum.mit.edu, 08/20/2020
 
@@ -102,12 +106,12 @@ elseif strcmp(x,'demo1')
   y=randn(length(x),1);
 
   % Go through the motions
-  [xi,ypi,x,y]=bin2median(x,y);
+  [xi,ypi,x,y]=bin2stats(x,y);
   plot(x,y,'b.')
   hold on
   plot(xi,ypi(:,2),'k','LineWidth',1)
-  plot(xi,ypi(:,1),'r')
-  plot(xi,ypi(:,3),'r')
+  plot(xi,ypi(:,1),'r','LineWidth',1.5)
+  plot(xi,ypi(:,3),'r','LineWidth',1.5)
   hold off
 end
 
