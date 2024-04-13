@@ -117,7 +117,7 @@ yels=halverange(cat(1,s{:}),110,NaN);
 %yels=[-1.1 1.1]/10;
 
 for index=1:length(CHA)
-    ah(index)=subplot(3,1,index)
+    ah(index)=subplot(3,1,index);
     ph(index)=plotit(s{index},h{index},....
                      ystr,xels,yels,xtix,frex);
     ph(index).Color=cols{index};
