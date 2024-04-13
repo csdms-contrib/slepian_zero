@@ -30,7 +30,7 @@ function varargout=whitehousestation(to,frex,CHA,STA,HOL,NTW,YYYY,DDD,HHMMSS,aft
 % EXAMPLE:
 %
 % whitehousestation
-% whitehousestation({'acc','acc'},[0.03 5 25 50])
+% whitehousestation({'acc','acc'},[0.1 2 25 50])
 % whitehousestation({'none','none','none'},[0.03 5 15 30],...
 %                   {'HHZ','HHZ','HNZ'},{'S0001','S0002','S0002'},...
 %                   {'00','00','10'},{'PP','PP','PP'},...
@@ -41,6 +41,7 @@ function varargout=whitehousestation(to,frex,CHA,STA,HOL,NTW,YYYY,DDD,HHMMSS,aft
 %                   {'00','00','10'},{'PP','PP','PP'},...
 %                   {'2024','2024','2024'},{'096','096','096'},...
 %                   {'142022','142022','142022'})
+% whitehousestation({'acc'},[0.03 2 15 30],{'HHZ'},{'S0001'},{'00'},{'PP'},{'2024'},{'096'},{'142022'})
 %
 % Last modified by fjsimons-at-alum.mit.edu, 04/13/2024
 
@@ -94,12 +95,13 @@ for index=1:length(CHA)
     s{index}=s{index}/uconv;
 end
 
-% Fix potential timing issues
-for index=2:length(CHA)
-    % Fix with respect to the first on
-    h{index}=fixtiming(s{1},s{index},h{index});
+if length(CHA)>1
+    % Fix potential timing issues if you can
+    for index=1:length(CHA)
+        % Fix with respect to the SECOND one
+        h{index}=fixtiming(s{2},s{index},h{index});
+    end
 end
-
 
 % Axis limits
 xels=[150 300];
@@ -149,7 +151,6 @@ legend(sprintf('%s | %s | %s\n     %g %s %g Hz',...
 function h2=fixtiming(s1,s2,h2)
 [a,b]=xcorr(s1,s2);
 [am,j]=max(a); bam=b(j);
-% Move UP the second one 
-h2.B=h2.B-abs(bam-1)*h2.DELTA;
-h2.E=h2.E-abs(bam-1)*h2.DELTA;
+h2.B=h2.B+abs(bam-1)*h2.DELTA;
+h2.E=h2.E+abs(bam-1)*h2.DELTA;
 
