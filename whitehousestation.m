@@ -1,5 +1,5 @@
-function whitehousestation(to,frex,CHA,STA,HOL,NTW,YYYY,DDD,HHMMSS)
-% WHITEHOUSESTATION(to,frex,CHA,STA,HOL,NTW,YYYY,DDD,HHMMSS)
+function varargout=whitehousestation(to,frex,CHA,STA,HOL,NTW,YYYY,DDD,HHMMSS,aft)
+% ah=WHITEHOUSESTATION(to,frex,CHA,STA,HOL,NTW,YYYY,DDD,HHMMSS,aft)
 %
 % INPUT:
 %
@@ -20,6 +20,12 @@ function whitehousestation(to,frex,CHA,STA,HOL,NTW,YYYY,DDD,HHMMSS)
 %                 e.g. '096', etc
 % HHMMSS       Up to three times (cell string),
 %                 e.g. '142022', etc
+% aft          0 plots the mainshock
+%              1 plots the first aftershock
+%
+% OUTPUT:
+%
+% ah           The axis handles(s)
 %
 % EXAMPLE:
 %
@@ -30,15 +36,24 @@ function whitehousestation(to,frex,CHA,STA,HOL,NTW,YYYY,DDD,HHMMSS)
 %                   {'00','00','10'},{'PP','PP','PP'},...
 %                   {'2024','2024','2024'},{'096','096','096'},...
 %                   {'142022','142022','142022'})
+% whitehousestation({'acc','acc','acc'},[0.03 2 15 30],...
+%                   {'HHZ','HHZ','HNZ'},{'S0001','S0002','S0002'},...
+%                   {'00','00','10'},{'PP','PP','PP'},...
+%                   {'2024','2024','2024'},{'096','096','096'},...
+%                   {'142022','142022','142022'})
 %
-% Last modified by fjsimons-at-alum.mit.edu, 04/11/2024
+% Last modified by fjsimons-at-alum.mit.edu, 04/13/2024
 
 % Epicentral distance
 [gcdkm,delta]=grcdist(guyotphysics(0),[-74.7540   40.6890]);
 
+defval('aft',0)
+
 % Where do you keep the data?
-ddir='/data1/fjsimons/CLASSES/GuyotPhysics/WhitehouseStationNewJersey2024/SAC';
-ddir='/data1/fjsimons/CLASSES/GuyotPhysics/WestofBedminsterNewJersey2024/SAC'
+ddir='/data1/fjsimons/CLASSES/GuyotPhysics/WhitehouseStationNewJersey2024/SAX';
+if aft==1
+    ddir='/data1/fjsimons/CLASSES/GuyotPhysics/WestofBedminsterNewJersey2024/SAC';
+end
 
 % Default identification of the component etc
 defval('CHA',{'HHZ','HHZ'})
@@ -54,11 +69,14 @@ defval('frex',[0.03 2 25.00 50.00]);
 % Define the converstion destination
 defval('to',{'none','none'});
 
+% Best to delve into the directory to circumvent SAC filename limitations
+culater=pwd; cd(ddir); ddir='./';
+
 % Read and transfer
 for index=1:length(CHA)
     % Note that I am sticking in the D but I don't remember now why that's there
-    [s{index},h{index}]=transfer(sprintf('%s.%s.%s.%s.D.%s.%s.%s.SAC',...
-           NTW{index},STA{index},HOL{index},CHA{index},YYYY{index},DDD{index},HHMMSS{index}),...
+    [s{index},h{index}]=transfer(fullfile(ddir,sprintf('%s.%s.%s.%s.D.%s.%s.%s.SAC',...
+           NTW{index},STA{index},HOL{index},CHA{index},YYYY{index},DDD{index},HHMMSS{index})),...
                                  frex,to{index});
     switch to{index}
       case 'none'
@@ -85,29 +103,33 @@ end
 
 % Axis limits
 xels=[150 300];
-xels=[50 200]
-
+if aft==1
+    xels=[50 200]
+end
+% Tickmarks and colors
 xtix=xels(1):30:xels(2);
 cols={'b','r','k'};
 % Might override, no?
-yels=halverange(cat(1,s{:}),110,NaN)
-% For acceleration
+yels=halverange(cat(1,s{:}),110,NaN);
+% For Whitehousestation acceleration
 %yels=[-14 14]/1000
-% For displacement
+% For Whitehousestation displacement
 %yels=[-1.1 1.1]/10;
 
 for index=1:length(CHA)
-    subplot(3,1,index)
+    ah(index)=subplot(3,1,index)
     ph(index)=plotit(s{index},h{index},....
                      ystr,xels,yels,xtix,frex);
     ph(index).Color=cols{index};
 end
-
              
 % Check consistency
 %plot(s2(abs(bam-1):end),s1(1:end-abs(bam+1)-1))
 
 figdisp([],[],[],2)
+
+% Return whence you came
+cd(culater)
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function ph=plotit(s,h,ystr,xels,yels,xtix,frex)
@@ -130,3 +152,4 @@ function h2=fixtiming(s1,s2,h2)
 % Move UP the second one 
 h2.B=h2.B-abs(bam-1)*h2.DELTA;
 h2.E=h2.E-abs(bam-1)*h2.DELTA;
+
