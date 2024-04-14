@@ -36,7 +36,7 @@ function varargout=whitehousestation(to,frex,CHA,STA,HOL,NTW,YYYY,DDD,HHMMSS,aft
 %                   {'00','00','10'},{'PP','PP','PP'},...
 %                   {'2024','2024','2024'},{'096','096','096'},...
 %                   {'142022','142022','142022'})
-% whitehousestation({'acc','acc','acc'},[0.03 2 15 30],...
+% whitehousestation({'acc','acc','acc'},[0.1 2 15 30],...
 %                   {'HHZ','HHZ','HNZ'},{'S0001','S0002','S0002'},...
 %                   {'00','00','10'},{'PP','PP','PP'},...
 %                   {'2024','2024','2024'},{'096','096','096'},...
@@ -104,12 +104,12 @@ if length(CHA)>1
 end
 
 % Axis limits
-xels=[150 300];
+xels=[150 300]; %xels=[180 240]
 if aft==1
     xels=[50 200]
 end
 % Tickmarks and colors
-xtix=xels(1):30:xels(2);
+xtix=xels(1):30:xels(2); %xtix=xels(1):5:xels(2)
 cols={'b','r','k'};
 % Might override, no?
 yels=halverange(cat(1,s{:}),110,NaN);
