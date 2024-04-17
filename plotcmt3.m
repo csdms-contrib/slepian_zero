@@ -1,17 +1,18 @@
-function plotcmt3(lolax)
-% PLOTCMT3(lolax)
+function plotcmt3(lolax,ext)
+% PLOTCMT3(lolax,ext)
 %
 % Makes a 3D plot, on a globe, of a selection of CMT events.
 %
 % INPUT:
 %
 % lolax  Longitude and latitude of the view axis [degrees]
+% ext    Extension for the named plot
 %
 % SEE ALSO: PLOTONEARTH, POLECIRCLE, PLOTTOPO3, PLOTGRAV3
 % 
-% Last modified by fjsimons-at-alum.mit.edu, 09/18/2017
+% Last modified by fjsimons-at-alum.mit.edu, 04/17/2024
 
-% Get some plain vaniall earthquake data
+% Get some plain vanille earthquake data
 neq=20000;
 load('/u/fjsimons/IFILES/CMT/quakes77_2013.mat')
 data=QUAKES(randi(length(QUAKES),1,neq),:);
@@ -22,6 +23,8 @@ evdp=data(:,2);
 
 % Viewing axis
 defval('lolax',[120 10])
+defval('lolax',[300 10])
+defval('ext',[])
 
 % Just a blank canvas so we can rotate interactively
 clf
@@ -47,10 +50,12 @@ disp(sprintf('Azimuth: %i ; Elevation: %i',round(AZ),round(EL)))
 
 % Cosmetics
 set(pc,'linew',1)
-set(eqx,'LineWidth',2)
+set(eqx,'LineWidth',1)
 axis off
 set(pcmt,'MarkerS',2,'MarkerE','k','MarkerF',grey)
 set(gca,'camerav',6)
 
 % Print it
-figdisp([],[],[],2)
+figdisp([],ext,[],2)
+% The below will do the vector graphics
+%figdisp([],ext,'-painters',2)
