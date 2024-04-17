@@ -1,15 +1,16 @@
-function plotgrav3(lolax)
-% PLOTGRAV3(lolax)
+function plotgrav3(lolax,ext)
+% PLOTGRAV3(lolax,ext)
 %
 % Makes a 3D plot, on a globe, of a crude gravity map.
 %
 % INPUT:
 %
 % lolax  Longitude and latitude of the view axis [degrees]
+% ext    Extension for the named plot
 %
 % SEE ALSO: PLOTONEARTH, POLECIRCLE, PLOTCMT3, PLOTTOPO3
 % 
-% Last modified by fjsimons-at-alum.mit.edu, 09/18/2017
+% Last modified by fjsimons-at-alum.mit.edu, 04/17/2024
 
 % Get some plain vanilla gravity data
 grav=fralmanac('EGM96','XYZ');
@@ -22,6 +23,7 @@ caxis([-100 100])
 
 % Viewing axis
 defval('lolax',[120 10])
+defval('lolax',[300 10])
 
 % Plot an equator as a "bounding box"
 radx=1.01;
@@ -41,4 +43,6 @@ axis off
 set(gca,'camerav',6)
 
 % Print it
-figdisp([],[],[],2)
+figdisp([],ext,[],2)
+% The below will do the vector graphics
+%figdisp([],ext,'-painters',2)
