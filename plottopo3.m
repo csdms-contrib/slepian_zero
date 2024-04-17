@@ -1,15 +1,16 @@
-function plottopo3(lolax)
-% PLOTTOPO3(lolax)
+function plottopo3(lolax,ext)
+% PLOTTOPO3(lolax,ext)
 %
 % Makes a 3D plot, on a globe, of a crude topography map.
 %
 % INPUT:
 %
 % lolax  Longitude and latitude of the view axis [degrees]
+% ext    Extension for the named plot
 %
 % SEE ALSO: PLOTONEARTH, POLECIRCLE, PLOTCMT3, PLOTGRAV3
 % 
-% Last modified by fjsimons-at-alum.mit.edu, 09/18/2017
+% Last modified by fjsimons-at-alum.mit.edu, 04/17/2024
 
 % Get some plain vanilla topography data
 load topo
@@ -21,6 +22,7 @@ colormap('sergeicol')
 
 % Viewing axis
 defval('lolax',[120 10])
+defval('lolax',[300 10])
 
 % Plot an equator as a "bounding box"
 radx=1.01;
@@ -40,4 +42,6 @@ axis off
 set(gca,'camerav',6)
 
 % Print it
-figdisp([],[],[],2)
+figdisp([],ext,[],2)
+% The below will do the vector graphics
+%figdisp([],ext,'-painters',2)
