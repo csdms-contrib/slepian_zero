@@ -11,7 +11,7 @@ function controlline(fname,convo)
 % Last modified by fjsimons-at-alum.mit.edu, 09/18/2024
 
 % Load the file with data
-defval('fname','/data1/fjsimons/Dropbox/FRS-Portal/Lab02/Data/controlline2.gps')
+defval('fname','/data1/fjsimons/CLASSES/FRS-113-Rome/Labs/Lab02/Data/controlline2.gps')
 CL=load(fname);
 
 % We're North, and West, folks, gotta know that, to parse the data
