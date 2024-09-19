@@ -1,0 +1,18 @@
+#!/bin/tcsh
+# Strips GPS coordinates out of a set of *.HEIC image files
+# The results are files with single lines like
+#    64.2     40  20 52.85    74  39 32.00 
+# You do have to know if you were in N, S, E, W, and put that back in
+
+set files = `ls *HEIC`
+foreach file ($files[*])
+	sips -s format jpeg $file --out $file:r.jpg
+	exiftool $file:r.jpg | grep GPS >> $file:r.txt
+	cat $file:r.txt  | awk '/Altitude | Longitude | Latitude/ {print}' | \
+	    awk '\!/Ref/ {$1=$2=$3="" ; print $0 }' | sed 's/Above Sea Level//' | \
+		sed 's/m//' | sed 's/deg//' | sed 's/N//' | sed 's/S//' | sed 's/W//' | \
+		    sed 's/E//' | sed "s/'//" | sed 's/"//' | tr -d '\012\015' >> $file:r.gps
+        cat  $file:r.gps >>! ALL.gps
+	printf "\n" >>! ALL.gps
+end
+
