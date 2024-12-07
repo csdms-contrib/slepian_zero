@@ -13,7 +13,7 @@ function varargout=distromax(n,m,T,distro,parms,plotit)
 % m       Number of variables in each sample (however many)
 % T       Return period (in 'years')
 % distro  Parent distribution (e.g., 'exp')
-% parms   Parameters of the parent distribution (e.g., 3)
+% parms   Parameters of the parent distribution (e.g., 3, or [3 3])
 % plotit  1 Make a nice plot
 %         0 Just calculate the return period
 %
@@ -34,15 +34,16 @@ defval('m',200)
 defval('T',100)
 defval('distro','exp')
 defval('parms',3)
+defval('plotit',1)
 
 % Make the sample sets
 switch length(parms)
   case 1
     rv=random(distro,parms(1),n,m);
   case 2
-    rv=random(distro,parms(2),n,m);
+    rv=random(distro,parms(1),parms(2),n,m);
   case 3
-    rv=random(distro,parms(3),n,m);
+    rv=random(distro,parms(1),parms(2),parms(3),n,m);
 end
 
 % Whatever the input, the line below is interpreted as an ANNUAL maximum
