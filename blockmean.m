@@ -1,5 +1,5 @@
-function [bm,yc,xc,CTl,CTr]=blockmean(mat,side,olap)
-% [bm,yc,xc,CTl,CTr]=BLOCKMEAN(mat,[iside jside],[olapi olapj])
+function [bmn,yc,xc,CTl,CTr]=blockmean(mat,side,olap)
+% [bmn,yc,xc,CTl,CTr]=BLOCKMEAN(mat,[iside jside],[olapi olapj])
 %
 % Block-averages a matrix, with or without overlap in the block tiles
 %
@@ -11,7 +11,7 @@ function [bm,yc,xc,CTl,CTr]=blockmean(mat,side,olap)
 %
 % OUTPUT:
 %
-% bm          The matrix of means as requested
+% bmn         The matrix of means as requested
 % yc          The center indices of the tiles in the first dimension
 % xc          The center indices of the tiles in the second dimension
 % CTl         The matrix whose transpose left-multiplies the target 
@@ -36,7 +36,7 @@ function [bm,yc,xc,CTl,CTr]=blockmean(mat,side,olap)
 % 
 % GAMINI, PAULI, PCHAVE, BLOCKTILE, ...
 %
-% Last modified by fjsimons-at-alum.mit.edu, 01/04/2019
+% Last modified by fjsimons-at-alum.mit.edu, 03/26/2025
 
 % Just make default overlap zero
 defval('olap',[0 0])
@@ -46,7 +46,7 @@ defval('olap',[0 0])
 [nx,CTr,xc]=avops(2,size(mat),side,olap);
 
 % Calculate the required averages
-bm=CTl'*mat*CTr/prod(side);
+bmn=CTl'*mat*CTr/prod(side);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function [n,CT,c]=avops(dim,sais,side,olap)
