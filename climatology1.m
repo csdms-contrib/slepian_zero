@@ -7,9 +7,9 @@ load('/data1/fjsimons/IFILES/TOPOGRAPHY/ITALY/METEOBLUE/mat/mb_princeton.mat')
 % TRY THIS: Make a plot of all available temperatures
 % plot(t,d.Temperature_2melevationcorrected);
 
-% TRY THIS: What are the first and the last years available?
-% byear=min(year(t));
-% eyear=max(year(t));
+% What are the first and the last years available?
+byear=min(year(t));
+eyear=max(year(t));
 
 % TRY THIS: Make a plot of temperature in 2021
 % plot(t(year(t)==2021),d.Temperature_2melevationcorrected(year(t)==2021));
@@ -23,6 +23,7 @@ load('/data1/fjsimons/IFILES/TOPOGRAPHY/ITALY/METEOBLUE/mat/mb_princeton.mat')
 
 % NOW LET US DO SOMETHING FOR REAL
 % Tired of typing, just rename the one property of interest 'prop'
+% and then do make sure to get the labels right down below!
 prop='Temperature_2melevationcorrected';
 % We will make a plot of the min, max, mean, median 'prop' per month
 % So we will do some housekeeping
@@ -74,8 +75,10 @@ boxplot(d.(prop),month(t),'outliersize',1)
 % Now you annotate nicely
 set(ah(1),'XTickLabel',smons)
 set(ah,'TickDir','out','TickLength',[0.02 0.025]/2)
-yl=ylabel(sprintf('Temperature (%sC)',176));
-tl=title('Princeton Temperature (METEOBLUE)');
+% Make sure this is in line with the property selected above
+yl=ylabel(sprintf('Hourly Temperature (%sC)',176));
+tl=title(sprintf('Princeton Hourly Temperature %i-%i (METEOBLUE)',...
+                byear,eyear));
 % Move stuff around for beautification
 set(ah(1),'Position',get(ah(1),'Position')-[0 0.05 0 0])
 yls=ylim;
