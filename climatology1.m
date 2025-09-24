@@ -11,6 +11,9 @@ load('/data1/fjsimons/IFILES/TOPOGRAPHY/ITALY/METEOBLUE/mat/mb_princeton.mat')
 byear=min(year(t));
 eyear=max(year(t));
 
+% Check the duration of the interval assuming they are all the same
+% intv=t(2)-t(1);
+
 % TRY THIS: Make a plot of temperature in 2021
 % plot(t(year(t)==2021),d.Temperature_2melevationcorrected(year(t)==2021));
 
@@ -25,6 +28,7 @@ eyear=max(year(t));
 % Tired of typing, just rename the one property of interest 'prop'
 % and then do make sure to get the labels right down below!
 prop='Temperature_2melevationcorrected';
+%prop='PrecipitationTotal';
 % We will make a plot of the min, max, mean, median 'prop' per month
 % So we will do some housekeeping
 % Number of months in a year
@@ -34,8 +38,11 @@ imons=1:zmons;
 % A cell array with name strings, one for each month of the year
 smons={'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'};
 
-% Initialize the arrays with nans so that we can fill the later
+% Initialize the arrays with nans so that we can fill them later
 [minm,menm,medm,maxm]=deal(nan(1,zmons));
+
+% SKIP Remember C=(F-32)/1.8;... make an anonymous function
+% convr=@(x) (x-32)/1.8;
 
 % Loop over the months
 for index=imons
@@ -43,6 +50,8 @@ for index=imons
   lojik=month(t)==index;
   % Apply the condition to all the data at once, now you have generic 'values'
   vals=d.(prop)(lojik);
+  % SKIP Since we actually did get the data in Celsius already
+  % if strfind(prop,'Temperature'); vals=convr(vals); end
   % Define the various 'statistics' of the 'values' of the 'property'
   minm(index)=min(vals);
   menm(index)=mean(vals);
@@ -60,15 +69,24 @@ end
 % but we will rather make a 'box plot' in one go.
 % Define an axeis handle so you can later manipulate it
 ah(1)=subplot(211);
+% SKIP the temperature conversion since it wasn't needed
+% if strfind(prop,'Temperature')
+%   boxplot(convr(d.(prop)),month(t),'outliersize',1)
+% else
 boxplot(d.(prop),month(t),'outliersize',1)
+% end
 
 % Now you annotate nicely
 set(ah(1),'XTickLabel',smons)
 set(ah,'TickDir','out','TickLength',[0.02 0.025]/2)
-% Make sure this is in line with the property selected above
+% Make sure this is in line with the properties selected above
 yl=ylabel(sprintf('Hourly Temperature (%sC)',176));
-tl=title(sprintf('Princeton Hourly Temperature %i-%i (METEOBLUE)',...
-                byear,eyear));
+yl=ylabel('Hourly Precipitation Total (mm)');
+% Use a short form, why not
+sprop='Temperature';
+%sprop='Precipitation';
+tl=title(sprintf('Princeton Hourly %s %i-%i (METEOBLUE)',...
+                sprop,byear,eyear));
 % Move stuff around for beautification
 set(ah(1),'Position',get(ah(1),'Position')-[0 0.05 0 0])
 yls=ylim;
