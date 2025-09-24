@@ -37,17 +37,12 @@ smons={'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'};
 % Initialize the arrays with nans so that we can fill the later
 [minm,menm,medm,maxm]=deal(nan(1,zmons));
 
-% SKIP Remember C=(F-32)/1.8;... make an anonymous function
-% convr=@(x) (x-32)/1.8;
-
 % Loop over the months
 for index=imons
   % Find the logical condition that picks out the months
   lojik=month(t)==index;
   % Apply the condition to all the data at once, now you have generic 'values'
   vals=d.(prop)(lojik);
-  % SKIP Since we actually did get the data in Celsius already
-  % if strfind(prop,'Temperature'); vals=convr(vals); end
   % Define the various 'statistics' of the 'values' of the 'property'
   minm(index)=min(vals);
   menm(index)=mean(vals);
@@ -65,12 +60,7 @@ end
 % but we will rather make a 'box plot' in one go.
 % Define an axeis handle so you can later manipulate it
 ah(1)=subplot(211);
-% SKIP the temperature conversion since it wasn't needed
-% if strfind(prop,'Temperature')
-%   boxplot(convr(d.(prop)),month(t),'outliersize',1)
-% else
 boxplot(d.(prop),month(t),'outliersize',1)
-% end
 
 % Now you annotate nicely
 set(ah(1),'XTickLabel',smons)
