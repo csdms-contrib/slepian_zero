@@ -6,8 +6,9 @@ function varargout=polynesia(c11,cmn,cax,mult)
 % INPUT:
 %
 % c11       lon,lat of the top left of the box 
-% cmn       lon,lat of the bottom right of the box 
-% mult      an integere multiplicative resolution degrader [default: 1]
+% cmn       lon,lat of the bottom right of the box
+% cax       values that limit the color bar
+% mult      an integer multiplicative resolution degrader [default: 10]
 %
 % OUTPUT:
 % 
@@ -20,7 +21,7 @@ function varargout=polynesia(c11,cmn,cax,mult)
 % Defaults work best; just Tahiti and Moorea require adjustment
 % polynesia([208 -16],[212 -19]) 
 %
-% Last modified by fjsimons-at-alum.mit.edu, 03/12/2020
+% Last modified by fjsimons-at-alum.mit.edu, 10/06/2025
 
 % Should I explore Ocean Data View?
 
@@ -33,7 +34,7 @@ defval('vers',2019);
 defval('npc',20);
 [~,~,~,~,~,~,dxdy,NxNy]=readGEBCO(vers,npc);
 
-defval('mult',1); mult=round(mult);
+defval('mult',10); mult=round(mult);
 dxdy=dxdy*mult;
 
 % Make the save file
@@ -47,7 +48,6 @@ lons=c11(1):+dxdy(1):cmn(1);
 lons=lons-(lons>180)*360;
 lats=c11(2):-dxdy(2):cmn(2);
 [LON,LAT]=meshgrid(lons,lats);
-
 % Get the elevation!
 if exist(savefile)~=2
   z=gebco(LON,LAT,vers,npc);
@@ -81,8 +81,13 @@ function printit(z,cax,c11,cmn,fs,vers,nem,mult)
 clf
 % Color bar first...
 [cb,cm]=cax2dem(cax,'hor');
-% then map
+% See IMAGEF for comments on pixel registration, which these are
 imagefnan(c11,cmn,z,cm,cax)
+% Maybe adjust to common field of view regardless of resolution, even if
+% this means cutting pixels off, for easy scrolling later on
+xlim([c11(1) cmn(1)])
+ylim([cmn(2) c11(2)])
+
 % then colorbar again for adequate rendering
 [cb,cm]=cax2dem(cax,'hor');
 % Cosmetics
@@ -100,4 +105,5 @@ warning on MATLAB:hg:shaped_arrays:ColorbarTickLengthScalar
 shrink(cb,1,1.5)
 movev(cb,-0.08)
 % Print it
-figdisp(nem,sprintf('%3.3i',mult),[],2)
+%keyboard
+%figdisp(nem,sprintf('%3.3i',mult),[],2)
