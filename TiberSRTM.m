@@ -32,15 +32,15 @@ url1='https://dwtkns.com/srtm30m/';
 diro='/u/fjsimons/IFILES/TOPOGRAPHY/ITALY/SRTM3/TIBER';
 
 % You modify this also, it sets the viewable axes later
-zaxis=[11 13 41 43];
+zaxis=[11 14 41 44];
 % You change this also, it sets the range of values being colored
-colrange=[0 100];
+colrange=[0 1500];
 
 % Read the files along the rows across the columns, sequentially from
-% the northernmost, east to west, to the southernmost, east to west; the
+% the northernmost, west to east, to the southernmost, west to east; the
 % variable tiling tells you how many rows and columns
 % Note that we make up non-existing file names to fill the rectangle
-tiling=[1 1];
+tiling=[3 3];
 files={'N43E011','N43E012','N43E013',...
        'N42E011','N42E012','N42E013',...
        'N41E011','N41E012','N41E013'};
@@ -112,11 +112,13 @@ if exist('h')==1
   deggies(gca)
   fig2print(gcf,'portrait')
   % Add a custom color bar
-  [cb,xcb]=addcb('vert',colrange,colrange,colmap);
-  longticks(cb,2)
-  set(xcb,'string','topography (m) above WGS84/EGM96 geoid')
-  moveh(cb,0.0125)
-  set(cb,'YaxisL','r')
+  try
+      [cb,xcb]=addcb('vert',colrange,colrange,colmap);
+      longticks(cb,2)
+      set(xcb,'string','topography (m) above WGS84/EGM96 geoid')
+      moveh(cb,0.0125)
+      set(cb,'YaxisL','r')
+  end
   figdisp
 end
 
