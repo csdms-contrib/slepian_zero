@@ -37,7 +37,7 @@ zaxis=[12 13 41 42];
 colrange=[0 100];
 
 % Read the files along the rows across the columns, sequentially from
-% the northernmost, east to west, to the southernmost, east to west; the
+% the northernmost, west to east, to the southernmost, west to east; the
 % variable tiling tells you how many rows and columns
 % Note that we make up non-existing file names to fill the rectangle
 tiling=[1 1];
