@@ -9,7 +9,7 @@ function varargout=rinitaly(nprops,froot,dirp,diro,buf,dlev,xver)
 % nprops     A minimal properties structure from RAPIDEYE, all you need is:
 %              nprops.lo   The polygonal longitudes clockwise from NW
 %              nprops.la   The polygonal latitudes clockwise from NW
-% froot      Filename root [e.g. ''IT_SurfaceWaterBodyLine']
+% froot      Filename root [e.g. 'IT_SurfaceWaterBodyLine']
 % dirp       Directory [e.g. 'WISE']
 % diro       Directory [e.g. '/home/fjsimonsIFILES/TOPOGRAPHY/ITALY']
 % buf        A buffer in degrees to aid the search for rivers within polygon
