@@ -311,7 +311,8 @@ if ~isstr(lon)
   if any(isnan(z(:)))
     % Need a different interpolation, it's an extrapolation in a sense
     % If it's only one number, give a simple reason
-    if length(lon)*length(lat)==1
+      if length(lon)*length(lat)==1
+          keyboard
       disp(sprintf('Longitude given %g to %g wanted %g',min(lonpc),max(lonpc),lon))
       disp(sprintf('Latitude given %g to %g wanted %g',min(latpc), max(latpc),lat))
     end
@@ -403,6 +404,24 @@ elseif strcmp(lon,'demo1')
 elseif strcmp(lon,'demo2')
   [LO,LA]=meshgrid(-180:3:180,90:-3:-90);
   [z,lon,lat]=gebco(LO,LA); imagefnan([-180 90],[180 -90],z)
+  % Turn this into a bit more sophisticated plot for the PufferFish Globe 2880 x 1440
+  % Version 2019 being to 15 arc seconds, make sure to clear all memory
+  %[LO,LA]=meshgrid(-180:1/240:180,90:-1/240:-90);
+  keyboard
+  % Do this as finely as possible without maxing out the memory
+  [LO,LA]=meshgrid(-180:1/30:180,90:-1/30:-90);
+  % Minimal output to save memory
+  z=gebco(LO,LA,2019);
+  % Saved on /home/fjsimons/GEBCO_2019.mat
+  cax=[-10808 7146];
+  cax=[-7473 5731];
+  % The following doesn't work on R2025a version so I saved it also in /home/fjsimons/GEBCO_2019_colormap
+  [cb,cm]=cax2dem(cax,'hor');
+  imagefnan([-180 90],[180 -90],z,cm,cax)
+  delete(cb)
+  axis off
+  % Use exportgraphics with /usr/licensed/matlab-R2025a/bin/matlab
+  exportgraphics(gcf,'gebco_demo2.png',Units="pixels",Width=2880,Height=1440)
 elseif strcmp(lon,'demo3')
   c11=[100 -10]; cmn=[140 -40]; spc=1/10;
   [LO,LA]=meshgrid(c11(1):spc:cmn(1),c11(2):-spc:cmn(2));
