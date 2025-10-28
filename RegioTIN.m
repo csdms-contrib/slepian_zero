@@ -1,5 +1,5 @@
-function varargout=RegioTIN(region)
-% [Z,C11,CMN,mima,colmap,colrange]=RegioTIN(region)
+function varargout=RegioTIN(region,xver)
+% [Z,C11,CMN,mima,colmap,colrange]=RegioTIN(region,xver)
 %
 % Extracts regional Tinitaly topography
 %
@@ -9,6 +9,7 @@ function varargout=RegioTIN(region)
 %              'Piemonte' 'Basilicata' 'Liguria' 'Calabria' 'Lombardia'
 %              'Toscana' 'Campania' 'Umbria' 'Emilia-Romagna' 'Marche'
 %              'Veneto' 'Tiber'
+% xver         1 makes the final plot or 0 doesn't
 %
 % OUTPUT:
 %
@@ -18,11 +19,13 @@ function varargout=RegioTIN(region)
 % mima       Minimum/maximum data values      
 % colmap     Color map
 % colrange   Color range
+% adminXu    Administrative boundaries in UTM coordinatesu
+% adminYu    Administrative boundaries in UTM coordinatesu
 %
 % EXAMPLE:
 %
-% [Z,C11,CMN,mima,colmap,colrange]=RegioTIN;
-% save('RegioTIN','-v7.3','C11','CMN','Z','colmap','colrange','mima')
+% [Z,C11,CMN,mima,colmap,colrange,adminXu,adminYu]=RegioTIN;
+% save('RegioTIN','-v7.3','C11','CMN','Z','colmap','colrange','mima','adminXu','adminYu')
 % load RegioTIN
 % imagefnan(C11,CMN,Z,colmap,colrange);
 %
@@ -30,10 +33,11 @@ function varargout=RegioTIN(region)
 %
 % CyprusSRTM, JerseySRTM, RomaSRTM, TiberSRTM, TiberTIN
 %
-% Last modified by fjsimons-at-alum.mit.edu, 10/27/2025
+% Last modified by fjsimons-at-alum.mit.edu, 10/28/2025
 
 % Default values
 defval('region','Basilicata')
+defval('xver',0)
 
 % Could begin by plotting WORLD map and loading coordinates...
 % plotcont; axis image; xlim([5 20]); ylim([35 50]); grid on; box on
@@ -80,17 +84,12 @@ switch region
   case 'Basilicata'
     % Find the extra boxes
     boxes=[boxes ; 70 ; 12 ; 13];
-    figure(2)
-    hold on; [pb,tt]=pbx(boxes,hdr,TV); hold off
-    % Help yourself copy it from the line
-    cat(1,hdr{boxes})
     % And find the tilings and file names
     tiling=[4 4];
-    matched={
-        'w45510','e44505','e44510',...
-        'w45010','e45005','e45010','e45015',...
-        'e45505','e45510','e44515',...
-        'e44005','e44010'};
+    matched={'w45510','e44505','e44510',...
+             'w45010','e45005','e45010','e45015',...
+             'e45505','e45510','e44515',...
+             'e44005','e44010'};
   case 'Liguria'
 
   case 'Calabria'
@@ -98,17 +97,50 @@ switch region
   case 'Lombardia'
 
   case 'Toscana'
-
+    % Find the extra boxes
+    boxes=[boxes ; 101 ; 131];
+    % And find the tilings and file names
+    tiling=[6 5];
+    % See under 'Marche' as in not having to do it explicitly
+    matched={'w46565_s10.hdr','w46570_s10.hdr','w47060_s10.hdr',...
+             'w47065_s10.hdr','w47070_s10.hdr','w47560_s10.hdr',...
+             'w47565_s10.hdr','w47570_s10.hdr','w47575_s10.hdr',...
+             'w48060_s10.hdr','w48065_s10.hdr','w48070_s10.hdr',...
+             'w48075_s10.hdr','w48555_s10.hdr','w48560_s10.hdr',...
+             'w48565_s10.hdr','w48570_s10.hdr','w49055_s10.hdr',...
+             'w49060_s10.hdr','w47055_s10.hdr','w48575_s10.hdr'};
   case 'Campania'
+    keyboard
+    % Find the extra boxes
+    boxes=[boxes];
+    figure(2); hold on; [pb,tt]=pbx(boxes,hdr,TV); hold off
+    % And find the tilings and file names
+    tiling=[ ];
+    matched=hdr(boxes);
 
   case 'Umbria'
-
+    % Find the extra boxes
+    boxes=[boxes ; 119 ; 96];
+    % And find the tilings and file names
+    tiling=[4 3];
+    % See under 'Marche' as in not having to do it explicitly
+    matched={'w47070_s10.hdr','w47075_s10.hdr','w47080_s10.hdr',...
+             'w47570_s10.hdr','w47575_s10.hdr','w47580_s10.hdr',...
+             'w48075_s10.hdr','w48080_s10.hdr','w48070_s10.hdr',...
+             'w46575_s10.hdr'};
   case 'Emilia-Romagna'
 
   case 'Marche'
-
+    % No extra boxes
+    tiling=[4 4];
+    matched=hdr(boxes);
   case 'Veneto'
-
+    % Find the extra boxes
+    boxes=[boxes ; 173];
+    figure(2); hold on; [pb,tt]=pbx(boxes,hdr,TV); hold off
+    % And find the tilings and file names
+    tiling=[5 5];
+    matched=hdr(boxes);
   case 'Tiber'
     tiling=[7 5];
     matched={'w48565','w48570','w48575','w48580',...
@@ -138,12 +170,10 @@ catch
 end
 
 % Ready to combine them all with the overlap of 10? If all common size...
+% You might not want to bother if there isn't a tiling after all, see below
+% Although it could be good for initalizing, I suppose? Unless it needs to resize.
 Zall=nan(dsize*tiling(1)-10*[tiling(1)-1],dsize*tiling(2)-10*[tiling(2)-1]);
 
-keyboard
-
-figure(3)
-clf
 % Initialize
 mima=[0 0];
 C11=[ inf -inf];
@@ -208,40 +238,46 @@ end
 
 % Plot the final product all at once
 clear Z
-% Out of memory for this one on lemaitre
-% h=imagefnan(C11,CMN,Zall,colmap,colrange);
 
-% This should work instead
-h=imagesc([C11(1) CMN(1)],[C11(2) CMN(2)],Zall); axis image xy
-colmap(1,:)=[1 1 1];
-colormap(colmap)
-caxis(colrange)
-
-% Clean up if you can
-if exist('h')==1
-  %  axis(zaxis)
-  longticks(gca,2)
-
-  fig2print(gcf,'portrait')
-  % Add a custom color bar
-  try
-      % This was for IMAGEFNAN
-      % [cb,xcb]=addcb('vert',colrange,colrange,colmap);
-      % This will do for IMAGE
-      cb=colorbar; xcb=cb.Label.String;
-      longticks(cb,2)
-      set(xcb,'string','topography (m) above WGS84/EGM96 geoid')
-      moveh(cb,0.075)
-      set(cb,'YaxisL','r')
-  end
-  % Add the administrative boundaries again
-  hold on; pxyz=plot(adminXu,adminYu); hold off; axis image
-  pxyz.LineWidth=3;
-  figdisp
+keyboard
+% Rapidly runs out of memory and leads to crashes
+if xver==1
+    figure(3)
+    clf
+    % Out of memory for this one on lemaitre
+    % h=imagefnan(C11,CMN,Zall,colmap,colrange);
+    % This should work instead
+    h=imagesc([C11(1) CMN(1)],[C11(2) CMN(2)],Zall); axis image xy
+    colmap(1,:)=[1 1 1];
+    colormap(colmap)
+    caxis(colrange)
+    
+    % Clean up if you can
+    if exist('h')==1
+        %  axis(zaxis)
+        longticks(gca,2)
+        
+        fig2print(gcf,'portrait')
+        % Add a custom color bar
+        try
+            % This was for IMAGEFNAN
+            % [cb,xcb]=addcb('vert',colrange,colrange,colmap);
+            % This will do for IMAGE
+            cb=colorbar; xcb=cb.Label.String;
+            longticks(cb,2)
+            set(xcb,'string','topography (m) above WGS84/EGM96 geoid')
+            moveh(cb,0.075)
+            set(cb,'YaxisL','r')
+        end
+        % Add the administrative boundaries again
+        hold on; pxyz=plot(adminXu,adminYu); hold off; axis image
+        pxyz.LineWidth=3;
+        figdisp
+    end
 end
 
 % Output if so desired
-varns={Zall,C11,CMN,mima,colmap,colrange};
+varns={Zall,C11,CMN,mima,colmap,colrange,adminXu,adminYu};
 varargout=varns(1:nargout);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
