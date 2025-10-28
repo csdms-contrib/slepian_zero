@@ -6,7 +6,7 @@ function varargout=anatomy(fname,snumber)
 % INPUT:
 %
 % fname       A MATLAB m-file name string
-% snumber     Some number, e.g. pi
+% snumber     Some number, e.g. pi [default: 1]
 %
 % OUTPUT:
 %
@@ -23,6 +23,9 @@ function varargout=anatomy(fname,snumber)
 % TESTED ON: MATLAB Version: 9.8.0.1451342 (R2020a) Update 5
 % 
 % Last modified by fjsimons-at-alum.mit.edu, 01/11/2022
+
+% Give default 
+defval('snumber',1)
 
 % Do something interesting with the input
 if isempty(strfind(fname,'demo'))
