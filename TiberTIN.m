@@ -28,13 +28,12 @@ function varargout=TiberTIN
 %
 % CyprusSRTM, JerseySRTM, RomaSRTM, TiberSRTM
 %
-% Last modified by fjsimons-at-alum.mit.edu, 10/21/2025
+% Last modified by fjsimons-at-alum.mit.edu, 10/27/2025
 
 % Get all the headers and the tilings
 [hdr,TV,TN,TA,bx,by]=tinitalh;
 % Collect them all from the tinitaly_tiles.jpg file
 tiling=[7 5];
-% Note that we make up non-existing file names to fill the rectangle
 matched={'w48565','w48570','w48575','w48580',...
          'w48065','w48070','w48075','w48080','w48085',...
          'w47565','w47570','w47575','w47580','w47585',...
