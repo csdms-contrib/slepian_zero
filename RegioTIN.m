@@ -62,7 +62,7 @@ axis([minmax(adminXu) minmax(adminYu)]+[[-1 1]*range(adminXu)/5 [-1 1]*range(adm
 boxes=find(any(inpolygon(bx,by,adminXu,adminYu),2));
 
 figure(2); clf
-% Plot the named boxes
+% Plot the named boxes -  inside the SWITCH might want to redo it 
 [pb,tt]=pbx(boxes,hdr,TV);
 % Now do plot those administrative boundaries on top
 pa=plot(adminXu,adminYu); hold off; axis image
@@ -86,48 +86,34 @@ switch region
     boxes=[boxes ; 70 ; 12 ; 13];
     % And find the tilings and file names
     tiling=[4 4];
-    matched={'w45510','e44505','e44510',...
-             'w45010','e45005','e45010','e45015',...
-             'e45505','e45510','e44515',...
-             'e44005','e44010'};
+    matched=hdr(boxes);
   case 'Liguria'
 
   case 'Calabria'
-
+    keyboard
+    % No extra boxes
+    tiling=[6 3];
+    matched=hdr(boxes);
   case 'Lombardia'
-
+    % Find the extra boxes
+    boxes=[boxes ; 176 ; 137];
+    tiling=[5 5];
+    matched=hdr(boxes);
   case 'Toscana'
     % Find the extra boxes
     boxes=[boxes ; 101 ; 131];
-    % And find the tilings and file names
     tiling=[6 5];
-    % See under 'Marche' as in not having to do it explicitly
-    matched={'w46565_s10.hdr','w46570_s10.hdr','w47060_s10.hdr',...
-             'w47065_s10.hdr','w47070_s10.hdr','w47560_s10.hdr',...
-             'w47565_s10.hdr','w47570_s10.hdr','w47575_s10.hdr',...
-             'w48060_s10.hdr','w48065_s10.hdr','w48070_s10.hdr',...
-             'w48075_s10.hdr','w48555_s10.hdr','w48560_s10.hdr',...
-             'w48565_s10.hdr','w48570_s10.hdr','w49055_s10.hdr',...
-             'w49060_s10.hdr','w47055_s10.hdr','w48575_s10.hdr'};
-  case 'Campania'
-    keyboard
-    % Find the extra boxes
-    boxes=[boxes];
-    figure(2); hold on; [pb,tt]=pbx(boxes,hdr,TV); hold off
-    % And find the tilings and file names
-    tiling=[ ];
     matched=hdr(boxes);
-
+  case 'Campania'
+    % No extra boxes
+    tiling=[5 4];
+    matched=hdr(boxes);
   case 'Umbria'
     % Find the extra boxes
     boxes=[boxes ; 119 ; 96];
     % And find the tilings and file names
     tiling=[4 3];
-    % See under 'Marche' as in not having to do it explicitly
-    matched={'w47070_s10.hdr','w47075_s10.hdr','w47080_s10.hdr',...
-             'w47570_s10.hdr','w47575_s10.hdr','w47580_s10.hdr',...
-             'w48075_s10.hdr','w48080_s10.hdr','w48070_s10.hdr',...
-             'w46575_s10.hdr'};
+    matched=hdr(boxes);
   case 'Emilia-Romagna'
 
   case 'Marche'
@@ -137,7 +123,6 @@ switch region
   case 'Veneto'
     % Find the extra boxes
     boxes=[boxes ; 173];
-    figure(2); hold on; [pb,tt]=pbx(boxes,hdr,TV); hold off
     % And find the tilings and file names
     tiling=[5 5];
     matched=hdr(boxes);
@@ -169,11 +154,6 @@ catch
   colmap=jet;
 end
 
-% Ready to combine them all with the overlap of 10? If all common size...
-% You might not want to bother if there isn't a tiling after all, see below
-% Although it could be good for initalizing, I suppose? Unless it needs to resize.
-Zall=nan(dsize*tiling(1)-10*[tiling(1)-1],dsize*tiling(2)-10*[tiling(2)-1]);
-
 % Initialize
 mima=[0 0];
 C11=[ inf -inf];
@@ -202,17 +182,22 @@ dY=YT(1,1)-YT(2,1);
 % Make the massive grid
 [XXT,YYT]=meshgrid(C11(1):dX:CMN(1),[C11(2):-dY:CMN(2)]');
 % You'll take whatever you end up with
-Zall2=nan(size(XXT));
+Zall=nan(size(XXT));
 
-if ~all(size(Zall)==size(Zall2))
+% Ready to combine them all with the overlap of 10? If all common size...
+% You might not want to bother if there isn't a tiling after all, see below
+% Although it could be good for initalizing, I suppose? Unless it needs to resize.
+sZall=[dsize*tiling(1)-10*[tiling(1)-1] dsize*tiling(2)-10*[tiling(2)-1]];
+if ~all(sZall==size(Zall))
     % Not all sizes were equal, must figure out overlap alternatively
-    flag=1; Zall=Zall2; clear Zall2;
+    flag=1; 
 else
-    flag=0; clear Zall2;
+    flag=0;
+    disp('Aren''t you lucky, the sizes were just as predicted')
 end
 
 % Don't want to work out the zero flag isn't great
-% possibly due to west/east issues, see previous SRTM files
+% possibly due to west/east ordering issues, see previous SRTM files
 flag=1;
 
 % Split the loops to assemble the big data set
