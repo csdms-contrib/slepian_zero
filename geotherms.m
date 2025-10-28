@@ -131,6 +131,9 @@ end
 set(ah,'xlim',[min(xel(:,1)) max(xel(:,2))]);
 %  set(ah(index),'position',get(ah(index),'position')+[0 -0.2 0 0])
 
+% Printout
+figdisp([],[],[],2)
+
 % Optional output
 varns={Tz,z,qz};
 varargout=varns(1:nargout);
