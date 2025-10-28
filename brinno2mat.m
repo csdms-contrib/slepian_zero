@@ -11,8 +11,7 @@ function [t,R,G,B,poli]=brinno2mat(fname,xver,poli)
 % fname      A complete file name string
 % xver       A verification interval (0 does not verify, any other
 %            integer is the spacing) between reviewed frames. 
-%            Input a
-%            negative number and you get to look at the polygonal data. 
+%            Input a negative number and you get to look at the polygonal data. 
 % poli       [x y] a matrix with a polygon defining the area of interest
 %
 % OUTPUT:
