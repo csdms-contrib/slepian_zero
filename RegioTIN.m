@@ -63,7 +63,6 @@ figure(2); clf
 % Now do plot those administrative boundaries on top
 pa=plot(adminXu,adminYu); hold off; axis image
 
-
 % Collect them all from the tinitaly_tiles.jpg file
 switch region
   case 'Abruzzo'
