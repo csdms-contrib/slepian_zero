@@ -24,10 +24,17 @@ function varargout=RegioTIN(region,xver)
 %
 % EXAMPLE:
 %
-% [Z,C11,CMN,mima,colmap,colrange,adminXu,adminYu]=RegioTIN;
-% save('RegioTIN','-v7.3','C11','CMN','Z','colmap','colrange','mima','adminXu','adminYu')
-% load RegioTIN
-% imagefnan(C11,CMN,Z,colmap,colrange)
+% regions={'Abruzzo','Friuli-VeneziaGiulia','Molise','Apulia','Lazio',...
+%          'Piemonte','Basilicata','Liguria','Calabria','Lombardia',...
+%          'Toscana','Campania','Umbria','Emilia-Romagna','Marche',...
+%          'Veneto','Tiber'};
+% index=1;
+% [Z,C11,CMN,mima,colmap,colrange,adminXu,adminYu]=RegioTIN(regions{index});
+% save(regions{index},'-v7.3','C11','CMN','Z','colmap','colrange','mima','adminXu','adminYu')
+%
+% load(sprintf('%s_Z',regions{index}))
+% imagesc([C11(1) CMN(1)],[C11(2) CMN(2)],Z); axis image xy; colmap(1,:)=[1 1 1]; colormap(colmap);
+% hold on; plot(adminXu,adminYu,'LineWidth',2); hold off
 %
 % SEE ALSO:
 %
@@ -96,7 +103,7 @@ switch region
     boxes=[boxes ; 176 ; 137];
   case 'Toscana'
     % Find the extra boxes
-    boxes=[boxes ; 101 ; 131];
+    boxes=[boxes ; 140 ; 101 ; 131];
   case 'Campania'
     % No extra boxes
   case 'Umbria'
