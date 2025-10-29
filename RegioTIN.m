@@ -33,8 +33,9 @@ function varargout=RegioTIN(region,xver)
 % save(regions{index},'-v7.3','C11','CMN','Z','colmap','colrange','mima','adminXu','adminYu')
 %
 % load(sprintf('%s_Z',regions{index}))
-% imagesc([C11(1) CMN(1)],[C11(2) CMN(2)],Z); axis image xy; colmap(1,:)=[1 1 1]; colormap(colmap);
+% imagesc([C11(1) CMN(1)],[C11(2) CMN(2)],Z(1:10:end,1:10:end)); axis image xy; colmap(1,:)=[1 1 1]; colormap(colmap); grid on
 % hold on; plot(adminXu,adminYu,'LineWidth',2); hold off
+% title(sprintf('%s',regions{index}))
 %
 % SEE ALSO:
 %
@@ -87,7 +88,8 @@ switch region
   case 'Apulia'
     % No extra boxes
   case 'Lazio'
-    % No extra boxes
+    % Find the extra boxes
+    boxes=[boxes ; 107];
   case 'Piemonte'
     % No extra boxes
   case 'Basilicata'
