@@ -27,7 +27,7 @@ function varargout=RegioTIN(region,xver)
 % [Z,C11,CMN,mima,colmap,colrange,adminXu,adminYu]=RegioTIN;
 % save('RegioTIN','-v7.3','C11','CMN','Z','colmap','colrange','mima','adminXu','adminYu')
 % load RegioTIN
-% imagefnan(C11,CMN,Z,colmap,colrange);
+% imagefnan(C11,CMN,Z,colmap,colrange)
 %
 % SEE ALSO:
 %
@@ -70,13 +70,18 @@ pa=plot(adminXu,adminYu); hold off; axis image
 % Collect them all from the tinitaly_tiles.jpg file
 switch region
   case 'Abruzzo'
-
+    % Find the extra boxes
+    boxes=[boxes ; 115];
+    matched=hdr(boxes);
   case 'Friuli-VeneziaGiulia'
 
   case 'Molise'
-
+    % Find the extra boxes
+    boxes=[boxes ; 84 ; 85 ; 90 ; 99];
+    matched=hdr(boxes);
   case 'Apulia'
-
+    % No extra boxes
+    matched=hdr(boxes);
   case 'Lazio'
 
   case 'Piemonte'
@@ -84,35 +89,28 @@ switch region
   case 'Basilicata'
     % Find the extra boxes
     boxes=[boxes ; 70 ; 12 ; 13];
-    % And find the tilings and file names
-    tiling=[4 4];
     matched=hdr(boxes);
   case 'Liguria'
 
   case 'Calabria'
     keyboard
     % No extra boxes
-    tiling=[6 3];
     matched=hdr(boxes);
   case 'Lombardia'
     % Find the extra boxes
     boxes=[boxes ; 176 ; 137];
-    tiling=[5 5];
     matched=hdr(boxes);
   case 'Toscana'
     % Find the extra boxes
     boxes=[boxes ; 101 ; 131];
-    tiling=[6 5];
     matched=hdr(boxes);
   case 'Campania'
     % No extra boxes
-    tiling=[5 4];
     matched=hdr(boxes);
   case 'Umbria'
     % Find the extra boxes
     boxes=[boxes ; 119 ; 96];
     % And find the tilings and file names
-    tiling=[4 3];
     matched=hdr(boxes);
   case 'Emilia-Romagna'
 
@@ -127,7 +125,6 @@ switch region
     tiling=[5 5];
     matched=hdr(boxes);
   case 'Tiber'
-    tiling=[7 5];
     matched={'w48565','w48570','w48575','w48580',...
              'w48065','w48070','w48075','w48080','w48085',...
              'w47565','w47570','w47575','w47580','w47585',...
@@ -183,22 +180,6 @@ dY=YT(1,1)-YT(2,1);
 [XXT,YYT]=meshgrid(C11(1):dX:CMN(1),[C11(2):-dY:CMN(2)]');
 % You'll take whatever you end up with
 Zall=nan(size(XXT));
-
-% Ready to combine them all with the overlap of 10? If all common size...
-% You might not want to bother if there isn't a tiling after all, see below
-% Although it could be good for initalizing, I suppose? Unless it needs to resize.
-sZall=[dsize*tiling(1)-10*[tiling(1)-1] dsize*tiling(2)-10*[tiling(2)-1]];
-if ~all(sZall==size(Zall))
-    % Not all sizes were equal, must figure out overlap alternatively
-    flag=1; 
-else
-    flag=0;
-    disp('Aren''t you lucky, the sizes were just as predicted')
-end
-
-% Don't want to work out the zero flag isn't great
-% possibly due to west/east ordering issues, see previous SRTM files
-flag=1;
 
 % Split the loops to assemble the big data set
 for index=1:length(matched)
