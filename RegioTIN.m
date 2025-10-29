@@ -72,58 +72,44 @@ switch region
   case 'Abruzzo'
     % Find the extra boxes
     boxes=[boxes ; 115];
-    matched=hdr(boxes);
   case 'Friuli-VeneziaGiulia'
 
   case 'Molise'
     % Find the extra boxes
     boxes=[boxes ; 84 ; 85 ; 90 ; 99];
-    matched=hdr(boxes);
   case 'Apulia'
     % No extra boxes
-    matched=hdr(boxes);
   case 'Lazio'
-
+    % No extra boxes
   case 'Piemonte'
-
+keyboard
   case 'Basilicata'
     % Find the extra boxes
     boxes=[boxes ; 70 ; 12 ; 13];
-    matched=hdr(boxes);
   case 'Liguria'
 
   case 'Calabria'
-    keyboard
     % No extra boxes
-    matched=hdr(boxes);
   case 'Lombardia'
     % Find the extra boxes
     boxes=[boxes ; 176 ; 137];
-    matched=hdr(boxes);
   case 'Toscana'
     % Find the extra boxes
     boxes=[boxes ; 101 ; 131];
-    matched=hdr(boxes);
   case 'Campania'
     % No extra boxes
-    matched=hdr(boxes);
   case 'Umbria'
     % Find the extra boxes
     boxes=[boxes ; 119 ; 96];
-    % And find the tilings and file names
-    matched=hdr(boxes);
   case 'Emilia-Romagna'
 
   case 'Marche'
     % No extra boxes
-    tiling=[4 4];
-    matched=hdr(boxes);
   case 'Veneto'
     % Find the extra boxes
     boxes=[boxes ; 173];
-    % And find the tilings and file names
-    tiling=[5 5];
-    matched=hdr(boxes);
+end
+switch region
   case 'Tiber'
     matched={'w48565','w48570','w48575','w48580',...
              'w48065','w48070','w48075','w48080','w48085',...
@@ -133,6 +119,8 @@ switch region
              'w46075','w46080','w46085',...
              'w45580','w45585'
             };
+  otherwise
+    matched=hdr(boxes);
 end
 
 % Resolution in decimal degrees, this you get from the data but is NOT standard
