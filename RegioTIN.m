@@ -86,7 +86,8 @@ switch region
     % Find the extra boxes
     boxes=[boxes ; 84 ; 85 ; 90 ; 99];
   case 'Apulia'
-    % No extra boxes
+    % Find the extra boxes
+    boxes=[boxes ; 91];
   case 'Lazio'
     % Find the extra boxes
     boxes=[boxes ; 107];
