@@ -19,8 +19,8 @@ function varargout=RegioTIN(region,xver)
 % mima       Minimum/maximum data values      
 % colmap     Color map
 % colrange   Color range
-% adminXu    Administrative boundaries in UTM coordinatesu
-% adminYu    Administrative boundaries in UTM coordinatesu
+% adminXu    Administrative boundaries in UTM coordinates
+% adminYu    Administrative boundaries in UTM coordinates
 %
 % EXAMPLE:
 %
@@ -219,12 +219,9 @@ for index=1:length(matched)
         % Assign, and if there was overlap, that means, possibly reassign
         Zall(IA,JA)=Z;
     end
+    clear Z
 end
 
-% Plot the final product all at once
-clear Z
-
-keyboard
 % Rapidly runs out of memory and leads to crashes
 if xver==1
     figure(3)
