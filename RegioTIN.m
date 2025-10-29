@@ -73,7 +73,7 @@ switch region
     % Find the extra boxes
     boxes=[boxes ; 115];
   case 'Friuli-VeneziaGiulia'
-
+    % No extra boxes
   case 'Molise'
     % Find the extra boxes
     boxes=[boxes ; 84 ; 85 ; 90 ; 99];
@@ -82,12 +82,13 @@ switch region
   case 'Lazio'
     % No extra boxes
   case 'Piemonte'
-keyboard
+    % No extra boxes
   case 'Basilicata'
     % Find the extra boxes
     boxes=[boxes ; 70 ; 12 ; 13];
   case 'Liguria'
-
+    % Find the extra boxes
+    boxes=[boxes ; 123];
   case 'Calabria'
     % No extra boxes
   case 'Lombardia'
@@ -102,7 +103,8 @@ keyboard
     % Find the extra boxes
     boxes=[boxes ; 119 ; 96];
   case 'Emilia-Romagna'
-
+    % Find the extra boxes
+    boxes=[boxes ; 119];
   case 'Marche'
     % No extra boxes
   case 'Veneto'
