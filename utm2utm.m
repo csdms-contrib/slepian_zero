@@ -14,11 +14,12 @@ function [XP,YP,ZP]=utm2utm(XT,YT,ZT,ZP,xver)
 % XP, YP   The grid in the new system
 % ZP       The string identifying the new UTM system [default: '33S']
 %
-% Last modified by fjsimons-at-alum.mit.edu, 05/13/2019
+% Last modified by fjsimons-at-alum.mit.edu, 11/01/2025
 
 % Default values
 defval('ZT','32N')
 defval('ZP','33S')
+defval('xver',0)
 
 % Onto the projection
 utmstruct=defaultm('utm'); 
