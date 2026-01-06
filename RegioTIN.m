@@ -34,8 +34,9 @@ function varargout=RegioTIN(region,xver)
 %
 % load(sprintf('%s_Z',regions{index}))
 % imagesc([C11(1) CMN(1)],[C11(2) CMN(2)],Z(1:10:end,1:10:end)); axis image xy; colmap(1,:)=[1 1 1]; colormap(colmap); grid on
-% hold on; plot(adminXu,adminYu,'LineWidth',2); hold off
-% title(sprintf('%s',regions{index}))
+% hold on; plot(adminXu,adminYu,'LineWidth',2); hold off ; longticks(gca,2); xlabel('easting (UTM32N) [m]'); ylabel('northing (UTM32N) [m]'); 
+% t=title(sprintf('%s',regions{index})); movev(t,2000); caxis([0 mima(2)]); cb=colorbar;
+% cb.Label.String='elevation above WGS84 [m]'; figdisp(regions{index},[],[],2)
 %
 % SEE ALSO:
 %
