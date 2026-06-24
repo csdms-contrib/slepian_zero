@@ -1,5 +1,5 @@
 function varargout=gebco(lon,lat,vers,npc,method,xver,jig,gt)
-% [z,lon,lat,A,R,jig]=gebco(lon,lat,vers,npc,method,xver,jig,gt)
+% [z,lon,lat,A,R,jig,req]=gebco(lon,lat,vers,npc,method,xver,jig,gt)
 %
 % Returns the GEBCO bathymetry interpolated to the requested location
 %
@@ -26,6 +26,7 @@ function varargout=gebco(lon,lat,vers,npc,method,xver,jig,gt)
 % lon,lat  The longitude and latitude of the requested point
 % A,R      A map and its raster, in case you went with 'WMS' and xver==1
 % jig      The rejigging factor to cover up for a bad request
+% req      The actual WMS request made which you can try in your browser
 %
 % EXAMPLES:
 %
@@ -44,18 +45,18 @@ function varargout=gebco(lon,lat,vers,npc,method,xver,jig,gt)
 %
 % https://www.gebco.net/, POLYNESIA
 %
-% TESTED ON:
+% LAST TESTED ON:
 %
-% 9.0.0.341360 (R2016a)
+% MATLAB Version: 9.7.0.1190202 (R2019b)
 %
-% Last modified by fjsimons-at-alum.mit.edu, 03/12/2020
+% Last modified by fjsimons-at-alum.mit.edu, 06/24/2026
 
 if ~isstr(lon)
   % Default lon and lat, for good measure, take those from the examples of 
   % https://www.gebco.net/data_and_products/gebco_web_services/web_map_service/
   % for comparison with WMS GetFeatureInfo requests
-  defval('lon',-19.979167)
-  defval('lat', 50.9625)
+  defval('lon',-19.9812)
+  defval('lat', 50.9604)
   defval('gt',0)
   
   % Check size
@@ -68,8 +69,9 @@ if ~isstr(lon)
   % Default method
   defval('method','nearest');
   % Default server
-  defstruct('wms','srv','http://www.gebco.net/data_and_products/gebco_web_services/web_map_service/mapserv?');
-  
+  defstruct('wms','srv','https://wms.gebco.net/mapserv?')
+  defstruct('wms','srv','http://www.gebco.net/data_and_products/gebco_web_services/web_map_service/mapserv?')
+
   % Extra verification, after a long while, have been turning it off!
   defval('xver',0)
   
@@ -110,8 +112,8 @@ if ~isstr(lon)
 			wmsl.Latlim,wmsl.Lonlim))
         end
  
-	% Supplant the server if you came this far
-	wms.srv=wmsl.ServerURL;
+	% Supplant the server if you came this far - but note that this didn't get the proper update
+	% wms.srv=wmsl.ServerURL;
 	
 	% Stuff that could have, but didn't work:
 
@@ -158,7 +160,7 @@ if ~isstr(lon)
       % measured from upper left corner of the map
       wms.pxx=2;
       wms.pxy=2;
-      
+
       % Make a map request, to take a look...
       if xver==1
 	wms.rqt='GetMap';
@@ -175,7 +177,7 @@ if ~isstr(lon)
 	% first output is image, second output is the raster used
 	[A,R,r]=wmsread(wms.mpr);
       end
-      
+
       % For a point, need 'GetFeatureinfo', not 'GetCapabilities' or 'GetMap'
       wms.rqt='GetFeatureInfo';
       
@@ -186,11 +188,16 @@ if ~isstr(lon)
 	  wms.rqt,wms.ser,wms.crs,wms.ver,wms.iff,wms.lyr,wms.lyr,...
 	  num2str(latlim(1)),num2str(lonlim(1)),num2str(latlim(2)),num2str(lonlim(2)),...
 	  wms.pxx,wms.pxy,wms.pxw,wms.pxh);
-      
+
       % Get the output, cannot use WMSREAD if it isn't a GetMap request...
       % [wmsu,R,U]=wmsread(wmsr);
       % So, need to parse the output
-      wms.out=parse(urlread(wms.req));
+      try
+          wms.out=parse(webread(wms.req));
+      catch
+          wms.out=parse(urlread(wms.req));
+      end
+
       % Get the lon and lat out that you have actually received and
       % the bathymetry at that point, which is what you really wanted
       try 
@@ -207,7 +214,7 @@ if ~isstr(lon)
       end
 
       % And then leave, because you are finished, output
-      varns={z,lon,lat,A,R,jig};
+      varns={z,lon,lat,A,R,jig,wms.req};
       varargout=varns(1:nargout);
       return
     end
@@ -312,9 +319,8 @@ if ~isstr(lon)
     % Need a different interpolation, it's an extrapolation in a sense
     % If it's only one number, give a simple reason
       if length(lon)*length(lat)==1
-          keyboard
-      disp(sprintf('Longitude given %g to %g wanted %g',min(lonpc),max(lonpc),lon))
-      disp(sprintf('Latitude given %g to %g wanted %g',min(latpc), max(latpc),lat))
+          disp(sprintf('Longitude given %g to %g wanted %g',min(lonpc),max(lonpc),lon))
+          disp(sprintf('Latitude given %g to %g wanted %g',min(latpc), max(latpc),lat))
     end
     % This is a bit of a pain, I suppose
     F=griddedInterpolant({flipud(latpc(:)) lonpc(:)},flipud(zpc),method);
@@ -332,9 +338,10 @@ if ~isstr(lon)
   
   % If you hadn't yet by now
   defval('jig',NaN)
+  defstruct('wms','req',NaN)
 
   % Output
-  varns={z,lon,lat,A,R,jig};
+  varns={z,lon,lat,A,R,jig,wms.req};
   varargout=varns(1:nargout);
   
   % Grid documentation for 2008 and 2014 (and 2019) it's pixel-registered.
@@ -421,7 +428,7 @@ elseif strcmp(lon,'demo2')
   delete(cb)
   axis off
   % Use exportgraphics with /usr/licensed/matlab-R2025a/bin/matlab
-  exportgraphics(gcf,'gebco_demo2.png',Units="pixels",Width=2880,Height=1440)
+  % exportgraphics(gcf,'gebco_demo2.png',Units="pixels",Width=2880,Height=1440)
 elseif strcmp(lon,'demo3')
   c11=[100 -10]; cmn=[140 -40]; spc=1/10;
   [LO,LA]=meshgrid(c11(1):spc:cmn(1),c11(2):-spc:cmn(2));
