@@ -36,7 +36,9 @@ function varargout=readGEBCO(vers,npc,gt)
 %
 % 9.0.0.341360 (R2016a)
 %
-% Last modified by fjsimons-at-alum.mit.edu. 03/12/2020
+% Last modified by fjsimons-at-alum.mit.edu. 06/23/2026
+
+% Note: Pete reads only a tiny chunk, I should think about that
 
 % Default values
 defval('vers',2014)
@@ -141,7 +143,6 @@ if nargout==0
   if exist(mname)~=7; mkdir(mname); end
 
   if gt==0
-    
     % Split it into pieces and resave
     if strfind(fname,'2019')
       varname='elevation';
