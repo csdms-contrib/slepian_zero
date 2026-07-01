@@ -31,8 +31,9 @@ if exist(fname)
     % Load just the data you need
     [DxDy,lonrDx,latrDx,XYr360,toporad,in]=loaditmakeit(id,iftopo);
 
-    % Load the prepared global stats file
+    % Load the prepared global stats file - and the data union of all regions
     load(fname)
+    disp(sprintf('Loading global statistics and data file\n%s',fname))
 
     % Trust, but verify
     if xver==1
@@ -47,7 +48,8 @@ if exist(fname)
     % Make the plot of the rectangle without the regional mask
     clf
     ah(1)=subplot(221);
-    hi(1)=imagefnan([lonrDx(1), latrDx(2)],[lonrDx(2), latrDx(1)],toporad,colmap,roundX(cax,1),[],1);   
+    hi(1)=imagefnan([lonrDx(1), latrDx(2)],[lonrDx(2), latrDx(1)],...
+                    toporad,colmap,roundX(cax,1),[],1);   
     hold on
     pc=twoplot(XYr360,'k');
     hold off
@@ -63,14 +65,19 @@ if exist(fname)
     %cb.Position=[getpos(cb,1) getpos(ah(1),2) getpos(cb,3) getpos(ah(1),4)]
     %cb.YAxisLocation='left';
     cb.XAxisLocation='bottom';
-    cb.XLabel.String='elevation (m)';
-
+    if iftopo==1
+        cb.XLabel.String='elevation (m)';
+    else
+        cb.XLabel.String='radar brightness)';
+    end
+    
     % Mask the data for plotting purposes
     toporad(~in)=NaN;
 
     % Make the plot of the rectangle with the regional mask
     ah(2)=subplot(223);
-    hi(2)=imagefnan([lonrDx(1), latrDx(2)],[lonrDx(2), latrDx(1)],toporad,[],roundX(cax,1),[],1);
+    hi(2)=imagefnan([lonrDx(1), latrDx(2)],[lonrDx(2), latrDx(1)],...
+                    toporad,colmap,roundX(cax,1),[],1);
     hold on
     pc=twoplot(XYr360,'k');
     hold off
@@ -82,7 +89,7 @@ if exist(fname)
     % Use the GLOBAL dataset to interpret, oddbins
     nbins=21;
     perx=[2.5 25 50 75 97.5];
-    % Calculate relevant statiscs
+    % Calculate relevant statistics
     lc=prctile(torareg, 2.5);
     rc=prctile(torareg,97.5);
     pc=prctile(torareg,perx);
