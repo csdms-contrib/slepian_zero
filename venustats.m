@@ -99,11 +99,11 @@ if exist(fname)
     bins=unique(round(linspace(lc,rc,nbins)));
 
     ah(3)=subplot(222);
-    hh{1}=histit(torareg(co),bins,lc,rc,pc,perx,0);
+    hh{1}=histit(torareg(co),bins,lc,rc,pc,perx,0,iftopo);
     set(hh{1},'FaceColor','w'),
 
     ah(4)=subplot(224);
-    hh{2}=histit(toporad(in(:)),bins,lc,rc,pc,perx,0);
+    hh{2}=histit(toporad(in(:)),bins,lc,rc,pc,perx,0,iftopo);
     set(hh{2},'FaceColor','b'),
     
     % Cosmetics
@@ -152,8 +152,9 @@ else
 end
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function hh=histit(data,bins,lc,rc,pc,perx,ifc)
+function hh=histit(data,bins,lc,rc,pc,perx,ifc,iftopo)
 defval('ifc',0)
+defval('iftopo',1)
 if ifc
     % If bin CENTERS
     [hv,bc]=hist(data,bins);
@@ -166,7 +167,11 @@ end
 caxis([lc rc])
 xticks(round(pc))
 xticklabels(perx)
-xlabel('global elevation percentile')
+if iftopo==1
+    xlabel('global elevation percentile')
+else
+    xlabel('global radar brightness percentile')
+end
 yels=ylim; ylim(roundX(yels,log10(0.05)))
 grid on
 hold on
