@@ -37,8 +37,8 @@ if exist(fname)
 
     % Trust, but verify
     if xver==1
-        diferm(mean(toporad(in(:)))-s.mean(id))
-        diferm(std(toporad(in(:)))-sqrt(s.variance(id)))
+        diferm(nanmean(toporad(in(:)))-s.mean(id))
+        diferm(nanstd(toporad(in(:)))-sqrt(s.variance(id)))
     end
 
     % Use the rectangular patch statistics for the colorbars
