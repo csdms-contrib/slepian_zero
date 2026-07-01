@@ -117,9 +117,9 @@ else
         torareg=[torareg ; toporad(in(:))];
         if xver==1
             % Collect, say the region means, see ROW2STATS later
-            mPoly=[mPoly ; mean(toporad(in(:)))];
+            mPoly=[mPoly ; nanmean(toporad(in(:)))];
             % Collect, say the region means, see ROW2STATS later
-            sPoly=[sPoly ; std(toporad(in(:)))];
+            sPoly=[sPoly ; nanstd(toporad(in(:)))];
         end
     end
     % Cut off the initialization
@@ -128,8 +128,6 @@ else
     % Compare what you did inside to the global way
     [~,s]=row2stats(gamini(1:length(toraind)/2,indeks(diff(toraind),'1:2:end')+1),torareg);
 
-keyboard
-    
     % Trust, but verify
     if xver==1
         for index=1:77
@@ -139,7 +137,11 @@ keyboard
     end
 
     % Save for later usage
-    save(fname,'s','torareg','toraind')
+    try
+        save(fname,'s','torareg','toraind')
+    catch
+        save(fname,'s','torareg','toraind','-v7.3')
+    end
 end
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
