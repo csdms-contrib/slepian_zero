@@ -28,12 +28,12 @@ function varargout=tinitalg(hdr,TV,index,dirp,diro,xver)
 % imagefnan([XT(1),YT(1)],[XT(end) YT(end)],topodata,'sergeicol',sax)
 % title(nounder(hdr{index}))
 %
-% Last modified by fjsimons-at-alum.mit.edu, 11/18/2020
+% Last modified by fjsimons-at-alum.mit.edu, 07/02/2026
 
 % Bottom-level directory name, taken from the Tinitaly download
 defval('dirp','DATA')
 % Top-level directory name, where you keep the Tinitaly directory
-defval('diro','/Users/fjsimons/IFILES/TOPOGRAPHY/ITALY/TINITALY')
+defval('diro',fullfile(getenv('IFILES'),'TOPOGRAPHY/ITALY/TINITALY'))
 % Graphical checking of grid parameters
 defval('xver',1)
 
