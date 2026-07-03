@@ -1,4 +1,4 @@
-function varargout=JerseySRTM
+function varargout=JerseySRTM(hh)
 % [Z,C11,CMN,mima,colmap,colrange]=JerseySRTM
 %
 % New Jersey SRTM topography
@@ -31,12 +31,15 @@ url2='http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/Eurasia/';
 url3='http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/Africa/';
 
 % Where do I keep this stuff? You modify this:
-diro='/u/fjsimons/IFILES/TOPOGRAPHY/NEWJERSEY/SRTM3';
+diro='/Users/fjsimons/IFILES/TOPOGRAPHY/NEWJERSEY/SRTM3';
 
 % You modify this also, it sets the viewable axes later
 zaxis=[-76 -73 38 43];
+zaxis=[-75.5601  -73.8944   38.9286   41.3573]+[-0.25 0.25 -0.25 0.25];
 % You change this also, it sets the range of values being colored
 colrange=[0 1300];
+colrange=[0 550];
+colrange=[0 150];
 
 % Read the files along the rows across the columns, sequentially from
 % the northernmost, east to west, to the southernmost, east to west; the
