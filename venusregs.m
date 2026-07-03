@@ -1,5 +1,5 @@
 function varargout=venusregs(id,ifplot,lolav,fax,fillco)
-% [lola,p,lolav]=VENUSREGS(id,ifplot,lolav,fax,fillco)
+% [lola,ps,lolav]=VENUSREGS(id,ifplot,lolav,fax,fillco)
 %
 % Plots Venus regions data
 %
@@ -17,7 +17,7 @@ function varargout=venusregs(id,ifplot,lolav,fax,fillco)
 % OUTPUT:
 %
 % lola     Longitudes and latitudes of the region in question
-% p        The handle to the plot object(s), to be reviewed
+% ps       The handles to the plot object(s)
 % lolav    Longitudes and latitudes of the viewing platform
 %
 % SEE ALSO:
@@ -33,14 +33,17 @@ function varargout=venusregs(id,ifplot,lolav,fax,fillco)
 defval('id',ceil(rand*77))
 defval('ifplot',round(rand))
 defval('p',NaN)
+defval('ps',NaN)
+defval('pt',NaN)
 defval('fax',1)
 defval('fillco',rand(1,3))
 % The next parameter is quite important for the special cases
-defval('dlev',10)
+defval('dlev',30)
 
 % This is a very small piece of LOADITMAKEIT within VENUSTATS... there is more
 load(fullfile(getenv('IFILES'),'VENUS/DATA/plmData/plmVenus_D-5.mat'),...
          sprintf('V%4.4i_03',id))
+load(fullfile(getenv('IFILES'),'VENUS/DATA/Nomenclature/VENUS_nomenclature.mat'))
 
 % Get the regional bounding curve in global coordinates
 lola=eval(sprintf('V%4.4i_03.geo.XY360',id));
@@ -50,7 +53,18 @@ defval('lolav',eval(sprintf('V%4.4i_03.geo.center360',id)))
 switch ifplot
   case 1
     p=twoplot(kindeks(penlift([lola zeros(size(lola,1),1)],dlev),1:2));
+    % Maybe here load the data base of named features
+    X=[WORLDGeol1(:).X]; Y=[WORLDGeol1(:).Y];
+    aks=axis;
+    in=find(inpolygon(X,Y,lola(:,1),lola(:,2)));
+    for index=1:length(in)
+        hold on
+        px(index)=plot(X(in(index)),Y(in(index)),'o','MarkerFaceColor','k');
+        pt(index)=text(X(in(index)),Y(in(index)),WORLDGeol1(in(index)).GEOLPROV);
+    end
+    hold off
   case 4
+    if id==49; dlev=10; end
     lola=kindeks(penlift([lola zeros(size(lola,1),1)],dlev),1:2);
     % If straddling the 0 line, it needs to be become two patches
     rnan=find(isnan(lola(:,1)));
@@ -99,6 +113,9 @@ switch ifplot
     else
         p=fill(lola(:,1),lola(:,2),fillco);
     end
+    hold on
+    pt=text(lolav(:,1),lolav(:,2),sprintf('%i',id));
+    hold off
   case {2,3}
     % Set view angles ahead of time as an explicit longitude and latitude
     [xv,yv,zv]=sph2cart(lolav(1)*pi/180,lolav(2)*pi/180,1);
@@ -149,6 +166,9 @@ switch ifplot
     t=title(sprintf('V%4.4i',id));
 end
 
+% Collect all the plot handles
+ps={p pt};
+
 % Optional output
-varns={lola,p,lolav};
+varns={lola,ps,lolav};
 varargout=varns(1:nargout);
