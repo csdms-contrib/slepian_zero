@@ -35,10 +35,11 @@ defval('ifplot',round(rand))
 defval('p',NaN)
 defval('fax',1)
 defval('fillco',rand(1,3))
-defval('dlev',30)
+% The next parameter is quite important for the special cases
+defval('dlev',10)
 
 % This is a very small piece of LOADITMAKEIT within VENUSTATS... there is more
-load('/data1/fjsimons/IFILES/VENUS/DATA/plmData/plmVenus_D-5.mat',...
+load(fullfile(getenv('IFILES'),'VENUS/DATA/plmData/plmVenus_D-5.mat'),...
          sprintf('V%4.4i_03',id))
 
 % Get the regional bounding curve in global coordinates
@@ -54,8 +55,14 @@ switch ifplot
     % If straddling the 0 line, it needs to be become two patches
     rnan=find(isnan(lola(:,1)));
     if ~isempty(rnan)
+        % Could use SKIP and PAULIMAT or otherwise one-line this maybe
+        if length(rnan)==1
+            news=reshape([1 indeks([rnan-1 rnan+1] ,'1:end') size(lola,1)],2,[])';
+        else
+            news=reshape([1 indeks([rnan-1 rnan+1]','1:end') size(lola,1)],2,[])';
+        end
         if id==58
-            % Polar patch requires special treatment
+            % North polar patch requires special treatment
             lola(rnan,1)=360;
             lola(rnan,2)=90;
             a=insert(lola(:,1),0,rnan)';
@@ -63,14 +70,25 @@ switch ifplot
             lola=[a b];
             p=fill(lola(:,1),lola(:,2),fillco);
         elseif id==49
-            
+            % South polar patch requires special treatment
+            % North polar patch requires special treatment
+            % This worked with dlev=10, very specifically
+            lola(rnan(1),1)=0;
+            lola(rnan(1),2)=-90;
+            a=insert(lola(:,1),360,rnan(1))';
+            b=insert(lola(:,2),-90,rnan(1))';
+            lola=[a b];
+            % Just do this twice on one each, note, update after insert
+            lola(rnan(2)+1,1)=lola(rnan(2),1);
+            lola(rnan(2)+1,2)=-90;
+            a=insert(lola(:,1),lola(rnan(2)+2,1),rnan(2)+2)';
+            b=insert(lola(:,2),-90,rnan(2)+2)';
+            lola=[a b];
+            % Check with CURVECHECK
+            % curvecheck(lola(:,1),lola(:,2))
+            p=fill(lola(:,1),lola(:,2),fillco);
         else
-            % Could use SKIP and PAULIMAT or othewise one-line this maybe
-            if length(rnan)==1
-                news=reshape([1  indeks([rnan-1 rnan+1],'1:end') size(lola,1)],2,[])';
-            else
-                news=reshape([1  indeks([rnan-1 rnan+1]','1:end') size(lola,1)],2,[])';
-            end
+            % Meridian crossing regions simply get split into separate patches
             for index=1:size(news,1)
                 renj=news(index,1):news(index,2);
                 p(index)=fill(lola(renj,1),lola(renj,2),fillco);
