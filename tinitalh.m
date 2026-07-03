@@ -29,7 +29,7 @@ function varargout=tinitalh(dirp,diro,xver)
 % Bottom-level directory name, taken from the Tinitaly download
 defval('dirp','DATA')
 % Top-level directory name, where you keep the Tinitaly directory
-defval('diro','/u/fjsimons/IFILES/TOPOGRAPHY/ITALY/TINITALY')
+defval('diro','/Users/fjsimons/IFILES/TOPOGRAPHY/ITALY/TINITALY')
 % Graphical checking of grid parameters
 defval('xver',2)
 
