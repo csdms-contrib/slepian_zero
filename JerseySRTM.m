@@ -23,7 +23,7 @@ function varargout=JerseySRTM(hh)
 %
 % CyprusSRTM
 %
-% Last modified by fjsimons-at-alum.mit.edu, 11/10/2020
+% Last modified by fjsimons-at-alum.mit.edu, 07/02/2026
 
 % Where did I get this stuff ?
 url1='http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/North_America/';
@@ -31,7 +31,7 @@ url2='http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/Eurasia/';
 url3='http://dds.cr.usgs.gov/srtm/version2_1/SRTM3/Africa/';
 
 % Where do I keep this stuff? You modify this:
-diro='/Users/fjsimons/IFILES/TOPOGRAPHY/NEWJERSEY/SRTM3';
+diro=fullfile(getenv('IFILES'),'TOPOGRAPHY/NEWJERSEY/SRTM3');
 
 % You modify this also, it sets the viewable axes later
 zaxis=[-76 -73 38 43];
