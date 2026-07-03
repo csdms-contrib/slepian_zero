@@ -24,12 +24,12 @@ function varargout=tinitalh(dirp,diro,xver)
 %
 % tinitalh([],[],2) % will bring up the map with available tiles
 %
-% Last modified by fjsimons-at-alum.mit.edu, 11/18/2020
+% Last modified by fjsimons-at-alum.mit.edu, 07/02/2026
 
 % Bottom-level directory name, taken from the Tinitaly download
 defval('dirp','DATA')
 % Top-level directory name, where you keep the Tinitaly directory
-defval('diro','/Users/fjsimons/IFILES/TOPOGRAPHY/ITALY/TINITALY')
+defval('diro',fullfile(getenv('IFILES'),'TOPOGRAPHY/ITALY/TINITALY'))
 % Graphical checking of grid parameters
 defval('xver',2)
 
