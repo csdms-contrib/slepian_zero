@@ -54,13 +54,30 @@ switch ifplot
     % If straddling the 0 line, it needs to be become two patches
     rnan=find(isnan(lola(:,1)));
     if ~isempty(rnan)
-        news=reshape([1  indeks([rnan(:)'-1 rnan(:)'+1],'1:end') size(lola,1)],2,[])';
-        for index=1:size(news,1)
-            renj=news(index,1):news(index,2);
-            p(index)=fill(lola(renj,1),lola(renj,2),fillco);
-            hold on
+        if id==58
+            % Polar patch requires special treatment
+            lola(rnan,1)=360;
+            lola(rnan,2)=90;
+            a=insert(lola(:,1),0,rnan)';
+            b=insert(lola(:,2),90,rnan)';
+            lola=[a b];
+            p=fill(lola(:,1),lola(:,2),fillco);
+        elseif id==49
+            
+        else
+            % Could use SKIP and PAULIMAT or othewise one-line this maybe
+            if length(rnan)==1
+                news=reshape([1  indeks([rnan-1 rnan+1],'1:end') size(lola,1)],2,[])';
+            else
+                news=reshape([1  indeks([rnan-1 rnan+1]','1:end') size(lola,1)],2,[])';
+            end
+            for index=1:size(news,1)
+                renj=news(index,1):news(index,2);
+                p(index)=fill(lola(renj,1),lola(renj,2),fillco);
+                hold on
+            end
+            hold off
         end
-        hold off
     else
         p=fill(lola(:,1),lola(:,2),fillco);
     end
