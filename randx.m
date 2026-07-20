@@ -14,6 +14,10 @@ function X=randx(covX,M)
 %
 % X       The MxN matrix of random variables with the desired correlation
 %
+% EXAMPLE:
+%
+% twoplot(randx)
+%
 % SEE ALSO:
 %
 % FAKERELATION, MLEXPLOS
