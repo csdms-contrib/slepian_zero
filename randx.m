@@ -16,7 +16,7 @@ function X=randx(covX,M)
 %
 % EXAMPLE:
 %
-% twoplot(randx,','); axis square
+% twoplot(randx,'.'); axis square; axis([-3 3 -3 3])
 %
 % SEE ALSO:
 %
@@ -36,6 +36,10 @@ Z=randn([M size(covX,1)]);
 
 % Calculate the transformation matrix
 L=cholcov(covX);
+if size(L,1)==1
+    % You are just making a pot of a line at random locations given by the first variable
+    L=[L ; zeros(1,size(L,2))];
+end
 
 % Calculate the joint set
 X=(L'*Z')';
