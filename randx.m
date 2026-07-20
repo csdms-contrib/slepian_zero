@@ -16,7 +16,7 @@ function X=randx(covX,M)
 %
 % EXAMPLE:
 %
-% twoplot(randx)
+% twoplot(randx,','); axis square
 %
 % SEE ALSO:
 %
@@ -38,6 +38,6 @@ Z=randn([M size(covX,1)]);
 L=cholcov(covX);
 
 % Calculate the joint set
-X=(L'*Z)';
+X=(L'*Z')';
 
 
