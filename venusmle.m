@@ -1,15 +1,12 @@
-function varargout=venusmle(spex)
-% outliers?
-% color code?
-% remove ellipses?
-% color code S(k) and C(r) likewise
-% [ah,thhats]=VENUSMLE(spex)
+function varargout=venusmle(spex,indr)
+% [ah,thhats]=VENUSMLE(spex,indr)
 %
 % Loads and plots Venus Whittle Mater maximum-likelihood results
 %
 % INPUT:
 %
 % spex     Specific indices to plot, between 1 and 77, default: all
+% indr     Specific region type to plot, between 1 and 4
 %
 % OUTPUT:
 %
@@ -35,6 +32,7 @@ function varargout=venusmle(spex)
 %       c0 + c1*y + c2*x + c11*y^2 + c12*y*x + c22*x^2
 
 defval('spex',1:77)
+defval('indr',[])
 
 % Load the data
 vmle=load('vmleres_20-Jul-2026_interiors.csv');
@@ -43,7 +41,7 @@ vmle=load('vmleres_20-Jul-2026_interiors.csv');
 vmle(spex,[4 6 8])=vmle(spex,[4 6 8]).^2;
 % Make the crosshaired crossplots
 [ah,o1,o2,ec,ep,p]=mlexplos(vmle(spex,[3 5 7]),vmle(spex,[4 6 8 9 10 11]),...
-                          {'variance \sigma^2 [km^2]','smoothness \nu','range \rho [km]'});
+                          {'variance{ } \sigma^2 [km^2]','smoothness{ } \nu','range{ } \rho [km]'});
 
 % Cleanup
 delete(o1)
@@ -85,10 +83,6 @@ ah(3).XTickLabel=[0.25 0.5 1 1.5 2];
 ah(3).YTick=[0:200:800];
 ah(3).YTickLabel=[0:200:800];
 
-% Colors
-set(p,'MarkerSize',2)
-set(p,'MarkerEdgeColor','k')
-
 % Region names - all
 rnames={'Aino Planitia','Akhatamar Planitia','Alma-Merghen Planitia','Alpha Regio','Ananke Tessera','Artemis Corona','Asteria Regio','Atalanta Planitia','Athena Tessera','Atla Regio','Audra Planitia','Bell Regio','Bereghinya Planitia','Beta Regio','Dione Regio','East Eistla Regio','East Helen Planitia','Fortuna Tessera','Ganiki Planitia','Gegute Tessera','Hecate Chasma','Hinemoa Planitia','Hyndla Regio','Imapinua Planitia','Imdr Regio','Ishkus Regio','Kanykey Planitia','Kawelu Planitia','Kubebe Corona','Lada Terra','Laima Tessera','Laimdota Planitia','Lakshmi Planum','Laufey Regio','Lavinia Planitia','Leda Planitia','Llorona Planitia','Louhi Planitia','Lowana Planitia','Lower Guinevere Planitia','Manatum Tessera','Maxwell Mons','Metis Mons','Mugazo Planitia','Navka Planitia','Neringa Regio','Niobe Planitia','Nsomeka Planitia','Nuptadi Planitia','Ovda Regio','Pandrosos Dorsum','Parga Chasma','Pasom-mana Tessera','Phoebe Regio','Rusalka Planitia','Salus Tessera','Sedna Planitia','Snegurochka Planitia','Sogolon Planitia','Tahmina Planitia','Tellus Regio','Tethus Regio','Themis Regio','Thetis Regio','Tilli-Hanum Planitia','Tinatin Planitia','Ulfrun Regio','Unelanuhi Dorsum','Upper Guinevere Planitia','Vellamo Planitia','Wawalag Planitia','East Aphrodite Terra','West Aphrodite Terra','West Eistla Regio','West Helen Planitia','West Ishtar Terra','Zhibek Planitia'};
 
@@ -96,31 +90,89 @@ rnames={'Aino Planitia','Akhatamar Planitia','Alma-Merghen Planitia','Alpha Regi
 rnamespex=rnames(spex);
 
 % Feature color
-cplanitia='g';
-ctessera='b';
-ccorona='r';
+cplanitia='b'; ip=0; lp=[];
+ctessera='r';  it=0; lt=[];
+ccorona='n';   ic=0; lc=[];
+cregio='g';    ir=0; lr=[];
+ 
+% Colors
+set(p,'MarkerSize',2)
+set(p,'MarkerEdgeColor','k')
 
 for index=1:length(spex)
     if strfind(rnamespex{index},'Planitia')
+        set(p(index,:),'Marker','s')
         set(p(index,:),'MarkerSize',3)
         set(p(index,:),'MarkerFaceColor',cplanitia)
         set(p(index,:),'MarkerEdgeColor',cplanitia)
+        set(ec(index,:),'Color',cplanitia)
+        ip=ip+1;
+        lp=[lp index];
+        iplast=index;
     elseif strfind(rnamespex{index},'Tessera')
+        set(p(index,:),'Marker','v')
         set(p(index,:),'MarkerSize',3)
         set(p(index,:),'MarkerFaceColor',ctessera)
         set(p(index,:),'MarkerEdgeColor',ctessera)
+        set(ec(index,:),'Color',ctessera)
+        it=it+1;
+        lt=[lt index];
+        itlast=index;
+    elseif strfind(rnamespex{index},'Regio')
+        set(p(index,:),'Marker','^')
+        set(p(index,:),'MarkerSize',3)
+        set(p(index,:),'MarkerFaceColor',cregio)
+        set(p(index,:),'MarkerEdgeColor',cregio)
+        set(ec(index,:),'Color',cregio)
+        ir=ir+1;
+        lr=[lr index];
+        irlast=index;
     elseif strfind(rnamespex{index},'Corona')
+        set(p(index,:),'Marker','o')
         set(p(index,:),'MarkerSize',3)
         set(p(index,:),'MarkerFaceColor',ccorona)
         set(p(index,:),'MarkerEdgeColor',ccorona)
+        set(ec(index,:),'Color',ccorona)
+        ic=ic+1;
+        lc=[lc index];
+        iclast=index;
     end
 end
 
 % Tinize
 shrink(ah,1,2)
 
+% Legendize in order of occurrence
+axes(ah(3))
+al=legend(p([iplast irlast itlast iclast],3),{'Planitiae','Regiones','Tesserae','Coronae'});
+
+% Take off those you did NOT pick
+if indr==1
+    delete([        p(lt,:)' p(lr,:)' p(lc,:)' ...
+                    ec(lt,:)' ec(lr,:)' ec(lc,:)'])
+elseif indr==2
+    delete([p(lp,:)'         p(lr,:)' p(lc,:)' ...
+            ec(lp,:)'         ec(lr,:)' ec(lc,:)'])
+elseif indr==3
+    delete([p(lp,:)' p(lt,:)'         p(lc,:)'...
+            ec(lp,:)' ec(lt,:)'         ec(lc,:)'])
+elseif indr==4
+    delete([p(lp,:)' p(lt,:)' p(lr,:)'        ...
+            ec(lp,:)' ec(lt,:)' ec(lr,:)'        ])
+else
+    indr=0;
+end
+
+keyboard
+
+% Summarize
+disp(sprintf('%2.2i planitiae\n%2.2i tesserae\n%2.2i regiones\n%2.2i coronae',ip,it,ir,ic))
+
 % The estimates
 thhats=vmle(spex,[3 5 7]);
+
+% The figure with the index of the region
+figdisp(mfilename,indr,[],2)
 
 % Optional output
 varns={ah,thhats,ec,p};
