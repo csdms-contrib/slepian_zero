@@ -92,7 +92,7 @@ rnamespex=rnames(spex);
 % Feature color
 cplanitia='b'; ip=0; lp=[];
 ctessera='r';  it=0; lt=[];
-ccorona='n';   ic=0; lc=[];
+ccorona='m';   ic=0; lc=[];
 cregio='g';    ir=0; lr=[];
  
 % Colors
@@ -107,8 +107,8 @@ for index=1:length(spex)
         set(p(index,:),'MarkerEdgeColor',cplanitia)
         set(ec(index,:),'Color',cplanitia)
         ip=ip+1;
-        lp=[lp spex(index)];
-        iplast=spex(index);
+        iplast=index;
+        lp=[lp index];
     elseif strfind(rnamespex{index},'Tessera')
         set(p(index,:),'Marker','v')
         set(p(index,:),'MarkerSize',3)
@@ -116,8 +116,8 @@ for index=1:length(spex)
         set(p(index,:),'MarkerEdgeColor',ctessera)
         set(ec(index,:),'Color',ctessera)
         it=it+1;
-        lt=[lt spex(index)];
-        itlast=spex(index);
+        itlast=index;
+        lt=[lt index];
     elseif strfind(rnamespex{index},'Regio')
         set(p(index,:),'Marker','^')
         set(p(index,:),'MarkerSize',3)
@@ -125,8 +125,8 @@ for index=1:length(spex)
         set(p(index,:),'MarkerEdgeColor',cregio)
         set(ec(index,:),'Color',cregio)
         ir=ir+1;
-        lr=[lr spex(index)];
-        irlast=spex(index);
+        irlast=index;
+        lr=[lr index];
     elseif strfind(rnamespex{index},'Corona')
         set(p(index,:),'Marker','o')
         set(p(index,:),'MarkerSize',3)
@@ -134,8 +134,8 @@ for index=1:length(spex)
         set(p(index,:),'MarkerEdgeColor',ccorona)
         set(ec(index,:),'Color',ccorona)
         ic=ic+1;
-        lc=[lc spex(index)];
-        iclast=spex(index);
+        iclast=index;
+        lc=[lc index];
     end
 end
 
