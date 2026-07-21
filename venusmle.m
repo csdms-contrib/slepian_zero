@@ -97,7 +97,8 @@ cregio='g';    ir=0; lr=[];
  
 % Colors
 set(p,'MarkerSize',2)
-set(p,'MarkerEdgeColor','k')
+set(p,'MarkerEdgeColor',grey)
+set(ec,'Color',grey)
 
 for index=1:length(spex)
     if strfind(rnamespex{index},'Planitia')
