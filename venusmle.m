@@ -107,8 +107,8 @@ for index=1:length(spex)
         set(p(index,:),'MarkerEdgeColor',cplanitia)
         set(ec(index,:),'Color',cplanitia)
         ip=ip+1;
-        lp=[lp index];
-        iplast=index;
+        lp=[lp spex(index)];
+        iplast=spex(index);
     elseif strfind(rnamespex{index},'Tessera')
         set(p(index,:),'Marker','v')
         set(p(index,:),'MarkerSize',3)
@@ -116,8 +116,8 @@ for index=1:length(spex)
         set(p(index,:),'MarkerEdgeColor',ctessera)
         set(ec(index,:),'Color',ctessera)
         it=it+1;
-        lt=[lt index];
-        itlast=index;
+        lt=[lt spex(index)];
+        itlast=spex(index);
     elseif strfind(rnamespex{index},'Regio')
         set(p(index,:),'Marker','^')
         set(p(index,:),'MarkerSize',3)
@@ -125,8 +125,8 @@ for index=1:length(spex)
         set(p(index,:),'MarkerEdgeColor',cregio)
         set(ec(index,:),'Color',cregio)
         ir=ir+1;
-        lr=[lr index];
-        irlast=index;
+        lr=[lr spex(index)];
+        irlast=spex(index);
     elseif strfind(rnamespex{index},'Corona')
         set(p(index,:),'Marker','o')
         set(p(index,:),'MarkerSize',3)
@@ -134,8 +134,8 @@ for index=1:length(spex)
         set(p(index,:),'MarkerEdgeColor',ccorona)
         set(ec(index,:),'Color',ccorona)
         ic=ic+1;
-        lc=[lc index];
-        iclast=index;
+        lc=[lc spex(index)];
+        iclast=spex(index);
     end
 end
 
@@ -146,7 +146,7 @@ shrink(ah,1,2)
 axes(ah(3))
 al=legend(p([iplast irlast itlast iclast],3),{'Planitiae','Regiones','Tesserae','Coronae'});
 
-% Take off those you did NOT pick
+% Take off those you did NOT pick - from the proper index
 if indr==1
     delete([        p(lt,:)' p(lr,:)' p(lc,:)' ...
                     ec(lt,:)' ec(lr,:)' ec(lc,:)'])
@@ -163,7 +163,6 @@ else
     indr=0;
 end
 
-keyboard
 
 % Summarize
 disp(sprintf('%2.2i planitiae\n%2.2i tesserae\n%2.2i regiones\n%2.2i coronae',ip,it,ir,ic))
