@@ -92,11 +92,14 @@ rnames={'lava plain','lava plain','lava plain','tessera','tessera','corona','tes
 % Region names - only those plotted
 rnamespex=rnames(spex);
 
+% Feature callout - all
+fcallout={'Planitia','Tessera','Regio','Corona'};
+
 % Feature color
-cplanitia='b'; ip=0; lp=[];
-ctessera='r';  it=0; lt=[];
-ccorona='m';   ic=0; lc=[];
-cregio='g';    ir=0; lr=[];
+cone='b';   ip=0; lp=[];
+ctwo='r';   it=0; lt=[];
+cthree='m'; ic=0; lc=[];
+cfour='g';  ir=0; lr=[];
  
 % Colors
 set(p,'MarkerSize',2)
@@ -104,39 +107,39 @@ set(p,'MarkerEdgeColor',grey)
 set(ec,'Color',grey)
 
 for index=1:length(spex)
-    if strfind(rnamespex{index},'Planitia')
+    if strfind(rnamespex{index},fcallout{index})
         set(p(index,:),'Marker','s')
         set(p(index,:),'MarkerSize',3)
-        set(p(index,:),'MarkerFaceColor',cplanitia)
-        set(p(index,:),'MarkerEdgeColor',cplanitia)
-        set(ec(index,:),'Color',cplanitia)
+        set(p(index,:),'MarkerFaceColor',cone)
+        set(p(index,:),'MarkerEdgeColor',cone)
+        set(ec(index,:),'Color',cone)
         ip=ip+1;
         iplast=index;
         lp=[lp index];
-    elseif strfind(rnamespex{index},'Tessera')
+    elseif strfind(rnamespex{index},fcallout{index})
         set(p(index,:),'Marker','v')
         set(p(index,:),'MarkerSize',3)
-        set(p(index,:),'MarkerFaceColor',ctessera)
-        set(p(index,:),'MarkerEdgeColor',ctessera)
-        set(ec(index,:),'Color',ctessera)
+        set(p(index,:),'MarkerFaceColor',ctwo)
+        set(p(index,:),'MarkerEdgeColor',ctwo)
+        set(ec(index,:),'Color',ctwo)
         it=it+1;
         itlast=index;
         lt=[lt index];
-    elseif strfind(rnamespex{index},'Regio')
+    elseif strfind(rnamespex{index},fcallout{index})
         set(p(index,:),'Marker','^')
         set(p(index,:),'MarkerSize',3)
-        set(p(index,:),'MarkerFaceColor',cregio)
-        set(p(index,:),'MarkerEdgeColor',cregio)
-        set(ec(index,:),'Color',cregio)
+        set(p(index,:),'MarkerFaceColor',cfour)
+        set(p(index,:),'MarkerEdgeColor',cfour)
+        set(ec(index,:),'Color',cfour)
         ir=ir+1;
         irlast=index;
         lr=[lr index];
-    elseif strfind(rnamespex{index},'Corona')
+    elseif strfind(rnamespex{index},fcallout{index})
         set(p(index,:),'Marker','o')
         set(p(index,:),'MarkerSize',3)
-        set(p(index,:),'MarkerFaceColor',ccorona)
-        set(p(index,:),'MarkerEdgeColor',ccorona)
-        set(ec(index,:),'Color',ccorona)
+        set(p(index,:),'MarkerFaceColor',cthree)
+        set(p(index,:),'MarkerEdgeColor',cthree)
+        set(ec(index,:),'Color',cthree)
         ic=ic+1;
         iclast=index;
         lc=[lc index];
