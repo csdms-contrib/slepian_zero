@@ -94,8 +94,10 @@ rnamespex=rnames(spex);
 
 % Feature callout - all
 fcallout={'Planitia','Tessera','Regio','Corona'};
+% Feature callout - allnew
+fcallout={'lava plain','tessera','chasma','corona'};
 
-% Feature color
+% Feature color - need to streamline into arrays
 cone='b';   ip=0; lp=[];
 ctwo='r';   it=0; lt=[];
 cthree='m'; ic=0; lc=[];
@@ -106,6 +108,7 @@ set(p,'MarkerSize',2)
 set(p,'MarkerEdgeColor',grey)
 set(ec,'Color',grey)
 
+% Need to build in failsafe in case it comes up empty
 for index=1:length(spex)
     if strfind(rnamespex{index},fcallout{1})
         set(p(index,:),'Marker','s')
