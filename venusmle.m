@@ -107,7 +107,7 @@ set(p,'MarkerEdgeColor',grey)
 set(ec,'Color',grey)
 
 for index=1:length(spex)
-    if strfind(rnamespex{index},fcallout{index})
+    if strfind(rnamespex{index},fcallout{1})
         set(p(index,:),'Marker','s')
         set(p(index,:),'MarkerSize',3)
         set(p(index,:),'MarkerFaceColor',cone)
@@ -116,7 +116,7 @@ for index=1:length(spex)
         ip=ip+1;
         iplast=index;
         lp=[lp index];
-    elseif strfind(rnamespex{index},fcallout{index})
+    elseif strfind(rnamespex{index},fcallout{2})
         set(p(index,:),'Marker','v')
         set(p(index,:),'MarkerSize',3)
         set(p(index,:),'MarkerFaceColor',ctwo)
@@ -125,7 +125,7 @@ for index=1:length(spex)
         it=it+1;
         itlast=index;
         lt=[lt index];
-    elseif strfind(rnamespex{index},fcallout{index})
+    elseif strfind(rnamespex{index},fcallout{3})
         set(p(index,:),'Marker','^')
         set(p(index,:),'MarkerSize',3)
         set(p(index,:),'MarkerFaceColor',cfour)
@@ -134,7 +134,7 @@ for index=1:length(spex)
         ir=ir+1;
         irlast=index;
         lr=[lr index];
-    elseif strfind(rnamespex{index},fcallout{index})
+    elseif strfind(rnamespex{index},fcallout{4})
         set(p(index,:),'Marker','o')
         set(p(index,:),'MarkerSize',3)
         set(p(index,:),'MarkerFaceColor',cthree)
@@ -149,9 +149,10 @@ end
 % Tinize
 shrink(ah,1,2)
 
-% Legendize in order of occurrence
+% Legendize in order of occurrence counts
 axes(ah(3))
-al=legend(p([iplast irlast itlast iclast],3),{'Planitiae','Regiones','Tesserae','Coronae'});
+
+al=legend(p([iplast irlast itlast iclast],3),fcallout{[1 3 2 4]});
 
 % Take off those you did NOT pick - from the proper index
 if indr==1
