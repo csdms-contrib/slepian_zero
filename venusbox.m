@@ -20,7 +20,7 @@ defval('iftopo',1)
 if iftopo==1
     fname=fullfile(getenv('IFILES'),'VENUS/DATA/plmData/plmVenus_D-5_stats.mat');
 else
-    fname=fullfile(getenv('IFILES'),'VENUS/DATA/radarData/radVenus_D-5_stats.mat';
+    fname=fullfile(getenv('IFILES'),'VENUS/DATA/radarData/radVenus_D-5_stats.mat');
 end
 
 % Just work from what was saved, even though not quite a whole box plot
