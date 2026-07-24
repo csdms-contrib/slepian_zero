@@ -6,7 +6,8 @@ function venustats(id,iftopo,xyofs,xver)
 % INPUT
 %
 % id       A region id number
-% iftopo   1 It is topography, or else it is radar
+% iftopo   1 It is topography
+%          0 It is radar
 % xyofs    Tiny touch horizontal/vertical offset for colorbar if desired, in figure coordinates
 % xver     1 provide extra verification
 %          0 don't
@@ -22,7 +23,7 @@ defval('xver',1)
 if iftopo==1
     fname='/data1/fjsimons/IFILES/VENUS/DATA/plmData/plmVenus_D-5_stats.mat';
     colmap='kelicol';
-else
+else iftopo==0
     fname='/data1/fjsimons/IFILES/VENUS/DATA/radarData/radVenus_D-5_stats.mat';
     colmap='gray';
 end
@@ -49,7 +50,7 @@ if exist(fname)
     clf
     ah(1)=subplot(221);
     hi(1)=imagefnan([lonrDx(1), latrDx(2)],[lonrDx(2), latrDx(1)],...
-                    toporad,colmap,roundX(cax,1),[],1);   
+                    toporad,colmap,roundX(cax,1),[],~~iftopo);
     hold on
     pc=twoplot(XYr360,'k');
     hold off
@@ -59,7 +60,7 @@ if exist(fname)
     ah(1).YAxisLocation='left';
     ah(1).XAxisLocation='top';
 
-    [cb,cbx]=addcb('hor',cax,cax,colmap,roundX(sort([cax csx]),1),1);
+    [cb,cbx]=addcb('hor',cax,cax,colmap,roundX(sort([cax csx]),1),~~iftopo);
     movev(cb,-0.1)
     %cb.Position=[ah(1).Position(1) getpos(cb,[2 3 4])]+[xyofs 0 0];
     %cb.Position=[getpos(cb,1) getpos(ah(1),2) getpos(cb,3) getpos(ah(1),4)]
@@ -67,8 +68,8 @@ if exist(fname)
     cb.XAxisLocation='bottom';
     if iftopo==1
         cb.XLabel.String='elevation (m)';
-    else
-        cb.XLabel.String='radar brightness)';
+    else iftopo==0
+        cb.XLabel.String='radar brightness';
     end
     
     % Mask the data for plotting purposes
@@ -77,7 +78,7 @@ if exist(fname)
     % Make the plot of the rectangle with the regional mask
     ah(2)=subplot(223);
     hi(2)=imagefnan([lonrDx(1), latrDx(2)],[lonrDx(2), latrDx(1)],...
-                    toporad,colmap,roundX(cax,1),[],1);
+                    toporad,colmap,roundX(cax,1),[],~~iftopo);
     hold on
     pc=twoplot(XYr360,'k');
     hold off
