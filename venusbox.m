@@ -6,7 +6,8 @@ function varargout=venusbox(id,iftopo)
 % INPUT:
 %
 % id       A region id number
-% iftopo   1 It is topography, or else it is radar
+% iftopo   1 It is topography
+%          0 It is radar
 %
 % OUTPUT:
 %
@@ -26,7 +27,7 @@ if iftopo==1
     % Should have saved that in there, but didn't yet reran VENUSTATS quickly
     pc=   [-1.2697 -0.5850 -0.1817  0.3771 2.9456]*1e3;
     percx=[ 2.5    25      50      75     97];
-else
+else iftopo==0
     fname=fullfile(getenv('IFILES'),'VENUS/DATA/radarData/radVenus_D-5_stats.mat');
     % Should have saved that in there, but didn't yet reran VENUSTATS quickly
     pc=   [ 0    2.8284  3.4032  4.0180  5.6302]*1e4;
@@ -46,6 +47,7 @@ clf
 ah=gca;
 % Figure out some geometrics
 cdown=[length(s.mean):-1:1];
+cdown=1:length(s.mean);
 % Count down, box height, top and bottom
 shifs=cdown; tofs=0.3;
 strts=[shifs(:)+tofs shifs(:)-tofs];
@@ -68,13 +70,13 @@ hold off
 
 if iftopo==1
     xlabel='elevation (m)';
-else
+else iftopo==0
     xlabel='radar brightness)';
 end
 ylabel('region number')
 
 % Cosmetix
-set(pm,'LineWidth',2)
+set(pm,'LineWidth',1)
 set(ah,'YTick',1:5:77)
 set(ah,'XTick',pc)
 set(ah,'XTickLabel',percx)
