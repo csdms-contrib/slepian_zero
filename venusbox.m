@@ -18,9 +18,9 @@ defval('iftopo',1)
 
 % If you've done this before, note you always know there are 77 regions
 if iftopo==1
-    fname='/data1/fjsimons/IFILES/VENUS/DATA/plmData/plmVenus_D-5_stats.mat';
+    fname=fullfile(getenv('IFILES'),'VENUS/DATA/plmData/plmVenus_D-5_stats.mat');
 else
-    fname='/data1/fjsimons/IFILES/VENUS/DATA/radarData/radVenus_D-5_stats.mat';
+    fname=fullfile(getenv('IFILES'),'VENUS/DATA/radarData/radVenus_D-5_stats.mat';
 end
 
 % Just work from what was saved, even though not quite a whole box plot
