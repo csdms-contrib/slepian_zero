@@ -16,7 +16,7 @@ function varargout=venusbox(id,iftopo)
 % pd       Handles to the medians
 % psn       Handles to the standard deviations
 %
-% Last modified by fjsimons-at-alum.mit.edu, 07/24/2026
+% Last modified by fjsimons-at-alum.mit.edu, 07/31/2026
 
 defval('id',ceil(rand*77))
 defval('iftopo',1)
@@ -27,9 +27,9 @@ if iftopo==1
     % Should have saved that in there, but didn't yet reran VENUSTATS quickly
     pc=   [-1.2697 -0.5850 -0.1817  0.3771 2.9456]*1e3;
     percx=[ 2.5    25      50      75     97];
-else iftopo==0
+elseif iftopo==0
     fname=fullfile(getenv('IFILES'),'VENUS/DATA/radarData/radVenus_D-5_stats.mat');
-    % Should have saved that in there, but didn't yet reran VENUSTATS quickly
+    % Should have saved that in there, but didn't yet rerun VENUSTATS quickly
     pc=   [ 0    2.8284  3.4032  4.0180  5.6302]*1e4;
     percx=[ 2.5 25      50      75      97];
 end
@@ -69,9 +69,9 @@ pm(end+1)=plot([s.mean(id)     ; s.mean(id)  ],strts(id,:),'y');
 hold off
 
 if iftopo==1
-    xlabel='elevation (m)';
-else iftopo==0
-    xlabel='radar brightness)';
+    xlabel('elevation (m)')
+elseif iftopo==0
+    xlabel('radar brightness')
 end
 ylabel('region number')
 
