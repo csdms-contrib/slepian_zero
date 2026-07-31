@@ -76,12 +76,14 @@ end
 ylabel('region number')
 
 % Cosmetix
+axis tight
 set(pm,'LineWidth',1)
 set(ah,'YTick',1:5:77)
 set(ah,'XTick',pc)
 set(ah,'XTickLabel',percx)
 set(ah,'XGrid','on')
 longticks(ah)
+shrink(ah,2,1)
 
 % Optional output
 varns={ph,pm,pd,ps};
