@@ -96,6 +96,8 @@ rnamespex=rnames(spex);
 fcallout={'Planitia','Tessera','Regio','Corona'};
 % Feature callout - allnew
 fcallout={'lava plain','tessera','chasma','corona'};
+% chasma/corona
+% volcanicrise
 
 % Feature color - need to streamline into arrays
 cone='b';   ip=0; lp=[];
