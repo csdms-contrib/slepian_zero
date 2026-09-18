@@ -5,7 +5,7 @@ function varargout=venusbox(id,iftopo)
 %
 % INPUT:
 %
-% id       A region id number
+% id       A region id number for coloring, if 0 nothing special gets colored
 % iftopo   1 It is topography
 %          0 It is radar
 %
@@ -22,19 +22,18 @@ function varargout=venusbox(id,iftopo)
 defval('id',ceil(rand*77))
 defval('iftopo',1)
 
+% First and last for axis limits and inner ones for tick labels
+% Note that some whiskers may be cut off by this choice
+percx=[1 2.5    25      50      75     97.5 99];
 % If you've done this before, note you always know there are 77 regions
 if iftopo==1
     fname=fullfile(getenv('IFILES'),'VENUS/DATA/plmData/plmVenus_D-5_stats.mat');
-    % Should have saved that in there, but didn't yet rerun VENUSTATS quickly
-    percx=[ 2.5    25      50      75     97];
     % The below is prctile(torareg,percx) which we didn't save in VENUSTATS
-    pc=   [-1.2697 -0.5850 -0.1817  0.3771 2.9456]*1e3;
+    pc=   [-1.4587 -1.2697 -0.5850 -0.1817 0.3771  2.9456 3.5843]*1e3;
 elseif iftopo==0
     fname=fullfile(getenv('IFILES'),'VENUS/DATA/radarData/radVenus_D-5_stats.mat');
-    % Should have saved that in there, but didn't yet rerun VENUSTATS quickly
-    percx=[ 2.5 25      50      75      97];
     % The below is prctile(torareg,percx) which we didn't save in VENUSTATS
-    pc=   [ 1.7734  2.9020  3.4410  4.0472 5.5458]*1e4;
+    pc=   [1.4032  1.7734  2.9020  3.4410 4.0472  5.6508  6.0971]*1e4;
 end
 
 % Just work from what was saved, even though not quite a whole box plot
@@ -66,14 +65,20 @@ pd=plot([s.median ; s.median],strts','k');
 pm=plot([s.mean   ; s.mean  ],strts','b');
 
 % Plot one more, the special one
-ps(end+1)=plot([s.mean(id)-2*sqrt(s.variance(id)) ; s.mean(id)+2*sqrt(s.variance(id))],[id ; id],'b');
-ph(end+1)=fillbox([s.p25(id) s.p75(id) strts(id,:)],'b');
-pd(end+1)=plot([s.median(id)   ; s.median(id)],strts(id,:),'r');
-pm(end+1)=plot([s.mean(id)     ; s.mean(id)  ],strts(id,:),'y');
-hold off
+if id>0
+    ps(end+1)=plot([s.mean(id)-2*sqrt(s.variance(id)) ; s.mean(id)+2*sqrt(s.variance(id))],[id ; id],'b');
+    ph(end+1)=fillbox([s.p25(id) s.p75(id) strts(id,:)],'b');
+    pd(end+1)=plot([s.median(id)   ; s.median(id)],strts(id,:),'r');
+    pm(end+1)=plot([s.mean(id)     ; s.mean(id)  ],strts(id,:),'y');
+    hold off
+end
 
 if iftopo==1
     xlabel('elevation (m)')
+    % Maxwell Mons is the odd one out
+    hold on
+    text(pc(end),42,'\rightarrow','horizontalalignment','right','FontWeight','bold')
+    hold off
 elseif iftopo==0
     xlabel('radar brightness')
     set(ah,'yaxislocation','right')
@@ -83,11 +88,12 @@ ylabel('region number')
 % Cosmetix
 axis tight
 ylim([0 78])
-xlim([0 78])
+xlim([pc(1) pc(end)])
+% xlim([0 78])
 set(pm,'LineWidth',1)
 set(ah,'YTick',1:5:77)
-set(ah,'XTick',pc)
-set(ah,'XTickLabel',percx)
+set(ah,'XTick',pc(2:end-1))
+set(ah,'XTickLabel',percx(2:end-1))
 set(ah,'XGrid','on')
 longticks(ah,2)
 shrink(ah,2,1)
