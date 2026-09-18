@@ -16,7 +16,8 @@ function varargout=venusbox(id,iftopo)
 % pd       Handles to the medians
 % psn      Handles to the standard deviations
 %
-% Last modified by fjsimons-at-alum.mit.edu, 07/31/2026
+% Last modified by fjsimons-at-alum.mit.edu, 09/18/2026
+% Last modified by olwalbert-at-princeton.edu, 09/18/2026
 
 defval('id',ceil(rand*77))
 defval('iftopo',1)
@@ -24,19 +25,22 @@ defval('iftopo',1)
 % If you've done this before, note you always know there are 77 regions
 if iftopo==1
     fname=fullfile(getenv('IFILES'),'VENUS/DATA/plmData/plmVenus_D-5_stats.mat');
-    % Should have saved that in there, but didn't yet reran VENUSTATS quickly
-    pc=   [-1.2697 -0.5850 -0.1817  0.3771 2.9456]*1e3;
+    % Should have saved that in there, but didn't yet rerun VENUSTATS quickly
     percx=[ 2.5    25      50      75     97];
+    % The below is prctile(torareg,percx) which we didn't save in VENUSTATS
+    pc=   [-1.2697 -0.5850 -0.1817  0.3771 2.9456]*1e3;
 elseif iftopo==0
     fname=fullfile(getenv('IFILES'),'VENUS/DATA/radarData/radVenus_D-5_stats.mat');
     % Should have saved that in there, but didn't yet rerun VENUSTATS quickly
-    pc=   [ 0    2.8284  3.4032  4.0180  5.6302]*1e4;
     percx=[ 2.5 25      50      75      97];
+    % The below is prctile(torareg,percx) which we didn't save in VENUSTATS
+    pc=   [ 1.7734  2.9020  3.4410  4.0472 5.5458]*1e4;
 end
 
 % Just work from what was saved, even though not quite a whole box plot
 if exist(fname)
     % Make sure you don't load all the actual global data, definitely not for radar
+    % Save time by not loading torareg
     load(fname,'s')
 else
     error('Run VENUSTATS first!')
@@ -78,6 +82,8 @@ ylabel('region number')
 
 % Cosmetix
 axis tight
+ylim([0 78])
+xlim([0 78])
 set(pm,'LineWidth',1)
 set(ah,'YTick',1:5:77)
 set(ah,'XTick',pc)
