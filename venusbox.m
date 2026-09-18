@@ -72,6 +72,7 @@ if iftopo==1
     xlabel('elevation (m)')
 elseif iftopo==0
     xlabel('radar brightness')
+    set(ah,'yaxislocation','right')
 end
 ylabel('region number')
 
@@ -82,7 +83,7 @@ set(ah,'YTick',1:5:77)
 set(ah,'XTick',pc)
 set(ah,'XTickLabel',percx)
 set(ah,'XGrid','on')
-longticks(ah)
+longticks(ah,2)
 shrink(ah,2,1)
 
 % Optional output
