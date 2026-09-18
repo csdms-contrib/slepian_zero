@@ -32,6 +32,7 @@ if exist(fname)
     [DxDy,lonrDx,latrDx,XYr360,toporad,in]=loaditmakeit(id,iftopo);
 
     % Load the prepared global stats file - and the data union of all regions
+    % You will get the variables s, toraind and torareg
     load(fname)
     disp(sprintf('Loading global statistics and data file\n%s',fname))
 
@@ -118,10 +119,12 @@ else
     % Look over the regions once to collect all the patches in their projections
     for index=1:77
         [DxDy,lonrDx,latrDx,XYr360,toporad,in]=loaditmakeit(index,iftopo);
+
         % Preserve the indices
         toraind=[toraind ; toraind(end)+1 ; toraind(end)+sum(in(:))];
         % Collect all the flattened regional data for the global stats
         torareg=[torareg ; toporad(in(:))];
+
         if xver==1
             % Collect, say the region means, see ROW2STATS later
             mPoly=[mPoly ; nanmean(toporad(in(:)))];
@@ -144,11 +147,11 @@ else
     end
 
     % Save for later usage
-    try
-        save(fname,'s','torareg','toraind')
-    catch
-        save(fname,'s','torareg','toraind','-v7.3')
-    end
+    %    try
+    %    save(fname,'s','torareg','toraind')
+    %catch
+    save(fname,'s','torareg','toraind','-v7.3')
+    %end
 end
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -214,7 +217,10 @@ if iftopo==1
     toporad=eval(sprintf('V%4.4i_03.dataP.dp',index));
 else
     toporad=eval(sprintf('V%4.4i_03.rp',index));
+    % Censor data that are "zero" brightness
+    toporad(toporad==0)=NaN;
 end
+
 % Save future output in a hash
 fname=fullfile(getenv('IFILES'),'HASHES',hash([index iftopo],'SHA-256'));
 
@@ -228,4 +234,3 @@ else
     in=inpolygon(Glon,Glat,XYr360(:,1),XYr360(:,2));
     save(fname,'in')
 end
-
