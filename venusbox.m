@@ -14,7 +14,7 @@ function varargout=venusbox(id,iftopo)
 % ph       Handles to the boxes
 % pm       Handles to the means
 % pd       Handles to the medians
-% psn       Handles to the standard deviations
+% psn      Handles to the standard deviations
 %
 % Last modified by fjsimons-at-alum.mit.edu, 07/31/2026
 

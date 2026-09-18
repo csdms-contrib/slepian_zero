@@ -1,18 +1,27 @@
-function venustats(id,iftopo,xyofs,xver)
-% VENUSTATS(id,iftopo,xyofs,xver)
+function varargout=venustats(id,iftopo,xyofs,xver,s,torareg)
+% [s,torareg]=VENUSTATS(id,iftopo,xyofs,xver)
 %
 % Plots Venus topography data and provides basic global stats
 %
-% INPUT
+% INPUT:
 %
 % id       A region id number
-% iftopo   1 It is topography
-%          0 It is radar
+% iftopo   1 It is topography, or else it is radar
 % xyofs    Tiny touch horizontal/vertical offset for colorbar if desired, in figure coordinates
 % xver     1 provide extra verification
 %          0 don't
+% s        Regionalized stats file if you have it 
+% torareg  Global data file if you have it
 %
-% Last modified by fjsimons-at-alum.mit.edu, 07/01/2026
+% OUTPUT:
+%
+% s        Regionalized stats file if you want it
+% torareg  Global data file if you want it
+%
+% Last modified by olwalbert-at-princeton.edu, 09/11/2026
+% Last modified by fjsimons-at-alum.mit.edu, 09/11/2026
+
+% get 'innerposition' then set it
 
 defval('id',ceil(rand*77))
 defval('iftopo',1)
@@ -23,7 +32,7 @@ defval('xver',1)
 if iftopo==1
     fname='/data1/fjsimons/IFILES/VENUS/DATA/plmData/plmVenus_D-5_stats.mat';
     colmap='kelicol';
-else iftopo==0
+else
     fname='/data1/fjsimons/IFILES/VENUS/DATA/radarData/radVenus_D-5_stats.mat';
     colmap='gray';
 end
@@ -32,9 +41,12 @@ if exist(fname)
     % Load just the data you need
     [DxDy,lonrDx,latrDx,XYr360,toporad,in]=loaditmakeit(id,iftopo);
 
-    % Load the prepared global stats file - and the data union of all regions
-    load(fname)
-    disp(sprintf('Loading global statistics and data file\n%s',fname))
+    if  ~exist('s','var') || ~exist('torareg','var')
+        % Load the prepared global stats file - and the data union of all regions
+        % You will get the variables s, toraind and torareg
+        load(fname)
+        disp(sprintf('Loading global statistics and data file\n%s',fname))
+    end
 
     % Trust, but verify
     if xver==1
@@ -50,7 +62,8 @@ if exist(fname)
     clf
     ah(1)=subplot(221);
     hi(1)=imagefnan([lonrDx(1), latrDx(2)],[lonrDx(2), latrDx(1)],...
-                    toporad,colmap,roundX(cax,1),[],~~iftopo);
+                    toporad,colmap,roundX(cax,1),[],iftopo);
+
     hold on
     pc=twoplot(XYr360,'k');
     hold off
@@ -60,7 +73,7 @@ if exist(fname)
     ah(1).YAxisLocation='left';
     ah(1).XAxisLocation='top';
 
-    [cb,cbx]=addcb('hor',cax,cax,colmap,roundX(sort([cax csx]),1),~~iftopo);
+    [cb,cbx]=addcb('hor',cax,cax,colmap,roundX(sort([cax csx]),1),iftopo);
     movev(cb,-0.1)
     %cb.Position=[ah(1).Position(1) getpos(cb,[2 3 4])]+[xyofs 0 0];
     %cb.Position=[getpos(cb,1) getpos(ah(1),2) getpos(cb,3) getpos(ah(1),4)]
@@ -68,8 +81,8 @@ if exist(fname)
     cb.XAxisLocation='bottom';
     if iftopo==1
         cb.XLabel.String='elevation (m)';
-    else iftopo==0
-        cb.XLabel.String='radar brightness';
+    else
+        cb.XLabel.String='radar brightness)';
     end
     
     % Mask the data for plotting purposes
@@ -78,7 +91,7 @@ if exist(fname)
     % Make the plot of the rectangle with the regional mask
     ah(2)=subplot(223);
     hi(2)=imagefnan([lonrDx(1), latrDx(2)],[lonrDx(2), latrDx(1)],...
-                    toporad,colmap,roundX(cax,1),[],~~iftopo);
+                    toporad,colmap,roundX(cax,1),[],iftopo);
     hold on
     pc=twoplot(XYr360,'k');
     hold off
@@ -119,10 +132,12 @@ else
     % Look over the regions once to collect all the patches in their projections
     for index=1:77
         [DxDy,lonrDx,latrDx,XYr360,toporad,in]=loaditmakeit(index,iftopo);
+
         % Preserve the indices
         toraind=[toraind ; toraind(end)+1 ; toraind(end)+sum(in(:))];
         % Collect all the flattened regional data for the global stats
         torareg=[torareg ; toporad(in(:))];
+
         if xver==1
             % Collect, say the region means, see ROW2STATS later
             mPoly=[mPoly ; nanmean(toporad(in(:)))];
@@ -145,12 +160,16 @@ else
     end
 
     % Save for later usage
-    try
-        save(fname,'s','torareg','toraind')
-    catch
-        save(fname,'s','torareg','toraind','-v7.3')
-    end
+    %    try
+    %    save(fname,'s','torareg','toraind')
+    %catch
+    save(fname,'s','torareg','toraind','-v7.3')
+    %end
 end
+
+% Optional output
+varns={s,torareg};
+varargout=varns(1:nargout);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function hh=histit(data,bins,lc,rc,pc,perx,ifc,iftopo)
@@ -177,17 +196,19 @@ yels=ylim; ylim(roundX(yels,log10(0.05)))
 grid on
 hold on
 
-if ifc
-    % Find the bin that most likely contains 0
-    [~,fm]=min(abs(bc));
-    ps=plot(0,hv(fm)/sum(hv),'o','MarkerSize',3,'MarkerFaceColor','y');
-    hold off
-else
-    % Zero lies on a vertex, faking it a little
-    [hv,bc]=hist(data,bins);
-    [~,fm]=min(abs(bc));
-    ps=plot(0,hv(fm)/sum(hv),'o','MarkerSize',3,'MarkerFaceColor','y');
-    hold off
+if iftopo==1
+    if ifc
+        % Find the bin that most likely contains 0
+        [~,fm]=min(abs(bc));
+        ps=plot(0,hv(fm)/sum(hv),'o','MarkerSize',3,'MarkerFaceColor','y');
+        hold off
+    else
+        % Zero lies on a vertex, faking it a little
+        [hv,bc]=hist(data,bins);
+        [~,fm]=min(abs(bc));
+        ps=plot(0,hv(fm)/sum(hv),'o','MarkerSize',3,'MarkerFaceColor','y');
+        hold off
+    end
 end
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -215,7 +236,10 @@ if iftopo==1
     toporad=eval(sprintf('V%4.4i_03.dataP.dp',index));
 else
     toporad=eval(sprintf('V%4.4i_03.rp',index));
+    % Censor data that are "zero" brightness
+    toporad(toporad==0)=NaN;
 end
+
 % Save future output in a hash
 fname=fullfile(getenv('IFILES'),'HASHES',hash([index iftopo],'SHA-256'));
 
@@ -229,4 +253,3 @@ else
     in=inpolygon(Glon,Glat,XYr360(:,1),XYr360(:,2));
     save(fname,'in')
 end
-
